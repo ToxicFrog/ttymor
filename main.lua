@@ -3,23 +3,31 @@ require 'tty'
 require 'game'
 require 'ecs'
 
-game.new()
+local player, map
 
-local player = game.add {
-  id = 1;
-  name = "Player";
-  Component "ui" {};
-  Component "position" {};
-  Component "render" { face = "@" };
-}
+if not ... then
+  game.new()
 
-local map = game.add {
-  name = "Level 1";
-  Component "map" { w=100, h=100 };
-}
+  player = game.add {
+    id = 1;
+    name = "Player";
+    Component "ui" {};
+    Component "position" {};
+    Component "render" { face = "@" };
+  }
 
-map:generate()
-player:moveTo(10, 11, map)
+  map = game.add {
+    name = "Level 1";
+    Component "map" { w=100, h=100 };
+  }
+
+  map:generate()
+  player:moveTo(10, 11, map)
+else
+  game.load(...)
+  player = game.get(1)
+  map = game.get(2)
+end
 
 function main(...)
   sw,sh = tty.init()

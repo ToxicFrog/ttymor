@@ -4,7 +4,6 @@
 local map = {}
 
 function map:generate(ent)
-  print("generating map")
   self.entities = {}
   for x=1,self.w do
     self[x] = {}
@@ -48,7 +47,6 @@ function map:render(ent, view, cx, cy)
   tty.put(1, 1, view.dx .. "," .. view.dy)
 
   for id,ent in pairs(self.entities) do
-    print(id, ent)
     ent:render(view)
   end
 end

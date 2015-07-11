@@ -1,3 +1,5 @@
+local repr = require "repr"
+
 -- Core implementation of the entity-component system.
 local Entity_MT = {}
 function Entity(data)
@@ -27,21 +29,24 @@ function Entity_MT:__tostring()
   return "[%d]Entity[%s]" % { self.id or 0, self.name or "" }
 end
 
+function Entity_MT:__repr(...)
+  return "Entity %s" % repr.rawrepr(self, ...)
+end
+
 function Component(name)
   local impl = require("components."..name)
   assert(type(impl) == 'table')
   impl._NAME = impl._NAME or name
   impl._MT = impl._MT or {
     __index = impl;
-    __repr = function(component)
-      return "Component '%s' { --[[FIXME]] }" % impl._NAME
+    __repr = function(data, ...)
+      return "Component '%s' %s" % { impl._NAME, repr.rawrepr(data, ...) }
     end;
-    __tostring = function(component)
-      return "Component[%s]" % name
+    __tostring = function(data)
+      return "Component[%s]" % impl._NAME
     end;
   }
   return function(data)
     return setmetatable(data, impl._MT)
   end
 end
-

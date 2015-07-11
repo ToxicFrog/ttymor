@@ -1,3 +1,5 @@
+local repr = require "repr"
+
 game = {}
 
 local entities = {}
@@ -11,7 +13,7 @@ function game.load(file)
 end
 
 function game.save(file)
-  io.writefile(file, table.dump(entities))
+  io.writefile(file, "return "..repr.repr(entities))
 end
 
 function game.add(entity)
@@ -22,35 +24,38 @@ function game.add(entity)
 end
 
 function game.get(id)
-  return game.ref(assert(entity[id], "no such entity: %d" % id))
+  return game.ref(assert(entities[id], "no such entity: %d" % id))
 end
 
-local function ref_repr(self)
-  return 'game.ref(%d)' % self.id
+local function ref_index(ref, k)
+  return entities[ref.id][k]
+end
+
+local function ref_repr(ref)
+  return 'game.ref(%d)' % ref.id
 end
 
 local function ref_ipairs(ref)
-  return ipairs(getmetatable(ref).__index)
+  return ipairs(entities[ref.id])
 end
 
 local function ref_pairs(ref)
-  return pairs(getmetatable(ref).__index)
+  return pairs(entities[ref.id])
 end
+
+local function ref_tostring(ref)
+  return "Ref[%s]" % entities[ref.id]
+end
+
+local ref_mt = {
+  __repr = ref_repr;
+  __tostring = ref_tostring;
+  __pairs = ref_pairs;
+  __ipairs = ref_ipairs;
+  __index = ref_index;
+}
 
 function game.ref(id)
-  assert(entities[id])
-  return setmetatable({ _REF = true }, {
-    __index = entities[id];
-    __repr = ref_repr;
-    __pairs = ref_pairs;
-    __ipairs = ref_ipairs;
-    __tostring = function(ref)
-      return "Ref[%s]" % tostring(getmetatable(ref).__index)
-    end;
-  })
-end
-
-function game.deref(ref)
-  assert(rawget(ref, "_REF"))
-  return getmetatable(ref).__index
+  if type(id) ~= 'number' then return game.ref(id.id) end
+  return setmetatable({ _REF = true; id = id; }, ref_mt)
 end
