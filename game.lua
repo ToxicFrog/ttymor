@@ -3,9 +3,18 @@ local repr = require "repr"
 game = {}
 
 local entities = {}
+local log = {}
 
 function game.new()
   entities = {}
+end
+
+function game.log(line, ...)
+  table.insert(log, line:format(...))
+end
+
+function game.getLog()
+  return log
 end
 
 function game.load(file)
@@ -24,7 +33,11 @@ function game.add(entity)
 end
 
 function game.get(id)
-  return game.ref(assert(entities[id], "no such entity: %d" % id))
+  if type(id) == 'number' then
+    return game.ref(assert(entities[id], "no such entity: %d" % id))
+  else
+    error("Invalid argument %s to game.get" % name)
+  end
 end
 
 local function ref_index(ref, k)

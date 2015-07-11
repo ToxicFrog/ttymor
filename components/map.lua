@@ -55,10 +55,12 @@ function map:render_screen(ent, view, cx, cy)
 end
 
 function map:placeAt(ent, object, x, y)
+  game.log("%s:placeAt(%s, %d, %d)", ent, object, x, y)
   table.insert(self[x][y], object)
 end
 
 function map:removeFrom(ent, object, x, y)
+  game.log("%s:removeFrom(%s, %d, %d)", ent, object, x, y)
   local i,objs = 1,self[x][y]
   local removals = 0
   while i <= #objs do
