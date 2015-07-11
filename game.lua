@@ -44,7 +44,7 @@ local function ref_pairs(ref)
 end
 
 local function ref_tostring(ref)
-  return "Ref[%s]" % entities[ref.id]
+  return "Ref[%s]" % tostring(entities[ref.id])
 end
 
 local ref_mt = {
@@ -56,6 +56,9 @@ local ref_mt = {
 }
 
 function game.ref(id)
-  if type(id) ~= 'number' then return game.ref(id.id) end
+  assert(id, "no argument passed to game.ref")
+  if type(id) ~= 'number' then
+    return game.ref(id.id)
+  end
   return setmetatable({ _REF = true; id = id; }, ref_mt)
 end

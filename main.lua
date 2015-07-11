@@ -22,7 +22,8 @@ if not ... then
   }
 
   map:generate()
-  player:moveTo(10, 11, map)
+  player:setMap(map)
+  player:moveTo(10, 11)
 else
   game.load(...)
   player = game.get(1)

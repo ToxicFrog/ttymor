@@ -13,7 +13,7 @@ function ui:render_screen(ent, w, h)
     dx = 0; y = 0;
     w = w; h = h;
   }
-  map:render(screen, x, y)
+  map:render_screen(screen, x, y)
   tty.move(x+screen.dx,y+screen.dy)
   tty.ctm(0,0)
   tty.flip()
