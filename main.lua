@@ -14,6 +14,7 @@ if not ... then
     Component "ui" {};
     Component "position" {};
     Component "render" { face = "@" };
+    Component "control" {};
   }
 
   map = game.add {
@@ -34,20 +35,7 @@ function main(...)
   sw,sh = tty.init()
   while true do
     player:render_screen(sw, sh)
-    local cmd = io.read(1)
-    local x,y = player:position()
-    if cmd == 'q' then
-      game.save("test.sav")
-      break
-    elseif cmd == 'w' then
-      player:move(0, -1)
-    elseif cmd == 's' then
-      player:move(0, 1)
-    elseif cmd == 'a' then
-      player:move(-1, 0)
-    elseif cmd == 'd' then
-      player:move(1, 0)
-    end
+    player:turn()
   end
 end
 
@@ -56,5 +44,10 @@ function error_handler(...)
   print(debug.traceback(..., 2))
 end
 
+function shutdown()
+  tty.deinit()
+  os.exit(0)
+end
+
 xpcall(main, error_handler, ...)
-tty.deinit()
+shutdown()
