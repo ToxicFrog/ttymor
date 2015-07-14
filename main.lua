@@ -2,6 +2,7 @@ require 'util'
 require 'tty'
 require 'game'
 require 'ecs'
+require 'ui'
 
 local player, map
 
@@ -11,7 +12,6 @@ if not ... then
   player = game.add {
     id = 1;
     name = "Player";
-    Component "ui" {};
     Component "position" {};
     Component "render" { face = "@" };
     Component "control" {};
@@ -32,9 +32,9 @@ else
 end
 
 function main(...)
-  sw,sh = tty.init()
+  tty.init()
   while true do
-    player:render_screen(sw, sh)
+    ui.draw(player)
     player:turn()
   end
 end
