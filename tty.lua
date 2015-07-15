@@ -5,7 +5,10 @@ local stack = {}
 local top = nil
 
 -- Buffer for current frame.
-local buf = ""
+local buf = {}
+
+-- position of cursor
+local X,Y = 0,0
 
 -- Initialize the tty.
 function tty.init()
@@ -32,8 +35,8 @@ function tty.size()
 end
 
 function tty.flip()
-  io.write(buf)
-  buf = ""
+  io.write(table.concat(buf, ""))
+  buf = {}
 end
 
 local function in_bounds(x, y)
@@ -64,23 +67,24 @@ function tty.clear()
 end
 
 function tty.csi(command, ...)
-  buf = buf .. '\x1B[' .. table.concat({...}, ';') .. command
+  buf[#buf+1] = '\x1B[' .. table.concat({...}, ';') .. command
 end
 
 function tty.put(x, y, text)
   tty.move(x,y)
-  buf = buf .. text
+  buf[#buf+1] = text
 end
 
 function tty.move(x, y)
+  if x == X and y == Y then return end
   -- Check that the new cursor position is within the bounds of the current drawing
   -- window. A check in tty.pushwin() ensures that the window itself is valid.
   assert(in_bounds(x, y), "out of bounds draw")
   -- This is where the transformation from logical to screen coordinates happens.
   -- The TTY uses a (1,1) origin, so we add 1 to both values after applying the
   -- CTM, and the H command is in (row,column) order, so we flip the arguments.
-  x,y = x+top.x+1,y+top.y+1
-  tty.csi('H', y, x)
+  X,Y = x+top.x+1,y+top.y+1
+  tty.csi('H', Y, X)
 end
 
 function tty.colour(r,g,b, br,bg,bb)
