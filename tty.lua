@@ -97,22 +97,3 @@ end
 function tty.bgcolour(r,g,b)
   tty.csi('m', 48, 2, r, g, b)
 end
-
--- Draw a box with the upper left corner at (x,y)
-function tty.box(x, y, w, h)
-  tty.put(x, y, "┏"..("━"):rep(w-2).."┓")
-  for row=y+1,y+h-2 do
-    tty.put(x, row, "┃"..(" "):rep(w-2).."┃")
-  end
-  tty.put(x, y+h-1, "┗"..("━"):rep(w-2).."┛")
-end
-
-function tty.hline(row)
-  tty.put(0, row, ("━"):rep(top.w))
-end
-
-function tty.vline(col)
-  for i=1,top.h do
-    tty.put(col, i-1, "┃")
-  end
-end

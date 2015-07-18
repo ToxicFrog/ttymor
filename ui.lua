@@ -9,6 +9,7 @@ function ui.draw(player)
   local t = os.clock()
 
   local w,h = tty.size()
+  tty.colour(255, 255, 255, 0, 0, 0)
   tty.clear()
   local x,y,map = player:position()
 
@@ -30,14 +31,14 @@ function ui.draw(player)
 
   tty.colour(255, 255, 255, 0, 0, 0)
   tty.colour(0, 0, 0, 255, 255, 255)
-  tty.vline(map_win.x-1)
-  tty.vline(log_win.x-1)
+  ui.vline(map_win.x-1)
+  ui.vline(log_win.x-1)
 
   last_init = os.clock()
 
   tty.pushwin(hud_win)
   tty.colour(0, 0, 0, 255, 0, 0)
-  tty.box(0, 0, hud_win.w, hud_win.h)
+  ui.box(0, 0, hud_win.w, hud_win.h)
   tty.popwin()
 
   last_hud = os.clock()
@@ -68,4 +69,25 @@ function ui.draw(player)
   last_log = last_log - last_hud
   last_hud = last_hud - last_init
   last_init = last_init - t
+end
+
+-- Draw a box with the upper left corner at (x,y)
+function ui.box(x, y, w, h)
+  tty.put(x, y, "┏"..("━"):rep(w-2).."┓")
+  for row=y+1,y+h-2 do
+    tty.put(x, row, "┃"..(" "):rep(w-2).."┃")
+  end
+  tty.put(x, y+h-1, "┗"..("━"):rep(w-2).."┛")
+end
+
+function ui.hline(row)
+  local w,h = tty.size()
+  tty.put(0, row, ("━"):rep(w))
+end
+
+function ui.vline(col)
+  local w,h = tty.size()
+  for i=1,h do
+    tty.put(col, i-1, "┃")
+  end
 end
