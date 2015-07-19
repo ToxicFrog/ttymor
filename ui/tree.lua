@@ -88,10 +88,15 @@ function Tree:render()
   local y = 1
   local h = self:height()
 
+  ui.box(self.view)
+  tty.pushwin(self.view)
+
   for node,depth in self:walk() do
     node:render(2+depth, y)
     y = y+1
   end
+
+  tty.popwin()
 end
 
 function Tree:call_handler(node, key)
@@ -108,6 +113,13 @@ function Tree:call_handler(node, key)
     return error("no handler in tree for %s -- wanted function, got %s (node) and %s (tree)" % {
         name, type(node[key]), type(self[key])})
   end
+end
+
+function Tree:run()
+  repeat
+    self:render()
+    local R = self:call_handler(self.selected, ui.readkey())
+  until R ~= nil
 end
 
 local bindings = {
@@ -142,23 +154,14 @@ local function setup_tree(tree)
   last.next = tree[1]
   tree[1].prev = last
 
-  return tree.w,tree.h
+  tree.view = ui.centered(tree.w+4,tree.h+2)
+  return tree
 end
 
 function ui.tree(tree)
-  local w,h = setup_tree(tree)
-  local view = ui.centered(w+4,h+2)
+  return setup_tree(tree):run()
+end
 
-  while true do
-
-    ui.box(view)
-    tty.pushwin(view)
-    tree:render()
-    tty.popwin()
-
-    local R = tree:call_handler(tree.selected, ui.readkey())
-    if R ~= nil then
-      return R
-    end
-  end
+function ui.Tree(tree)
+  return setup_tree(tree)
 end
