@@ -76,6 +76,10 @@ end
 
 -- Draw a box with the upper left corner at (x,y)
 function ui.box(x, y, w, h)
+  if type(x) == 'table' then
+    return ui.box(x.x, x.y, x.w, x.h)
+  end
+
   tty.put(x, y, "┏"..("━"):rep(w-2).."┓")
   for row=y+1,y+h-2 do
     tty.put(x, row, "┃"..(" "):rep(w-2).."┃")
@@ -93,4 +97,13 @@ function ui.vline(col)
   for i=1,h do
     tty.put(col, i-1, "┃")
   end
+end
+
+function ui.centered(w, h)
+  local sw,sh = tty.size()
+  return {
+    w = w; h = h;
+    x = math.floor((sw-w)/2);
+    y = math.floor((sh-h)/2);
+  }
 end

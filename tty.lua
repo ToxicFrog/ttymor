@@ -50,8 +50,8 @@ function tty.pushwin(win, y, w, h)
     return tty.pushwin { x=win, y=y, w=w, h=h }
   end
   -- Check that the window is fully in bounds.
-  assert(in_bounds(win.x, win.y), "window position out of bounds")
-  assert(in_bounds(win.x + win.w, win.y + win.h), "window size out of bounds")
+  assert(in_bounds(win.x, win.y), "window position out of bounds: %d,%d" % {win.x, win.y})
+  assert(in_bounds(win.x + win.w, win.y + win.h), "window size out of bounds: %dx%d > %dx%d" % {win.w, win.h, top.w, top.h})
   table.insert(stack, win)
   top = win
 end
@@ -79,7 +79,7 @@ function tty.move(x, y)
   if x == X and y == Y then return end
   -- Check that the new cursor position is within the bounds of the current drawing
   -- window. A check in tty.pushwin() ensures that the window itself is valid.
-  assert(in_bounds(x, y), "out of bounds draw")
+  assert(in_bounds(x, y), "out of bounds draw: %d,%d" % {x,y})
   -- This is where the transformation from logical to screen coordinates happens.
   -- The TTY uses a (1,1) origin, so we add 1 to both values after applying the
   -- CTM, and the H command is in (row,column) order, so we flip the arguments.
@@ -119,7 +119,7 @@ end
 
 keynames['\t'] = 'tab'
 keynames['\n'] = 'enter'
-keynames['\r'] = 'return'
+keynames['\r'] = 'enter'
 
 local function keyname(k) return keynames[k] or k end
 

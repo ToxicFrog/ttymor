@@ -25,12 +25,12 @@ function control:turn(ent)
   elseif cmd == 'key:T' then
     tty.colour(0, 255, 255)
     tty.bgcolour(0, 0, 0)
-    ui.tree {
+    local node = ui.tree {
       text = "TOP LEVEL DO NOT DISPLAY";
       { text = "save game" };
       { text = "load game" };
       { text = "quit game" };
-      { text = "options";
+      { text = "options"; expanded = true;
         { text = "sound" };
         { text = "music" };
         { text = "tiles" };
@@ -40,7 +40,7 @@ function control:turn(ent)
         };
       };
     }
-    ui.readkey()
+    assert(node)
   else
     game.log('command: %s', cmd)
   end

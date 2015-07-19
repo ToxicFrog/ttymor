@@ -10,6 +10,7 @@ local defaults = {
   descend = '>';
   menu = 'esc';
   quit = 'Q';
+  enter = 'enter';
 }
 
 local function install_bindings(settings)
@@ -21,6 +22,7 @@ local function install_bindings(settings)
 end
 
 function ui.readkey()
+  tty.flip()
   local key = tty.readkey()
   return bindings[key] or 'key:'..key
 end
