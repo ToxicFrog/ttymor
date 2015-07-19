@@ -1,5 +1,8 @@
 ui = {}
 
+require 'ui.tree'
+require 'ui.keys'
+
 local last_init,last_hud,last_map,last_log,last_tty,last_frame = 0,0,0,0,0,0
 function ui.draw(player)
   game.log("        Log: %.3f TTY: %.3f", last_log, last_tty)
