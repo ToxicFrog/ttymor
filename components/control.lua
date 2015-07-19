@@ -40,7 +40,7 @@ function control:turn(ent)
         };
       };
     }
-    assert(node)
+    game.log("tree: %s", node.text)
   else
     game.log('command: %s', cmd)
   end

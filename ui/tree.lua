@@ -1,96 +1,164 @@
-local function dfs(tree)
-  local function dfs_walk(tree, depth)
-    for _,subtree in ipairs(tree) do
-      coroutine.yield(subtree, depth)
-      if subtree.expanded then
-        dfs_walk(subtree, depth+1)
-      end
-    end
-  end
-  return coroutine.wrap(dfs_walk),tree,0
-end
+local Node = {}
+Node.__index = Node
 
-local function render_node(node, x, y, selected)
-  if node.render then
-    return node:render(x,y,selected)
-  end
-  if selected then
+function Node:render(x, y)
+  if self.selected then
     -- tty.style('B')
     tty.put(x-1, y, '*')
     -- tty.style('b')
   end
-  if #node == 0 then
-    tty.put(x+1, y, node.text)
-  elseif node.expanded then
-    tty.put(x, y, '⊟'..node.text)
+  if #self == 0 then
+    tty.put(x+1, y, self.text)
+  elseif self.expanded then
+    tty.put(x, y, '⊟'..self.text)
   else
-    tty.put(x, y, '⊞'..node.text)
+    tty.put(x, y, '⊞'..self.text)
   end
 end
 
-local function setup_tree(tree, selected)
-  local w,h = 0,0
-  tree.selected = tree.selected or 1
-  for node,depth in dfs(tree) do
-    h = h+1
-    w = w:max(#node.text + depth + 1)
+function Node:expand()
+  if #self > 0 then
+    self.expanded = true
   end
-  return w,h
 end
 
-local function render_tree(tree, w, h, selected)
-  local selected_node = nil
-  local y = 1
-  for node,depth in dfs(tree) do
-    if y == selected then
-      render_node(node, 2+depth, y, true)
-      selected_node = node
-    else
-      render_node(node, 2+depth, y, false)
+function Node:collapse()
+  if #self > 0 and self.expanded then
+    self.expanded = false
+    if self:parent_of(self.tree.selected) then
+      self.tree:select(self)
     end
+  elseif self.parent then
+    return self.parent:collapse()
+  end
+end
+
+function Node:select()
+  return self
+end
+
+function Node:cancel()
+  return false
+end
+
+function Node:parent_of(node)
+  repeat
+    if node == self then return true end
+    node = node.parent
+  until not node
+  return false
+end
+
+local Tree = { w = 0; h = 0; max_h = 0; }
+Tree.__index = Tree
+
+function Tree:select(node)
+  self.selected.selected = false
+  self.selected = node
+  node.selected = true
+end
+
+function Tree:select_prev()
+  self:select(self.selected.prev)
+end
+
+function Tree:select_next()
+  self:select(self.selected.next)
+end
+
+function Tree:walk(include_collapsed)
+  local function dfs_walk(tree, depth)
+    for _,subtree in ipairs(tree) do
+      coroutine.yield(subtree, depth)
+      if subtree.expanded or include_collapsed then
+        dfs_walk(subtree, depth+1)
+      end
+    end
+  end
+  return coroutine.wrap(dfs_walk),self,0
+end
+
+function Tree:height()
+  local h = 0;
+  for _ in self:walk() do h = h+1 end
+  return h
+end
+
+function Tree:render()
+  local y = 1
+  local h = self:height()
+
+  for node,depth in self:walk() do
+    node:render(2+depth, y)
     y = y+1
   end
-  return selected_node
 end
 
-function ui.tree(tree, selected)
+function Tree:call_handler(node, key)
+  key = self.bindings[key]
+  if not key then return end
+
+  if type(key) == 'function' then
+    return key(self, node)
+  elseif type(node[key]) == 'function' then
+    return node[key](node, self)
+  elseif type(self[key]) == 'function' then
+    return self[key](self, node)
+  else
+    return error("no handler in tree for %s -- wanted function, got %s (node) and %s (tree)" % {
+        name, type(node[key]), type(self[key])})
+  end
+end
+
+local bindings = {
+  up = 'select_prev';
+  down = 'select_next';
+  left = 'collapse';
+  right = 'expand';
+  enter = 'select';
+  escape = 'cancel';
+  quit = 'cancel';
+}
+
+local function setup_tree(tree)
+  setmetatable(tree, Tree)
+  tree.bindings = setmetatable(tree.bindings or {}, {__index = bindings})
+  tree.selected = tree[1]
+  tree[1].selected = true
+
+  local stack = {}
+  local last = {}
+  for node,depth in tree:walk(true) do
+    tree.h = tree.h+1
+    tree.w = tree.w:max(#node.text + depth + 1)
+    setmetatable(node, Node)
+    stack[depth] = node
+    node.tree = tree
+    node.parent = stack[#stack-1]
+    node.prev = last
+    last.next = node
+    last = node
+  end
+  last.next = tree[1]
+  tree[1].prev = last
+
+  return tree.w,tree.h
+end
+
+function ui.tree(tree)
   local w,h = setup_tree(tree)
   local view = ui.centered(w+4,h+2)
-  local selected_node = nil
-
-  if not selected or selected < 1 or selected > h then
-    selected = 1
-  end
 
   while true do
+
     ui.box(view)
     tty.pushwin(view)
-    selected_node = render_tree(tree, w, h, selected)
+    tree:render()
     tty.popwin()
 
-    local key = ui.readkey()
-    if key == 'down' then
-      selected = selected % h + 1
-    elseif key == 'up' then
-      -- dec selected
-      selected = (selected - 2) % h + 1
-    elseif key == 'left' then
-      -- collapse
-      if #selected_node > 0 then
-        selected_node.expanded = false
-        return ui.tree(tree, selected)
-      end
-    elseif key == 'right' then
-      -- expand
-      if #selected_node > 0 then
-        selected_node.expanded = true
-        return ui.tree(tree, selected)
-      end
-    elseif key == 'enter' then
-      return selected_node
-    else
-      print(key)
-      ui.readkey()
+    local R = tree:call_handler(tree.selected, ui.readkey())
+    if R ~= nil then
+      return R
     end
   end
 end
