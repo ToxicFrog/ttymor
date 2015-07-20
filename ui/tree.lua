@@ -1,18 +1,30 @@
 local Node = {}
 Node.__index = Node
 
-function Node:render(x, y)
+function Node:render(x, y, depth)
   if self.selected then
-    -- tty.style('B')
-    tty.put(x-1, y, '*')
-    -- tty.style('b')
+    tty.style('v')
   end
+  tty.put(x, y, (' '):rep(self.tree.w))
+  tty.put(x+depth+1, y, self:label())
+  if self.selected then
+    tty.style('V')
+  end
+end
+
+function Node:width()
+  return #self:label()
+end
+
+function Node:label()
   if #self == 0 then
-    tty.put(x+1, y, self.text)
+    return ' '..self.text
   elseif self.expanded then
-    tty.put(x, y, '⊟'..self.text)
+    --return '⊟'..self.text
+    return '-'..self.text
   else
-    tty.put(x, y, '⊞'..self.text)
+    --return '⊞'..self.text
+    return '+'..self.text
   end
 end
 
@@ -49,7 +61,7 @@ function Node:parent_of(node)
   return false
 end
 
-local Tree = { w = 0; h = 0; max_h = 0; }
+local Tree = { w = 0; h = 0; }
 Tree.__index = Tree
 
 function Tree:select(node)
@@ -92,7 +104,7 @@ function Tree:render()
   tty.pushwin(self.view)
 
   for node,depth in self:walk() do
-    node:render(2+depth, y)
+    node:render(1, y, depth)
     y = y+1
   end
 
@@ -116,10 +128,12 @@ function Tree:call_handler(node, key)
 end
 
 function Tree:run()
+  local R
   repeat
     self:render()
-    local R = self:call_handler(self.selected, ui.readkey())
+    R = self:call_handler(self.selected, ui.readkey())
   until R ~= nil
+  return R
 end
 
 local bindings = {
@@ -153,8 +167,9 @@ local function setup_tree(tree)
   end
   last.next = tree[1]
   tree[1].prev = last
+  tree.w = tree.w+2
 
-  tree.view = ui.centered(tree.w+4,tree.h+2)
+  tree.view = ui.centered(tree.w+2,tree.h+2)
   return tree
 end
 

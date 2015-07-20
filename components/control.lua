@@ -40,7 +40,7 @@ function control:turn(ent)
         };
       };
     }
-    game.log("tree: %s", node.text)
+    game.log("tree: %s", node and node.text or '<<canceled>>')
   else
     game.log('command: %s', cmd)
   end
