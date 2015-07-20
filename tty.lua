@@ -98,6 +98,24 @@ function tty.bgcolour(r,g,b)
   tty.csi('m', 48, 2, r, g, b)
 end
 
+local styles = {
+  o = 0; b = 1;  i = 3;  u = 4;  v = 7;  s = 9;
+  O = 0; B = 22; I = 23; U = 24; V = 27; S = 29;
+}
+
+function tty.style(chars)
+  chars = chars or ''
+  local codes = {}
+  for char in chars:gmatch('.') do
+    if styles[char] then
+      table.insert(codes, styles[char])
+    end
+  end
+  if #codes > 0 then
+    tty.csi('m', unpack(codes))
+  end
+end
+
 local keynames = {
   [' '] = 'space';
   ['\x1B[A'] = 'up';
