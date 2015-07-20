@@ -16,20 +16,15 @@ function control:turn(ent)
     ent:move(-1, 0)
   elseif cmd == 'right' then
     ent:move(1, 0)
-  elseif cmd == 'key:B' then
-    tty.colour(0, 0, 255)
-    tty.bgcolour(255, 0, 0)
-    ui.box(10, 10, 40, 10)
-    tty.colour(255, 255, 255, 0, 0, 0)
-    ui.readkey()
   elseif cmd == 'key:T' then
     tty.colour(0, 255, 255)
     tty.bgcolour(0, 0, 0)
     local node = ui.tree {
       text = "TOP LEVEL DO NOT DISPLAY";
-      { text = "save game" };
-      { text = "load game" };
-      { text = "quit game" };
+      title = "Test Menu";
+      { text = "save" };
+      { text = "load" };
+      { text = "quit" };
       { text = "options"; expanded = true;
         { text = "sound" };
         { text = "music" };

@@ -41,7 +41,7 @@ function ui.draw(player)
 
   tty.pushwin(hud_win)
   tty.colour(0, 0, 0, 255, 0, 0)
-  ui.box(0, 0, hud_win.w, hud_win.h)
+  ui.box()
   tty.popwin()
 
   last_hud = os.clock()
@@ -75,16 +75,24 @@ function ui.draw(player)
 end
 
 -- Draw a box with the upper left corner at (x,y)
-function ui.box(x, y, w, h)
-  if type(x) == 'table' then
-    return ui.box(x.x, x.y, x.w, x.h)
+function ui.box(rect, title)
+  if not rect then
+    return ui.box(tty.bounds(), title)
   end
 
-  tty.put(x, y, "┏"..("━"):rep(w-2).."┓")
-  for row=y+1,y+h-2 do
-    tty.put(x, row, "┃"..(" "):rep(w-2).."┃")
+  local w,h = tty.pushwin(rect)
+
+  tty.put(0, 0, "┏"..("━"):rep(w-2).."┓")
+  for row=1,h-2 do
+    tty.put(0, row, "┃"..(" "):rep(w-2).."┃")
   end
-  tty.put(x, y+h-1, "┗"..("━"):rep(w-2).."┛")
+  tty.put(0, h-1, "┗"..("━"):rep(w-2).."┛")
+  if title then
+    tty.put(1, 0, '┫'..title..'┣')
+--    tty.put(1, 0, '╾'..title..'╼')
+  end
+
+  tty.popwin()
 end
 
 function ui.hline(row)

@@ -34,6 +34,10 @@ function tty.size()
   return top.w,top.h
 end
 
+function tty.bounds()
+  return top
+end
+
 function tty.flip()
   io.write(table.concat(buf, ""))
   buf = {}
@@ -45,21 +49,20 @@ local function in_bounds(x, y)
 end
 
 -- Push a new drawing region onto the stack.
-function tty.pushwin(win, y, w, h)
-  if type(win) == 'number' then
-    return tty.pushwin { x=win, y=y, w=w, h=h }
-  end
+function tty.pushwin(win)
   -- Check that the window is fully in bounds.
   assert(in_bounds(win.x, win.y), "window position out of bounds: %d,%d" % {win.x, win.y})
   assert(in_bounds(win.x + win.w, win.y + win.h), "window size out of bounds: %dx%d > %dx%d" % {win.w, win.h, top.w, top.h})
   table.insert(stack, win)
   top = win
+  return tty.size()
 end
 
 function tty.popwin()
   assert(#stack > 1, "tty window stack underflow")
   table.remove(stack)
   top = stack[#stack]
+  return tty.size()
 end
 
 function tty.clear()

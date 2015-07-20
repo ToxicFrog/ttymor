@@ -100,7 +100,7 @@ function Tree:render()
   local y = 1
   local h = self:height()
 
-  ui.box(self.view)
+  ui.box(self.view, self.title)
   tty.pushwin(self.view)
 
   for node,depth in self:walk() do
@@ -151,12 +151,13 @@ local function setup_tree(tree)
   tree.bindings = setmetatable(tree.bindings or {}, {__index = bindings})
   tree.selected = tree[1]
   tree[1].selected = true
+  if tree.title then
+    tree.w = #tree.title
+  end
 
   local stack = {}
   local last = {}
   for node,depth in tree:walk(true) do
-    tree.h = tree.h+1
-    tree.w = tree.w:max(#node.text + depth + 1)
     setmetatable(node, Node)
     stack[depth] = node
     node.tree = tree
@@ -164,6 +165,9 @@ local function setup_tree(tree)
     node.prev = last
     last.next = node
     last = node
+
+    tree.h = tree.h+1
+    tree.w = tree.w:max(node:width() + depth)
   end
   last.next = tree[1]
   tree[1].prev = last
