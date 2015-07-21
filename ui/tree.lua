@@ -7,7 +7,7 @@ function Node:render(x, y, depth)
   if self.focused then
     tty.style('v')
   end
-  tty.put(x, y, (' '):rep(self.tree.w))
+  tty.put(x, y, (' '):rep(self._tree.w))
   tty.put(x+depth+1, y, self:label())
   if self.focused then
     tty.style('V')
@@ -36,23 +36,28 @@ end
 -- The user has requested to expand this node.
 -- TODO: if the node is already expanded, expand its children.
 function Node:expand()
-  if #self > 0 then
-    self.expanded = true
-  end
+  if #self == 0 then return end
+  self.expanded = true
+  self._tree:refresh()
 end
 
 -- The user has requested to collapse this node. By default, collapses the node
 -- if it's expanded, but if it's already collapsed, collapses its *parent*;
 -- repeatedly hitting 'collapse' will eventually get you to the top level.
 -- TODO: collapse the node's children as well as the node itself.
-function Node:collapse()
+function Node:collapse(recursing)
   if #self > 0 and self.expanded then
     self.expanded = false
-    if self:parent_of(self.tree.focused) then
-      self.tree:set_focus(self)
+    if self:parent_of(self._tree.focused) then
+      self._tree:set_focus(self)
     end
-  elseif self.parent then
-    return self.parent:collapse()
+    -- collapse children
+    for i,node in ipairs(self) do
+      node:collapse(true)
+    end
+    self._tree:refresh()
+  elseif self._parent and not recursing then
+    return self._parent:collapse()
   end
 end
 
@@ -60,7 +65,7 @@ end
 function Node:parent_of(node)
   repeat
     if node == self then return true end
-    node = node.parent
+    node = node._parent
   until not node
   return false
 end
@@ -78,12 +83,12 @@ end
 
 -- Select the previous visible node.
 function Tree:focus_prev()
-  self:set_focus(self.focused.prev)
+  self:set_focus(self.focused._prev)
 end
 
 -- Select the next visible node.
 function Tree:focus_next()
-  self:set_focus(self.focused.next)
+  self:set_focus(self.focused._next)
 end
 
 -- Return a DFS iterator over all nodes in the tree; yields (node,depth) for
@@ -123,6 +128,18 @@ function Tree:render()
   end
 
   tty.popwin()
+end
+
+-- Set up the next/prev links
+function Tree:refresh()
+  local last = self[#self]
+  for node in self:walk() do
+    node._prev = last
+    last._next = node
+    last = node
+  end
+  last._next = self[1]
+  self[1]._prev = last
 end
 
 -- Call an event handler appropriate for a given input event.
@@ -203,24 +220,19 @@ local function setup_tree(tree)
   end
 
   local stack = {}
-  local last = {}
   for node,depth in tree:walk(true) do
     setmetatable(node, Node)
-    stack[depth] = node
-    node.tree = tree
-    node.parent = stack[#stack-1]
-    node.prev = last
-    last.next = node
-    last = node
+    node._tree = tree
+    node._parent = stack[depth]
+    stack[depth+1] = node
 
     tree.h = tree.h+1
     tree.w = tree.w:max(node:width() + depth)
   end
-  last.next = tree[1]
-  tree[1].prev = last
-  tree.w = tree.w+2
 
+  tree.w = tree.w+2
   tree.view = ui.centered(tree.w+2,tree.h+2)
+  tree:refresh()
   return tree
 end
 

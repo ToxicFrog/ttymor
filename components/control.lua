@@ -24,7 +24,11 @@ function control:turn(ent)
       title = "Test Menu";
       { text = "save" };
       { text = "load" };
-      { text = "quit" };
+      { text = "quit";
+        { text = "...and save"; };
+        { text = "...and revert"; };
+        { text = "...and delete"; };
+      };
       { text = "options"; expanded = true;
         { text = "sound" };
         { text = "music" };
