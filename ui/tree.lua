@@ -8,7 +8,7 @@ function Node:render(x, y, depth)
     tty.style('v')
   end
   tty.put(x, y, (' '):rep(self._tree.w))
-  tty.put(x+depth+1, y, self:label())
+  tty.put(x+depth+1, y, self:label(self._tree.w - depth - 2))
   if self.focused then
     tty.style('V')
   end
@@ -16,20 +16,25 @@ end
 
 -- Return the calculated width of the node's label.
 function Node:width()
-  return #self:label()
+  return #self:label(self._tree.w)
 end
 
 -- Return the node's actual label. This includes the expanded/collapsed
 -- indicator, if any.
-function Node:label()
+-- Passed the width it has available to draw in, for things like right-aligned
+-- labels to use.
+-- Note that this may be called during setup to calculate the width of the tree.
+-- In that case, it will be passed the calculated width so far of the tree, which
+-- may be 0 -- so it should handle things gracefully when that happens.
+function Node:label(width)
   if #self == 0 then
-    return ' '..self.text
+    return ' '..self.name
   elseif self.expanded then
-    --return '⊟'..self.text
-    return '-'..self.text
+    --return '⊟'..self.name
+    return '-'..self.name
   else
-    --return '⊞'..self.text
-    return '+'..self.text
+    --return '⊞'..self.name
+    return '+'..self.name
   end
 end
 
@@ -58,6 +63,22 @@ function Node:collapse(recursing)
     self._tree:refresh()
   elseif self._parent and not recursing then
     return self._parent:collapse()
+  end
+end
+
+function Node:toggle()
+  if self.expanded then
+    return self:collapse()
+  else
+    return self:expand()
+  end
+end
+
+function Node:activate()
+  if #self > 0 then
+    return self:toggle()
+  else
+    return self
   end
 end
 
@@ -169,11 +190,6 @@ function Tree:call_handler(key)
   end
 end
 
--- The user has chosen the focused node as the result of the tree UI.
-function Tree:activate()
-  return self.focused
-end
-
 -- The user has declined to choose a node at all.
 function Tree:cancel()
   return false
@@ -188,6 +204,7 @@ function Tree:run()
     self:render()
     R = self:call_handler(ui.readkey())
   until R ~= nil
+  tty.clear(self.view)
   return R
 end
 
@@ -200,9 +217,8 @@ local bindings = {
   down = 'focus_next';
   left = 'collapse';
   right = 'expand';
-  enter = 'activate';
-  escape = 'cancel';
-  quit = 'cancel';
+  activate = 'activate';
+  cancel = 'cancel';
 }
 
 -- Turn a mere tree of tables into a Tree.
@@ -215,6 +231,7 @@ local function setup_tree(tree)
   setmetatable(tree, Tree)
   tree.bindings = setmetatable(tree.bindings or {}, {__index = bindings})
   tree:set_focus(tree[1])
+  tree.w,tree.h = 0,0
   if tree.title then
     tree.w = #tree.title
   end

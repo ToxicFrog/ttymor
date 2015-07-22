@@ -19,34 +19,36 @@ function ui.draw(player)
   -- Calculate viewport offset.
   -- x and y are the offset to add to coordinates before they go to the screen.
   -- w and h are the dimensions of that rectangle.
-  local hud_win = {
+  local statline_win = {
     x = 0; y = 0;
-    w = 10; h = h;
+    w = 16; h = (h/2):floor();
+  }
+  local hud_win = {
+    x = 0; y = statline_win.h;
+    w = 16; h = (h/2):ceil();
   }
   local log_win = {
     x = w-40; y = 0;
     w = 40; h = h;
   }
   local map_win = {
-    x = 11; y = 0;
-    w = w-41-11; h = h;
+    x = hud_win.w+1; y = 0;
+    w = w-40-hud_win.w-2; h = h;
   }
 
-  tty.colour(255, 255, 255, 0, 0, 0)
   tty.colour(0, 0, 0, 255, 255, 255)
+  tty.colour(255, 255, 255, 0, 0, 0)
   ui.vline(map_win.x-1)
   ui.vline(log_win.x-1)
+  tty.colour(255, 255, 255, 0, 0, 0)
 
   last_init = os.clock()
 
-  tty.pushwin(hud_win)
-  tty.colour(0, 0, 0, 255, 0, 0)
-  ui.box()
-  tty.popwin()
+  ui.box(hud_win, "HUD")
+  ui.box(statline_win, "stats")
 
   last_hud = os.clock()
 
-  tty.colour(255, 255, 255, 0, 0, 0)
   tty.pushwin(log_win)
   local log = game.getLog()
   for i=1,h do
@@ -114,4 +116,38 @@ function ui.centered(w, h)
     x = math.floor((sw-w)/2);
     y = math.floor((sh-h)/2);
   }
+end
+
+function ui.mainmenu()
+  ui.tree {
+    { name="Quit"; activate = shutdown; };
+    { name="Edit Keybinds"; activate = function() ui.keybinds_screen() end; };
+    { name="Tree Test"; activate = function() ui.tree_test() end; };
+  }
+end
+
+function ui.tree_test()
+  tty.colour(0, 255, 255)
+  tty.bgcolour(0, 0, 0)
+  local node = ui.tree {
+    name = "TOP LEVEL DO NOT DISPLAY";
+    title = "Test Menu";
+    { name = "save" };
+    { name = "load" };
+    { name = "quit";
+      { name = "...and save"; };
+      { name = "...and revert"; };
+      { name = "...and delete"; };
+    };
+    { name = "options"; expanded = true;
+      { name = "sound" };
+      { name = "music" };
+      { name = "tiles" };
+      { name = "controls";
+        { name = "move" };
+        { name = "attack" };
+      };
+    };
+  }
+  game.log("tree: %s", node and node.name or '<<canceled>>')
 end

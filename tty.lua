@@ -101,6 +101,15 @@ function tty.bgcolour(r,g,b)
   tty.csi('m', 48, 2, r, g, b)
 end
 
+function tty.clear(view)
+  view = view or top
+  tty.pushwin(view)
+  for y=0,view.h do
+    tty.put(0, y, (' '):rep(view.w))
+  end
+  tty.popwin()
+end
+
 local styles = {
   o = 0; b = 1;  i = 3;  u = 4;  v = 7;  s = 9;
   O = 0; B = 22; I = 23; U = 24; V = 27; S = 29;
@@ -125,9 +134,13 @@ local keynames = {
   ['\x1B[B'] = 'down';
   ['\x1B[C'] = 'right';
   ['\x1B[D'] = 'left';
+  ['\x1B[H'] = 'home';
+  ['\x1B[F'] = 'end';
   ['\x1B[5~'] = 'pgup';
   ['\x1B[6~'] = 'pgdn';
   ['\x1B\x1B'] = 'esc';
+  ['\x1B[2~'] = 'ins';
+  ['\x7F'] = 'del';
 }
 
 for char in ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'):gmatch('.') do
