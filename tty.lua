@@ -52,7 +52,10 @@ end
 function tty.pushwin(win)
   -- Check that the window is fully in bounds.
   assert(in_bounds(win.x, win.y), "window position out of bounds: %d,%d" % {win.x, win.y})
-  assert(in_bounds(win.x + win.w, win.y + win.h), "window size out of bounds: %dx%d > %dx%d" % {win.w, win.h, top.w, top.h})
+  assert(in_bounds(win.x + win.w, win.y + win.h), "window size out of bounds: %d,%d+%dx%d > %dx%d" % {
+      win.x, win.y, win.w, win.h, top.w, top.h})
+  win.x = win.x + top.x
+  win.y = win.y + top.y
   table.insert(stack, win)
   top = win
   return tty.size()
@@ -99,15 +102,6 @@ end
 
 function tty.bgcolour(r,g,b)
   tty.csi('m', 48, 2, r, g, b)
-end
-
-function tty.clear(view)
-  view = view or top
-  tty.pushwin(view)
-  for y=0,view.h do
-    tty.put(0, y, (' '):rep(view.w))
-  end
-  tty.popwin()
 end
 
 local styles = {

@@ -79,7 +79,8 @@ end
 -- Draw a box with the upper left corner at (x,y)
 function ui.box(rect, title)
   if not rect then
-    return ui.box(tty.bounds(), title)
+    local w,h = tty.size()
+    rect = { x = 0; y = 0; w = w; h = h }
   end
 
   local w,h = tty.pushwin(rect)
@@ -152,3 +153,35 @@ function ui.tree_test()
   }
   game.log("tree: %s", node and node.name or '<<canceled>>')
 end
+
+function ui.message(title, message)
+  if type(message) == 'string' then
+    return ui.message(title, {message})
+  end
+  local w = #title+4
+  for _,line in ipairs(message) do
+    w = w:max(#line+4)
+  end
+  tty.pushwin(ui.centered(w, #message+2))
+  ui.box(nil, title)
+  for y,line in ipairs(message) do
+    tty.put(2, y, line)
+  end
+  tty.flip()
+  local k = ui.readkey()
+  ui.clear()
+  tty.popwin()
+end
+
+function ui.clear(view)
+  if not view then
+    local w,h = tty.size()
+    view = { x = 0; y = 0; w = w; h = h }
+  end
+  tty.pushwin(view)
+  for y=0,view.h do
+    tty.put(0, y, (' '):rep(view.w))
+  end
+  tty.popwin()
+end
+

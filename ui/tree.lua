@@ -204,7 +204,7 @@ function Tree:run()
     self:render()
     R = self:call_handler(ui.readkey())
   until R ~= nil
-  tty.clear(self.view)
+  ui.clear(self.view)
   return R
 end
 
