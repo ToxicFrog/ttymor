@@ -92,7 +92,11 @@ function Node:parent_of(node)
 end
 
 -- Default method implementations for the tree as a whole. --
-local Tree = { w = 0; h = 0; focused = {}; }
+local Tree = {
+  w = 0; h = 0;
+  focused = {};
+  colour = { 255, 255, 255 };
+}
 Tree.__index = Tree
 
 -- Focus the given node.
@@ -140,6 +144,7 @@ function Tree:render()
   local y = 1
   local h = self:height()
 
+  tty.colour(unpack(self.colour))
   ui.box(self.view, self.name)
   tty.pushwin(self.view)
 
