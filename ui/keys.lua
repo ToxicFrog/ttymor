@@ -1,15 +1,7 @@
+local repr = require('repr').repr
+
 local bindings = {} -- key -> command map
 local settings = {} -- command -> keys map
-
-local function install_bindings(settings)
-  bindings = {}
-  for command,keys in pairs(settings) do
-    for _,key in ipairs(keys) do
-      assert(not bindings[key], "multiple binding for key "..key)
-      bindings[key] = command
-    end
-  end
-end
 
 function ui.readkey()
   tty.flip()
@@ -17,17 +9,66 @@ function ui.readkey()
   return bindings[key] or 'key:'..key
 end
 
-function ui.load_bindings(path)
-  return install_bindings(loadfile(path)())
+-- Keybinding validation.
+-- Checks that all critical keys are bound, and that no key is bound to more than
+-- one command.
+function ui.validate_bindings(map)
+  local errors = {}
+  for _,command in ipairs { 'activate', 'cancel', 'up', 'down', 'left', 'right' } do
+    if #map[command] == 0 then
+      table.insert(errors, 'Critical command <%s> is unbound' % command)
+    end
+  end
+  local seen = {}
+  for command,keys in pairs(map) do
+    for _,key in ipairs(keys) do
+      if seen[key] then
+        table.insert(errors, 'Key <%s> is bound to both <%s> and <%s>' % { key, seen[key], command })
+      else
+        seen[key] = command
+      end
+    end
+  end
+  if #errors > 0 then
+    return nil,errors
+  else
+    return true
+  end
 end
+
+function ui.install_bindings(map)
+  local r,e = ui.validate_bindings(map)
+  if not r then
+    return nil,e
+  end
+
+  bindings = {}
+  for command,keys in pairs(map) do
+    for _,key in ipairs(keys) do
+      assert(not bindings[key], "multiple binding for key "..key)
+      bindings[key] = command
+    end
+  end
+  settings = map
+  return true
+end
+
+function ui.load_bindings(path)
+  return ui.install_bindings(loadfile(path)())
+end
+
+function ui.save_bindings(path)
+  return io.writefile(path, 'return '..repr(settings))
+end
+
+--
+-- Everything below this line is related to loading the default keybinds and the
+-- key remapping UI elements from ui.key_defaults
+--
 
 local KeyCommand = {}
 
-local repr = require('repr').repr
 function KeyCommand:binds()
-  if not self._tree.keybinds[self.command] then
-    error("can't find binding entry: %s %s\n%s" % { self.command, repr(self._tree.keybinds), repr(settings) })
-  end
   return self._tree.keybinds[self.command]
 end
 
@@ -68,9 +109,13 @@ end
 table.insert(default_tree, {
   name = "Apply Settings";
   activate = function(self)
-    settings = self._tree.keybinds
-    install_bindings(settings)
-    return true
+    local r,e = ui.install_bindings(self._tree.keybinds)
+    if not r then
+      tty.colour(255, 0, 0, 0, 0, 0)
+      ui.message('Error', e)
+    else
+      return true
+    end
   end;
 })
 table.insert(default_tree, {
@@ -78,14 +123,9 @@ table.insert(default_tree, {
   activate = function(self) return false end;
 })
 
-install_bindings(settings)
+ui.install_bindings(settings)
 
 function ui.keybinds_screen()
   default_tree.keybinds = table.copy(settings)
   ui.tree(default_tree)
-  game.log("--- new keybinds ---")
-  for command,keys in pairs(settings) do
-    game.log("%s: %s, %s", command, keys[1], keys[2])
-  end
-  game.log("--- end ---")
 end
