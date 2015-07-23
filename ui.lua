@@ -124,7 +124,10 @@ function ui.mainmenu()
   ui.tree {
     { name="Return to Game"};
     { name="Tree Test"; activate = function() ui.tree_test() end; };
-    { name="Edit Keybinds"; activate = function() ui.keybinds_screen() end; };
+    { name="Edit Keybinds"; activate = function()
+      ui.keybinds_screen()
+      save_settings()
+    end; };
     { name="Quit"; activate = shutdown; };
   }
 end
