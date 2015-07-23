@@ -140,7 +140,7 @@ function Tree:render()
   local y = 1
   local h = self:height()
 
-  ui.box(self.view, self.title)
+  ui.box(self.view, self.name)
   tty.pushwin(self.view)
 
   for node,depth in self:walk() do
@@ -232,8 +232,8 @@ local function setup_tree(tree)
   tree.bindings = setmetatable(tree.bindings or {}, {__index = bindings})
   tree:set_focus(tree[1])
   tree.w,tree.h = 0,0
-  if tree.title then
-    tree.w = #tree.title
+  if tree.name then
+    tree.w = #tree.name
   end
 
   local stack = {}

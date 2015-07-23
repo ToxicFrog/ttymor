@@ -119,10 +119,12 @@ function ui.centered(w, h)
 end
 
 function ui.mainmenu()
+  tty.colour(0, 255, 255)
   ui.tree {
-    { name="Quit"; activate = shutdown; };
-    { name="Edit Keybinds"; activate = function() ui.keybinds_screen() end; };
+    { name="Return to Game"};
     { name="Tree Test"; activate = function() ui.tree_test() end; };
+    { name="Edit Keybinds"; activate = function() ui.keybinds_screen() end; };
+    { name="Quit"; activate = shutdown; };
   }
 end
 
@@ -130,8 +132,7 @@ function ui.tree_test()
   tty.colour(0, 255, 255)
   tty.bgcolour(0, 0, 0)
   local node = ui.tree {
-    name = "TOP LEVEL DO NOT DISPLAY";
-    title = "Test Menu";
+    name = "Test Menu";
     { name = "save" };
     { name = "load" };
     { name = "quit";
