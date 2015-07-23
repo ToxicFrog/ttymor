@@ -36,6 +36,7 @@ function KeyCommand:activate()
   ui.box(ui.centered(width, 3), self.name)
   tty.flip()
   local key = tty.readkey()
+  if key == self:binds()[1] then return end
   self:binds()[2] = self:binds()[1]
   self:binds()[1] = key
 end
