@@ -125,7 +125,6 @@ function ui.mainmenu()
     { name="Return to Game"};
     { name="Edit Keybinds"; activate = function()
       ui.keybinds_screen()
-      save_settings()
     end; };
     { name="View Config"; activate = function() settings.show() end; };
     { name="Tree Test"; activate = function() ui.tree_test() end; };

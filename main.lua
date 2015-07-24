@@ -64,10 +64,12 @@ end
 function error_handler(...)
   tty.deinit()
   print(debug.traceback(..., 2))
+  os.exit(1) -- die without saving settings
 end
 
 function shutdown()
   tty.deinit()
+  settings.save()
   os.exit(0)
 end
 

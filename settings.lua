@@ -46,15 +46,20 @@ function settings.accessor(file, key)
   end
 end
 
--- Get the current value. If key is unspecified, returns an iterator over all
--- keys in the given file.
+-- Get the current value. If key is unspecified, returns the entire table for
+-- that file.
 function settings.get(file, key)
   assert_registered(file, key)
   if key then
     return registered[file][key]
   else
-    return pairs(registered[file])
+    return registered[file]
   end
+end
+
+function settings.pairs(file)
+  assert_registered(file)
+  return pairs(registered[file])
 end
 
 -- Set the current value.
