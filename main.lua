@@ -1,4 +1,5 @@
 require 'util'
+require 'settings'
 require 'tty'
 require 'game'
 require 'ecs'
@@ -11,12 +12,6 @@ flags.register "help" {
 flags.register "load" {
   help = "Load this game immediately on game startup.";
   type = flags.string;
-}
-
-flags.register "config-dir" {
-  help = "Directory to store settings and save files in.";
-  type = flags.string;
-  default = os.getenv('HOME')..'/.config/ttymor/';
 }
 
 local function new_game()
@@ -41,16 +36,6 @@ local function new_game()
   return player
 end
 
-function load_settings()
-  if io.exists(flags.parsed.config_dir .. '/keys.cfg') then
-    ui.load_bindings(flags.parsed.config_dir .. '/keys.cfg')
-  end
-end
-
-function save_settings()
-  ui.save_bindings(flags.parsed.config_dir .. '/keys.cfg')
-end
-
 function main(...)
   local player
   flags.parse(...)
@@ -60,8 +45,7 @@ function main(...)
     return
   end
 
-  os.execute("mkdir -p '%s'" % flags.parsed.config_dir)
-  load_settings()
+  settings.load()
 
   if flags.parsed.load then
     game.load(flags.parsed.load)

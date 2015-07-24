@@ -1,7 +1,7 @@
 local repr = require('repr').repr
 
 local bindings = {} -- key -> command map
-local settings = {} -- command -> keys map
+local _settings = {} -- command -> keys map
 
 function ui.readkey()
   tty.flip()
@@ -49,7 +49,7 @@ function ui.install_bindings(map)
       bindings[key] = command
     end
   end
-  settings = map
+  _settings = map
   return true
 end
 
@@ -58,7 +58,7 @@ function ui.load_bindings(path)
 end
 
 function ui.save_bindings(path)
-  return io.writefile(path, 'return '..repr(settings))
+  return io.writefile(path, 'return '..repr(_settings))
 end
 
 --
@@ -101,7 +101,8 @@ default_tree.bindings = {
 }
 for _,category in ipairs(default_tree) do
   for _,command in ipairs(category) do
-    settings[command.command] = command.keys
+    settings.register('keys', command.command, command.keys)
+    _settings[command.command] = command.keys
     command.keys = nil
     table.merge(command, KeyCommand, 'error')
   end
@@ -123,9 +124,9 @@ table.insert(default_tree, {
   activate = function(self) return false end;
 })
 
-ui.install_bindings(settings)
+ui.install_bindings(_settings)
 
 function ui.keybinds_screen()
-  default_tree.keybinds = table.copy(settings)
+  default_tree.keybinds = table.copy(_settings)
   ui.tree(default_tree)
 end

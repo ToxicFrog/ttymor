@@ -123,11 +123,12 @@ function ui.mainmenu()
   tty.colour(0, 255, 255)
   ui.tree {
     { name="Return to Game"};
-    { name="Tree Test"; activate = function() ui.tree_test() end; };
     { name="Edit Keybinds"; activate = function()
       ui.keybinds_screen()
       save_settings()
     end; };
+    { name="View Config"; activate = function() settings.show() end; };
+    { name="Tree Test"; activate = function() ui.tree_test() end; };
     { name="Quit"; activate = shutdown; };
   }
 end
