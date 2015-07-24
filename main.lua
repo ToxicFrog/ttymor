@@ -21,7 +21,7 @@ local function new_game()
     id = 1;
     name = "Player";
     Component "position" {};
-    Component "render" { face = "@" };
+    Component "render" { face = "@"; style = 'v'; };
     Component "control" {};
   }
 

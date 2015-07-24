@@ -68,7 +68,7 @@ function map:render_screen(ent, cx, cy)
 
       local cell = self[x+1][y+1]
       if #cell > 0 then
-        tty.put(x + dx, y + dy, cell[#cell]:render())
+        cell[#cell]:render(x+dx, y+dy)
       end
     end
   end

@@ -93,28 +93,43 @@ function tty.move(x, y)
   tty.csi('H', Y, X)
 end
 
+local FG,BG = nil,nil
+
 function tty.colour(r,g,b, br,bg,bb)
-  tty.csi('m', 38, 2, r, g, b)
+  local fg = r..';'..g..';'..b
+  if FG ~= fg then
+    tty.csi('m', 38, 2, r, g, b)
+    FG = fg
+  end
   if br then
     tty.bgcolour(br,bg,bb)
   end
 end
 
 function tty.bgcolour(r,g,b)
-  tty.csi('m', 48, 2, r, g, b)
+  local bg = r..';'..g..';'..b
+  if BG ~= bg then
+    tty.csi('m', 48, 2, r, g, b)
+    BG = bg
+  end
 end
 
 local styles = {
   o = 0; b = 1;  i = 3;  u = 4;  v = 7;  s = 9;
   O = 0; B = 22; I = 23; U = 24; V = 27; S = 29;
 }
+local STYLE = {}
 
 function tty.style(chars)
+  if STYLE == chars then return end
   chars = chars or ''
   local codes = {}
   for char in chars:gmatch('.') do
     if styles[char] then
       table.insert(codes, styles[char])
+    end
+    if char == 'o' or char == 'O' then
+      FG,BG = nil,nil
     end
   end
   if #codes > 0 then
