@@ -128,6 +128,7 @@ function ui.mainmenu()
     end; };
     { name="View Config"; activate = function() settings.show() end; };
     { name="Tree Test"; activate = function() ui.tree_test() end; };
+    { name="Room Debug"; activate = dredmor.debug_rooms };
     { name="Quit"; activate = shutdown; };
   }
 end

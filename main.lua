@@ -4,6 +4,7 @@ require 'tty'
 require 'game'
 require 'ecs'
 require 'ui'
+require 'dredmor'
 
 flags.register "help" {
   help = "This text.";
