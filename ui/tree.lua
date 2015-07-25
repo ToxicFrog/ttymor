@@ -1,14 +1,17 @@
--- Default methods for individual nodes in the tree. --
+--
+-- Default methods for individual nodes in the tree.
+--
+
 local Node = {}
 Node.__index = Node
 
 -- Render the entire line at (x,y), with the label indented appropriate to depth.
-function Node:render(x, y, depth)
+function Node:render(x, y)
   if self.focused then
     tty.style('v')
   end
   tty.put(x, y, (' '):rep(self._tree.w))
-  tty.put(x+depth+1, y, self:label(self._tree.w - depth - 2))
+  tty.put(x+self._depth+1, y, self:label(self._tree.w - self._depth - 2))
   if self.focused then
     tty.style('V')
   end
@@ -53,8 +56,8 @@ end
 function Node:collapse(recursing)
   if #self > 0 and self.expanded then
     self.expanded = false
-    if self:parent_of(self._tree.focused) then
-      self._tree:set_focus(self)
+    if self:parent_of(self._tree:focused()) then
+      self._tree:set_focus(self._index)
     end
     -- collapse children
     for i,node in ipairs(self) do
@@ -91,36 +94,57 @@ function Node:parent_of(node)
   return false
 end
 
+
+--
 -- Default method implementations for the tree as a whole. --
+--
+
+
 local Tree = {
   w = 0; h = 0;
-  focused = {};
+  _focused = 1;
   colour = { 255, 255, 255 };
 }
 Tree.__index = Tree
 
 -- Focus the given node.
-function Tree:set_focus(node)
-  self.focused.focused = false
-  self.focused = node
-  node.focused = true
+function Tree:set_focus(index)
+  self:focused().focused = false
+  self._focused = (index-1) % #self.nodes + 1
+  self:focused().focused = true
+end
+
+function Tree:focused()
+  assert(#self.nodes >= self._focused, "focus %d exceeds internal node list %d", self._focused, #self.nodes)
+  return self.nodes[self._focused]
 end
 
 -- Select the previous visible node.
 function Tree:focus_prev()
-  self:set_focus(self.focused._prev)
+  self:set_focus(self._focused - 1)
+  self:scroll_to_focused()
 end
 
 -- Select the next visible node.
 function Tree:focus_next()
-  self:set_focus(self.focused._next)
+  self:set_focus(self._focused + 1)
+  self:scroll_to_focused()
 end
 
 function Tree:scroll_up()
-  self.scroll = (self.scroll-3):max(0)
+  self:set_focus(self._focused - (self.h/2):ceil())
+  self:scroll_to_focused()
 end
+
 function Tree:scroll_down()
-  self.scroll = (self.scroll+3):min(self.max_h - self.h)
+  self:set_focus(self._focused + (self.h/2):ceil())
+  self:scroll_to_focused()
+end
+
+-- Scroll so that the focused element is in the center of the screen, or close to.
+function Tree:scroll_to_focused()
+  if not self.max_h then return end
+  self.scroll = math.bound(0, self._focused - self.h/2, self.max_h - self.h):floor()
 end
 
 -- Return a DFS iterator over all nodes in the tree; yields (node,depth) for
@@ -137,24 +161,14 @@ function Tree:walk(include_collapsed)
   return coroutine.wrap(dfs_walk),self,0
 end
 
--- Return the calculated height, in rows, of the tree when fully expanded. This
--- is == to the total number of nodes in the tree.
-function Tree:height()
-  local h = 0;
-  for _ in self:walk() do h = h+1 end
-  return h
-end
-
 -- Render the entire tree by drawing a titled box, then calling :render on each
 -- visible node with appropriate coordinates passed in.
 function Tree:render()
-  local y = 1
-  local h = self:height():min(self.view.h-2)
-  local skip = self.scroll or 0
-
   tty.colour(unpack(self.colour))
   tty.pushwin(self.view)
   ui.box(nil, self.name)
+  local scroll = self.scroll or 0
+
   if self.scroll then
     -- render scrollbar
     ui.clear({ x=self.view.w-1; y=1; w=1; h=self.view.h-2 }, '┊')
@@ -164,15 +178,8 @@ function Tree:render()
     ui.clear({ x=self.view.w-1; y=2+sb_distance; w=1; h=self.scroll_height }, '▓') --█
   end
 
-  for node,depth in self:walk() do
-    if skip > 0 then
-      skip = skip-1
-    elseif y > h then
-      break
-    else
-      node:render(1, y, depth)
-      y = y+1
-    end
+  for y=1,self.h:min(#self.nodes) do
+    self.nodes[y+scroll]:render(1, y)
   end
 
   tty.popwin()
@@ -180,14 +187,14 @@ end
 
 -- Set up the next/prev links
 function Tree:refresh()
-  local last = self[#self]
+  self.nodes = {}
   for node in self:walk() do
-    node._prev = last
-    last._next = node
-    last = node
+    table.insert(self.nodes, node)
+    node._index = #self.nodes
+    if node.focused then
+      self._focused = node._index
+    end
   end
-  last._next = self[1]
-  self[1]._prev = last
 end
 
 -- Call an event handler appropriate for a given input event.
@@ -203,7 +210,7 @@ end
 function Tree:call_handler(key)
   key = self.bindings[key]
   if not key then return end
-  local node = self.focused
+  local node = self:focused()
 
   if type(key) == 'function' then
     return key(self)
@@ -259,7 +266,6 @@ local bindings = {
 local function setup_tree(tree)
   setmetatable(tree, Tree)
   tree.bindings = setmetatable(tree.bindings or {}, {__index = bindings})
-  tree:set_focus(tree[1])
   tree.w,tree.h = 0,0
   if tree.name then
     tree.w = #tree.name
@@ -270,6 +276,7 @@ local function setup_tree(tree)
     setmetatable(node, Node)
     node._tree = tree
     node._parent = stack[depth]
+    node._depth = depth
     stack[depth+1] = node
 
     tree.h = tree.h+1
@@ -287,6 +294,7 @@ local function setup_tree(tree)
     tree.scroll_height = (tree.h/tree.max_h*tree.view.h-2):ceil()
   end
   tree:refresh()
+  tree:set_focus(1)
   return tree
 end
 

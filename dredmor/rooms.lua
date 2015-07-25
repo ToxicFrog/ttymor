@@ -22,8 +22,8 @@ function dredmor.load_rooms(path)
 end
 
 function dredmor.debug_rooms()
-  dredmor.load_rooms('dredmor/game/rooms.xml')
-  local tree = {}
+  dredmor.load_rooms(flags.parsed.dredmor_path..'/game/rooms.xml')
+  local tree = { name = 'Room List' }
   for name,room in pairs(rooms) do
     table.insert(tree, room)
     function room:activate()
