@@ -113,9 +113,9 @@ end
 function ui.centered(w, h)
   local sw,sh = tty.size()
   return {
-    w = w; h = h;
-    x = math.floor((sw-w)/2);
-    y = math.floor((sh-h)/2);
+    w = w:min(sw); h = h:min(sh);
+    x = math.floor((sw-w)/2):max(0);
+    y = math.floor((sh-h)/2):max(0);
   }
 end
 
@@ -176,14 +176,15 @@ function ui.message(title, message)
   tty.popwin()
 end
 
-function ui.clear(view)
+function ui.clear(view, char)
+  char = char or ' '
   if not view then
     local w,h = tty.size()
     view = { x = 0; y = 0; w = w; h = h }
   end
   tty.pushwin(view)
-  for y=0,view.h do
-    tty.put(0, y, (' '):rep(view.w))
+  for y=0,view.h-1 do
+    tty.put(0, y, char:rep(view.w))
   end
   tty.popwin()
 end

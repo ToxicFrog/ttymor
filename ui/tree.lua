@@ -116,6 +116,13 @@ function Tree:focus_next()
   self:set_focus(self.focused._next)
 end
 
+function Tree:scroll_up()
+  self.scroll = (self.scroll-3):max(0)
+end
+function Tree:scroll_down()
+  self.scroll = (self.scroll+3):min(self.max_h - self.h)
+end
+
 -- Return a DFS iterator over all nodes in the tree; yields (node,depth) for
 -- each node. The top level has depth 0, not 1.
 function Tree:walk(include_collapsed)
@@ -142,15 +149,30 @@ end
 -- visible node with appropriate coordinates passed in.
 function Tree:render()
   local y = 1
-  local h = self:height()
+  local h = self:height():min(self.view.h-2)
+  local skip = self.scroll or 0
 
   tty.colour(unpack(self.colour))
-  ui.box(self.view, self.name)
   tty.pushwin(self.view)
+  ui.box(nil, self.name)
+  if self.scroll then
+    -- render scrollbar
+    ui.clear({ x=self.view.w-1; y=1; w=1; h=self.view.h-2 }, '┊')
+    tty.put(self.view.w-1, 1, '┻')
+    tty.put(self.view.w-1, self.view.h-2, '┳')
+    local sb_distance = (self.scroll/(self.max_h - self.h)*(self.h - 2 - self.scroll_height)):floor()
+    ui.clear({ x=self.view.w-1; y=2+sb_distance; w=1; h=self.scroll_height }, '▓') --█
+  end
 
   for node,depth in self:walk() do
-    node:render(1, y, depth)
-    y = y+1
+    if skip > 0 then
+      skip = skip-1
+    elseif y > h then
+      break
+    else
+      node:render(1, y, depth)
+      y = y+1
+    end
   end
 
   tty.popwin()
@@ -224,6 +246,8 @@ local bindings = {
   right = 'expand';
   activate = 'activate';
   cancel = 'cancel';
+  scrollup = 'scroll_up';
+  scrolldn = 'scroll_down';
 }
 
 -- Turn a mere tree of tables into a Tree.
@@ -254,6 +278,14 @@ local function setup_tree(tree)
 
   tree.w = tree.w+2
   tree.view = ui.centered(tree.w+2,tree.h+2)
+  if tree.w > tree.view.w-2 then
+    tree.max_w,tree.w = tree.w,tree.view.w-2
+  end
+  if tree.h > tree.view.h-2 then
+    tree.max_h,tree.h = tree.h,tree.view.h-2
+    tree.scroll = 0
+    tree.scroll_height = (tree.h/tree.max_h*tree.view.h-2):ceil()
+  end
   tree:refresh()
   return tree
 end

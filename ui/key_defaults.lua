@@ -10,8 +10,10 @@ return {
     { name = 'Descend';     command = 'descend'; keys = { '>' } };
   };
   { name = "UI";
-    { name = 'Select/Activate'; command = 'activate'; keys = { 'enter' } };
-    { name = 'Cancel';          command = 'cancel';   keys = { 'esc', '`' } };
+    { name = 'Select/Activate'; command = 'activate'; keys = { 'enter' }};
+    { name = 'Cancel';          command = 'cancel';   keys = { 'esc', '`' }};
+    { name = 'Scroll Up';       command = 'scrollup'; keys = { 'pgup' }};
+    { name = 'Scroll Down';     command = 'scrolldn'; keys = { 'pgdn' }};
   };
 
 }
