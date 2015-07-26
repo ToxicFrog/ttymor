@@ -1,7 +1,7 @@
 require 'util'
 require 'xml'
 
-flags.register "dredmor-path" {
+flags.register "dredmor-dir" {
   default = "./dredmor";
   type = flags.string;
   help = "path to Dungeons of Dredmor installation";
