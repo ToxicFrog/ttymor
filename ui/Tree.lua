@@ -88,7 +88,8 @@ function Tree:render()
   tty.popwin()
 end
 
--- Set up the next/prev links
+-- Build the list of displayable nodes. Called when the list changes due to nodes
+-- being expanded or collapsed.
 function Tree:refresh()
   self.nodes = {}
   for node in self:walk() do
