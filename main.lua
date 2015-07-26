@@ -15,6 +15,12 @@ flags.register "load" {
   type = flags.string;
 }
 
+flags.register "maps" {
+  help = "Generate and keep in memory this many maps for debugging purposes";
+  type = flags.number;
+  default = 1;
+}
+
 local function new_game()
   game.new()
 
@@ -26,12 +32,15 @@ local function new_game()
     Component "control" {};
   }
 
-  local map = game.add {
-    name = "Level 1";
-    Component "map" { w=100, h=100 };
-  }
+  local map
+  for i=1,flags.parsed.maps do
+    map = game.add {
+      name = "Level "..i;
+      Component "map" { w=100, h=100 };
+    }
+    map:generate()
+  end
 
-  map:generate()
   player:setMap(map)
   player:moveTo(10, 11)
   return player
