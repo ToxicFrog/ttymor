@@ -129,7 +129,8 @@ function ui.mainmenu()
     { name="View Config"; activate = function() settings.show() end; };
     { name="Tree Test"; activate = function() ui.tree_test() end; };
     { name="Room Debug"; activate = dredmor.debug_rooms };
-    { name="Quit"; activate = shutdown; };
+    { name="Quit And Save"; activate = function() game.save('test.sav'); shutdown(); end };
+    { name="Quit Without Saving"; activate = shutdown; };
   }
 end
 
