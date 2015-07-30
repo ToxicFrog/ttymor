@@ -25,19 +25,13 @@ flags.register "maps" {
 local function new_game()
   game.new()
 
-  local player = game.add {
-    id = 1;
-    name = "Player";
-    Component "position" {};
-    Component "render" { face = "@"; style = 'v'; };
-    Component "control" {};
-  }
+  local player = game.create 'Player' {}
 
   local map
   for i=1,flags.parsed.maps do
-    map = game.add {
+    map = game.create 'Map' {
       name = "Level "..i;
-      Component "map" { w=100, h=100 };
+      w = 100; h = 100;
     }
     map:generate()
   end

@@ -4,14 +4,9 @@
 local map = {}
 
 function map:generate(ent)
-  local wall = game.add {
-    name = "wall";
-    Component 'render' { face = '#' };
-  }
-  local floor = game.add {
-    name = "floor";
-    Component 'render' { face = '.' };
-  }
+  self.w, self.h = ent.w, ent.h
+  local wall = game.create 'Wall' {}
+  local floor = game.create 'Floor' {}
   for x=1,self.w do
     self[x] = {}
     for y=1,self.h do

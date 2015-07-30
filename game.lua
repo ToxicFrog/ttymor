@@ -1,10 +1,12 @@
 require "repr"
 local Entity = require 'game.Entity'
+local Component = require 'game.Component'
 
 game = {}
 
 local entities = {}
 local log = {}
+local next_id = 1
 
 function game.new()
   entities = {}
@@ -26,11 +28,23 @@ function game.save(file)
   io.writefile(file, "return "..repr(entities))
 end
 
-function game.add(entity)
-  entity.id = entity.id or #entities+1
-  assert(not entities[entity.id], "attempt to add entity with duplicate id")
-  entities[entity.id] = Entity(entity)
-  return game.ref(entity.id)
+local entity_types = require 'entities'
+function game.create(type)
+  return function(data)
+    local proto = assert(entity_types[type], "no entity with type %s", type)
+
+    local entity = table.copy(proto)
+    for i,component in ipairs(entity) do
+      entity[i] = Component(component.name)(component.proto)
+    end
+    table.merge(entity, data, "overwrite")
+
+    entity.id,next_id = next_id,next_id+1
+    assert(not entities[entity.id], "attempt to add entity with duplicate id")
+
+    entities[entity.id] = Entity(entity)
+    return game.ref(entity.id)
+  end
 end
 
 function game.get(id)
@@ -72,6 +86,9 @@ local ref_mt = {
 function game.ref(id)
   assert(id, "no argument passed to game.ref")
   if type(id) ~= 'number' then
+    if id._REF then
+      return id
+    end
     return game.ref(id.id)
   end
   return setmetatable({ _REF = true; id = id; }, ref_mt)
