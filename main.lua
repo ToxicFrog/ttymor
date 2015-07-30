@@ -2,9 +2,10 @@ require 'util'
 require 'settings'
 require 'tty'
 require 'game'
-require 'ecs'
 require 'ui'
 require 'dredmor'
+
+local Component = require 'game.Component'
 
 flags.register "help" {
   help = "This text.";

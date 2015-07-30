@@ -1,4 +1,5 @@
 require "repr"
+local Entity = require 'game.Entity'
 
 game = {}
 
