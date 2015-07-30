@@ -1,4 +1,4 @@
-local repr = require "repr"
+require "repr"
 
 game = {}
 
@@ -22,7 +22,7 @@ function game.load(file)
 end
 
 function game.save(file)
-  io.writefile(file, "return "..repr.repr(entities))
+  io.writefile(file, "return "..repr(entities))
 end
 
 function game.add(entity)

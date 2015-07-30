@@ -1,6 +1,6 @@
 local reprs = {}
 
-local function rawrepr(V, handlers, refs, indent)
+local function _rawrepr(V, handlers, refs, indent)
   local handler = handlers[type(V)]
   if handler then
     return handler(V, handlers, refs, indent)
@@ -13,7 +13,7 @@ local function repr_with(V, handlers, refs, indent)
   if mt and mt.__repr then
     return mt.__repr(V, handlers, refs, indent)
   end
-  return rawrepr(V, handlers, refs, indent)
+  return _rawrepr(V, handlers, refs, indent)
 end
 
 -- Special repr function for keys used in a table literal.
@@ -24,10 +24,9 @@ local function repr_key(V, ...)
   return '['..repr_with(V, ...)..']'
 end
 
-local function repr(V, handlers, refs, indent)
+function _repr(V, handlers, refs, indent)
   return repr_with(V, handlers or reprs, refs or {}, indent or '')
 end
-local repr = repr
 
 reprs.boolean = tostring
 reprs.number = tostring
@@ -78,7 +77,6 @@ function reprs.table(T, handlers, refs, indent)
   return table.concat(S, "\n")
 end
 
-return {
-  repr = repr;
-  rawrepr = rawrepr;
-}
+-- set globals
+repr = _repr
+rawrepr = _rawrepr

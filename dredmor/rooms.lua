@@ -1,6 +1,7 @@
+require 'repr'
+
 local rooms = {}
 
-local repr = require 'repr'
 function dredmor.load_rooms(path)
   local dom = xml.load(path)
   for room in xml.walk(dom.root, 'room') do

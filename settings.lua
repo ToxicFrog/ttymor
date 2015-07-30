@@ -1,7 +1,8 @@
 -- Settings management framework.
+require 'repr'
+
 settings = {}
 
-local repr = require('repr').repr
 local registered = {}
 
 flags.register "config-dir" {
