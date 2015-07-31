@@ -2,6 +2,12 @@ require "repr"
 local Entity = require 'game.Entity'
 local Component = require 'game.Component'
 
+flags.register "maps" {
+  help = "Generate and keep in memory this many maps for debugging purposes";
+  type = flags.number;
+  default = 1;
+}
+
 game = {}
 
 local entities = {}
@@ -10,6 +16,23 @@ local next_id = 1
 
 function game.new()
   entities = {}
+  log = {}
+  next_id = 1
+
+  local player = game.create 'Player' {}
+
+  local map
+  for i=1,flags.parsed.maps do
+    map = game.create 'Map' {
+      name = "Level "..i;
+      w = 100; h = 100;
+    }
+    map:generate()
+  end
+
+  player:setMap(map)
+  player:moveTo(10, 11)
+  return player
 end
 
 function game.log(line, ...)
