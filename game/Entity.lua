@@ -27,7 +27,7 @@ function Entity_MT:__index(k)
 end
 
 function Entity_MT:__tostring()
-  return "<%s>$%d" % { self.name or "???", self.id or 0 }
+  return "<%s$%d:%s>" % { self.type, self.id or 0, self.name or "???" }
 end
 
 function Entity_MT:__repr(...)

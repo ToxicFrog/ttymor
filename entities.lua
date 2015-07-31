@@ -3,6 +3,7 @@ local entities = {}
 
 local function EntityType(name)
   return function(proto)
+    proto.type = name
     entities[name] = proto
   end
 end

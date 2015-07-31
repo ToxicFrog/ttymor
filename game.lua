@@ -10,16 +10,15 @@ flags.register "maps" {
 
 game = {}
 
-local entities = {}
-local log = {}
-local next_id = 1
+local entities,log,singletons,next_id
 
 function game.new()
   entities = {}
   log = {}
+  singletons = {}
   next_id = 1
 
-  local player = game.create 'Player' {}
+  local player = game.createSingleton('Player', 'player') {}
 
   local map
   for i=1,flags.parsed.maps do
@@ -45,10 +44,18 @@ end
 
 function game.load(file)
   entities = assert(loadfile(file))()
+  -- holy shit this is so busted
+  local data = assert(loadfile(file..".non-entity"))()
+  singletons,log,next_id = data.singletons,data.log,data.next_id
 end
 
 function game.save(file)
   io.writefile(file, "return "..repr(entities))
+  io.writefile(file..".non-entity", "return "..repr {
+    singletons = singletons;
+    log = log;
+    next_id = next_id;
+  })
 end
 
 local entity_types = require 'entities'
@@ -67,6 +74,20 @@ function game.create(type)
 
     entities[entity.id] = Entity(entity)
     return game.ref(entity.id)
+  end
+end
+
+function game.createSingleton(type, name)
+  return function(data)
+    if singletons[name] then
+      assert(singletons[name].type == type,
+          "mismatched types initializing singleton %s: %s ~= %s",
+          name, type, singletons[name].type)
+      return singletons[name]
+    else
+      singletons[name] = game.create(type)(data)
+    end
+    return singletons[name]
   end
 end
 
