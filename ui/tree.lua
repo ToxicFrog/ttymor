@@ -12,8 +12,16 @@ local bindings = {
   right = 'expand';
   activate = 'activate';
   cancel = 'cancel';
-  scrollup = 'scroll_up';
-  scrolldn = 'scroll_down';
+  scrollup = 'focus_page_up';
+  scrolldn = 'focus_page_down';
+}
+local readonly_bindings = {
+  up = 'scroll_up';
+  down = 'scroll_down';
+  activate = 'cancel';
+  cancel = 'cancel';
+  scrollup = 'page_up';
+  scrolldn = 'page_down';
 }
 
 -- Turn a mere tree of tables into a Tree.
@@ -24,7 +32,6 @@ local bindings = {
 -- to display the fully expanded tree.
 local function setup_tree(tree)
   tree = Tree(tree)
-  tree.bindings = setmetatable(tree.bindings or {}, {__index = bindings})
   tree.w,tree.h = 0,0
   if tree.name then
     tree.w = #tree.name
@@ -53,7 +60,14 @@ local function setup_tree(tree)
     tree.scroll_height = (tree.h/tree.max_h*tree.view.h-2):ceil()
   end
   tree:refresh()
-  tree:set_focus(1)
+
+  if tree.readonly then
+    tree.bindings = setmetatable(tree.bindings or {}, {__index = readonly_bindings})
+  else
+    tree.bindings = setmetatable(tree.bindings or {}, {__index = bindings})
+    tree:set_focus(1)
+  end
+
   return tree
 end
 

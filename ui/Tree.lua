@@ -35,14 +35,38 @@ function Tree:focus_next()
   self:scroll_to_focused()
 end
 
-function Tree:scroll_up()
+function Tree:focus_page_up()
   self:set_focus(self._focused - (self.h/2):ceil())
   self:scroll_to_focused()
 end
 
-function Tree:scroll_down()
+function Tree:focus_page_down()
   self:set_focus(self._focused + (self.h/2):ceil())
   self:scroll_to_focused()
+end
+
+-- scroll up/down the given number of lines, without wrapping or changing focus
+function Tree:scroll_by(n)
+  if not self.max_h then
+    self.scroll = nil
+  else
+    self.scroll = math.bound(0, self.scroll+n, self.max_h - self.h):floor()
+  end
+end
+
+-- Scroll up/down one line without wrapping or changing focus.
+function Tree:scroll_up()
+  self:scroll_by(-1)
+end
+function Tree:scroll_down()
+  self:scroll_by(1)
+end
+-- Scroll up/down one half screen without wrapping or changing focus.
+function Tree:page_up()
+  self:scroll_by(-self.h/2)
+end
+function Tree:page_down()
+  self:scroll_by(self.h/2)
 end
 
 -- Scroll so that the focused element is in the center of the screen, or close to.

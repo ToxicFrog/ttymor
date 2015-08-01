@@ -165,19 +165,11 @@ function ui.message(title, message)
   if type(message) == 'string' then
     return ui.message(title, {message})
   end
-  local w = #title+4
-  for _,line in ipairs(message) do
-    w = w:max(#line+4)
-  end
-  tty.pushwin(ui.centered(w, #message+2))
-  ui.box(nil, title)
-  for y,line in ipairs(message) do
-    tty.put(2, y, line)
-  end
-  tty.flip()
-  local k = ui.readkey()
-  ui.clear()
-  tty.popwin()
+
+  local tree = table.map(message, f'x => { name = x }')
+  tree.name = title
+  tree.readonly = true
+  ui.tree(tree)
 end
 
 function ui.clear(view, char)
