@@ -36,4 +36,10 @@ EntityType 'Map' {
   Component 'map' {};
 }
 
+EntityType 'TestObject' {
+  name = "test object";
+  Component 'render' { face = '?' };
+  Component 'position' {};
+}
+
 return entities

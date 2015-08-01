@@ -3,8 +3,14 @@
 
 local map = {}
 
-function map:generate(ent)
-  self.w, self.h = ent.w, ent.h
+function map:create(ent, type)
+  return function(data)
+    return game.create(type)(data)
+  end
+end
+
+function map:generate(ent, w, h)
+  self.w, self.h = w,h
   local wall = game.create 'Wall' {}
   local floor = game.create 'Floor' {}
   for x=1,self.w do

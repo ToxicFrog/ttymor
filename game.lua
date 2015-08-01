@@ -2,35 +2,40 @@ require "repr"
 local Entity = require 'game.Entity'
 local Component = require 'game.Component'
 
-flags.register "maps" {
-  help = "Generate and keep in memory this many maps for debugging purposes";
-  type = flags.number;
-  default = 1;
-}
-
 game = {}
 
-local entities,log,singletons,next_id
+local entities,log,singletons,next_id,maps
+
+function game.createMap(depth, name)
+  assert(not maps[depth], "map %d already exists", depth)
+
+  local map = game.create 'Map' {
+    name = name or "Level "..depth;
+  }
+  maps[depth] = map
+  return map
+end
 
 function game.new()
-  entities = {}
-  log = {}
-  singletons = {}
+  entities,log,singletons,maps = {},{},{},{}
   next_id = 1
+
+  local map = game.createMap(0, "test map")
+  map:generate(100, 100)
 
   local player = game.createSingleton('Player', 'player') {}
 
-  local map
-  for i=1,flags.parsed.maps do
-    map = game.create 'Map' {
-      name = "Level "..i;
-      w = 100; h = 100;
-    }
-    map:generate()
-  end
-
   player:setMap(map)
   player:moveTo(10, 11)
+
+  local tobj = game.getMap(0):create 'TestObject' {}
+  tobj:setMap(map)
+  tobj:moveTo(10, 12)
+
+  local tobj = game.getMap(0):create 'TestObject' {}
+  tobj:setMap(map)
+  tobj:moveTo(11, 11)
+
   return player
 end
 
@@ -85,7 +90,7 @@ function game.createSingleton(type, name)
           name, type, singletons[name].type)
       return singletons[name]
     else
-      singletons[name] = game.create(type)(data)
+      singletons[name] = game.getMap(0):create(type)(data)
     end
     return singletons[name]
   end
@@ -94,9 +99,15 @@ end
 function game.get(id)
   if type(id) == 'number' then
     return game.ref(assert(entities[id], "no such entity: %d" % id))
+  elseif type(id) == 'string' then
+    return assert(singletons[id], "no singleton named %s", id)
   else
     error("Invalid argument %s to game.get" % name)
   end
+end
+
+function game.getMap(n)
+  return assert(maps[n], "no map at depth %d", n)
 end
 
 local function ref_index(ref, k)

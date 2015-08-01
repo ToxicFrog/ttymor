@@ -29,7 +29,7 @@ function main(...)
 
   if flags.parsed.load then
     game.load(flags.parsed.load)
-    player = game.get(1)
+    player = game.get 'player'
   else
     player = game.new()
   end
