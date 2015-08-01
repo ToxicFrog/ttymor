@@ -20,15 +20,29 @@ end
 function Map:load()
   table.merge(self, game.loadObject("%d.map" % self.depth), overwrite)
   for id,ent in pairs(self.entities) do
-    print(game.get(id))
+    game.register(ent)
   end
 end
 
+-- Create a new entity owned by this map. It will be automatically registered
+-- in the global entity lookup table, but is available only as long as this map
+-- is loaded.
+local entity_types = require 'entities'
 function Map:create(type)
   return function(data)
-    local ent = game.create(type)(data)
-    self.entities[ent.id] = ent
-    return ent
+    local proto = assertf(entity_types[type], "no entity with type %s", type)
+
+    local entity = table.copy(proto)
+    for i,component in ipairs(entity) do
+      entity[i] = Component(component.name)(component.proto)
+    end
+    table.merge(entity, data, "overwrite")
+
+    entity.id = game.nextID()
+    self.entities[entity.id] = Entity(entity)
+
+    game.register(self.entities[entity.id])
+    return Ref(entity.id)
   end
 end
 

@@ -2,22 +2,15 @@ require "repr"
 local Entity = require 'game.Entity'
 local Component = require 'game.Component'
 local Map = require 'game.Map'
-Ref = require 'game.Ref'
+Ref = require 'game.Ref' -- must be global for game loading. TODO: fix
 
 game = {}
 
 local state = {}
 
-function game.createMap(depth, name)
-  assertf(not state.maps[depth], "map %d already exists", depth)
-
-  local map = Map {
-    name = name or "Level "..depth;
-    depth = depth;
-  }
-  state.maps[depth] = map
-  return map
-end
+--
+-- Gamestate initialization and save/load
+--
 
 function game.new(name)
   state = {
@@ -26,7 +19,7 @@ function game.new(name)
     log = {};
     singletons = {};
     maps = {};
-    next_id = 1;
+    next_id = 0;
   }
 
   local map = game.createMap(0, "test map")
@@ -48,20 +41,24 @@ function game.new(name)
   return player
 end
 
-function game.log(line, ...)
-  table.insert(state.log, line:format(...))
-end
-
-function game.getLog()
-  return state.log
-end
-
 function game.saveObject(file, object)
   return io.writefile('%s.sav/%s' % { state.name, file }, 'return '..repr(object))
 end
 
 function game.loadObject(file)
   return assert(loadfile('%s.sav/%s' % { state.name, file }))()
+end
+
+function game.save()
+  os.execute("mkdir -p '%s'" % 'test.sav') -- at some point will be based on character name
+  for depth,map in pairs(state.maps) do
+    if map ~= true then
+      map:save()
+      state.maps[depth] = true
+    end
+  end
+  state.entities = nil
+  game.saveObject("state", state)
 end
 
 function game.load(name)
@@ -76,38 +73,60 @@ function game.load(name)
   end
 end
 
-function game.save()
-  os.execute("mkdir -p '%s'" % 'test.sav') -- at some point will be based on character name
-  for depth,map in pairs(state.maps) do
-    if map ~= true then
-      map:save()
-      state.maps[depth] = true
-    end
-  end
-  game.saveObject("entities", state.entities)
-  state.entities = nil
-  game.saveObject("state", state)
+--
+-- Map management
+--
+
+function game.createMap(depth, name)
+  assertf(not state.maps[depth], "map %d already exists", depth)
+
+  local map = Map {
+    name = name or "Level "..depth;
+    depth = depth;
+  }
+  state.maps[depth] = map
+  return map
 end
 
-local entity_types = require 'entities'
-function game.create(type)
-  return function(data)
-    local proto = assertf(entity_types[type], "no entity with type %s", type)
-
-    local entity = table.copy(proto)
-    for i,component in ipairs(entity) do
-      entity[i] = Component(component.name)(component.proto)
-    end
-    table.merge(entity, data, "overwrite")
-
-    entity.id,state.next_id = state.next_id,state.next_id+1
-    assertf(not state.entities[entity.id], "attempt to add entity with duplicate id %d", entity.id)
-
-    state.entities[entity.id] = Entity(entity)
-    return Ref(entity.id)
-  end
+function game.getMap(n)
+  assertf(type(n) == 'number', "bad argument to getMap: %s (%s)", n, type(n))
+  return assertf(state.maps[n], "no map at depth %d", n)
 end
 
+--
+-- Log management
+--
+
+function game.log(line, ...)
+  table.insert(state.log, line:format(...))
+end
+
+function game.getLog()
+  return state.log
+end
+
+function game.nextID()
+  state.next_id = state.next_id + 1
+  return state.next_id
+end
+
+--
+-- Entity management
+--
+
+-- Register an entity, owned by a map, in the global entity lookup table.
+-- This holds a reference to the actual entity, not a Ref to it!
+function game.register(ent)
+  state.entities[ent.id] = ent
+end
+
+-- Unregister a previously registered entity.
+function game.unregister(ent)
+  state.entities[ent.id] = nil
+end
+
+-- Create a singleton with the given name and type, or return it if it already
+-- exists. Returns a Ref.
 function game.createSingleton(type, name)
   return function(data)
     if state.singletons[name] then
@@ -116,12 +135,14 @@ function game.createSingleton(type, name)
           name, type, state.singletons[name].type)
       return state.singletons[name]
     else
+      -- all singletons are stored in map 0, the persistent map
       state.singletons[name] = game.getMap(0):create(type)(data)
     end
     return state.singletons[name]
   end
 end
 
+-- Get an entity by numeric ID or singleton name. Returns a Ref.
 function game.get(id)
   if type(id) == 'number' then
     return Ref(assertf(state.entities[id], "no such entity: %d", id))
@@ -132,12 +153,10 @@ function game.get(id)
   end
 end
 
+-- Get an entity by numeric ID. Returns the actual entity, not a Ref. This is
+-- used internally by Ref to get the underlying entity to operate on and should
+-- not be called by anything else.
 function game.rawget(id)
   return state.entities[id]
-end
-
-function game.getMap(n)
-  assertf(type(n) == 'number', "bad argument to getMap: %s (%s)", n, type(n))
-  return assertf(state.maps[n], "no map at depth %d", n)
 end
 
