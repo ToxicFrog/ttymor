@@ -1,6 +1,7 @@
 require "repr"
 local Entity = require 'game.Entity'
 local Component = require 'game.Component'
+local Map = require 'game.Map'
 
 game = {}
 
@@ -9,8 +10,9 @@ local entities,log,singletons,next_id,maps
 function game.createMap(depth, name)
   assertf(not maps[depth], "map %d already exists", depth)
 
-  local map = game.create 'Map' {
+  local map = Map {
     name = name or "Level "..depth;
+    depth = depth;
   }
   maps[depth] = map
   return map
@@ -47,19 +49,40 @@ function game.getLog()
   return log
 end
 
-function game.load(file)
-  entities = assert(loadfile(file))()
-  -- holy shit this is so busted
-  local data = assert(loadfile(file..".non-entity"))()
-  singletons,log,next_id = data.singletons,data.log,data.next_id
+function game.saveObject(file, object)
+  return io.writefile('test.sav/'..file, 'return '..repr(object))
 end
 
-function game.save(file)
-  io.writefile(file, "return "..repr(entities))
-  io.writefile(file..".non-entity", "return "..repr {
+function game.loadObject(file)
+  return assert(loadfile('test.sav/'..file))()
+end
+
+function game.load()
+  entities = game.loadObject("entities")
+
+  local state = game.loadObject("state")
+  singletons,log,next_id,maps = state.singletons,state.log,state.next_id,state.maps
+
+  for depth,map in pairs(maps) do
+    maps[depth] = false
+    game.createMap(depth):load()
+  end
+end
+
+function game.save()
+  os.execute("mkdir -p '%s'" % 'test.sav') -- at some point will be based on character name
+  for depth,map in pairs(maps) do
+    if map ~= true then
+      map:save()
+      maps[depth] = true
+    end
+  end
+  game.saveObject("entities", entities)
+  game.saveObject("state", {
     singletons = singletons;
     log = log;
     next_id = next_id;
+    maps = maps;
   })
 end
 

@@ -60,7 +60,7 @@ function ui.draw(player)
   last_log = os.clock()
 
   tty.pushwin(map_win)
-  map:render_screen(x, y)
+  game.getMap(map):render_screen(x, y)
   tty.popwin()
 
   last_map = os.clock()

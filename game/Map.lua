@@ -1,33 +1,41 @@
+-- Component for a map, i.e. a floor of the dungeon or any other space that
+-- contains terrain and entities.
+
 local Map = {}
 Map.__index = Map
 
-local function new(game, depth)
-  return setmetatable({
-    w = -1;
-    h = -1;
-    game = game;
-    depth = depth;
-    entities = {};
-  }, Map)
+function Map:__tostring()
+  return "Map:%s(%s)" % { self.depth, self.name }
 end
 
-function Map:createEntity(type)
-  return function(initializer)
-    local ent = Entity(type)(initializer)
-    self.entities[id] = ent
-    game.ref(ent)
-    return game.get(ent)
+local function new(data)
+  data.entities = {}
+  return setmetatable(data, Map)
+end
+
+function Map:save()
+  return game.saveObject("%d.map" % self.depth, self)
+end
+
+function Map:load()
+  table.merge(self, game.loadObject("%d.map" % self.depth), overwrite)
+  for id,ent in pairs(self.entities) do
+    print(game.ref(id))
+  end
+end
+
+function Map:create(type)
+  return function(data)
+    local ent = game.create(type)(data)
+    self.entities[ent.id] = ent
+    return ent
   end
 end
 
 function Map:generate(w, h)
-  assert(self.w < 0 and self.h < 0, "attempt to regenerate an already-generated map")
-  assert(w > 0 and h > 0, "map dimensions must be positive")
-  self.w = w
-  self.h = h
-  local wall = self.game:Singleton 'Wall'
-  local floor = self.game:Singleton 'Floor'
-
+  self.w, self.h = w,h
+  local wall = game.create 'Wall' {}
+  local floor = game.create 'Floor' {}
   for x=1,self.w do
     self[x] = {}
     for y=1,self.h do
@@ -98,9 +106,11 @@ end
 function Map:removeFrom(object, x, y)
   --game.log("%s:removeFrom(%s, %d, %d)", ent, object, x, y)
   local i,objs = 1,self[x][y]
+  local removals = 0
   while i <= #objs do
     if objs[i].id == object.id then
       table.remove(objs, i)
+      removals = removals+1
     else
       i = i+1
     end
