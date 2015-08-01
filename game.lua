@@ -52,20 +52,19 @@ end
 function game.save()
   os.execute("mkdir -p '%s'" % 'test.sav') -- at some point will be based on character name
   for depth,map in pairs(state.maps) do
-    if map ~= true then
-      map:save()
-      state.maps[depth] = true
-    end
+    map:save()
   end
-  state.entities = nil
-  game.saveObject("state", state)
+  local save = table.merge(
+      { maps = table.mapv(state.maps, f' => true'); entities = {} },
+      state, 'ignore')
+
+  game.saveObject("state", save)
 end
 
 function game.load(name)
   state = { name = name }
 
   table.merge(state, game.loadObject("state"), "overwrite")
-  state.entities = game.loadObject("entities")
 
   for depth,map in pairs(state.maps) do
     state.maps[depth] = false
