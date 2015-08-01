@@ -12,10 +12,10 @@ flags.register "config-dir" {
 }
 
 local function assert_registered(file, key)
-  assert(registered[file],
+  assertf(registered[file],
     "attempt to access unregistered configuration file %s", file)
   if key then
-    assert(registered[file][key] ~= nil,
+    assertf(registered[file][key] ~= nil,
       "attempt to access unregistered configuration key %s::%s", file, key)
   end
 end
@@ -27,7 +27,7 @@ function settings.register(file, key, default)
     registered[file] = {}
   end
   if registered[key] ~= nil then
-    assert(default == registered[key],
+    assertf(default == registered[key],
       "multiple registrations of configuration key %s::%s with conflicting default values %s ~= %s",
       file, key, registered[key], default)
   else

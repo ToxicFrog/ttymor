@@ -18,7 +18,8 @@ function Tree:set_focus(index)
 end
 
 function Tree:focused()
-  assert(#self.nodes >= self._focused, "focus %d exceeds internal node list %d", self._focused, #self.nodes)
+  assertf(#self.nodes >= self._focused, "focus %d exceeds internal node list %d",
+      self._focused, #self.nodes)
   return self.nodes[self._focused]
 end
 
@@ -123,8 +124,8 @@ function Tree:call_handler(key)
   elseif type(self[key]) == 'function' then
     return self[key](self)
   else
-    return error("no handler in tree for %s -- wanted function, got %s (node) and %s (tree)" % {
-        name, type(node[key]), type(self[key])})
+    return errorf("no handler in tree for %s -- wanted function, got %s (node) and %s (tree)",
+        name, type(node[key]), type(self[key]))
   end
 end
 

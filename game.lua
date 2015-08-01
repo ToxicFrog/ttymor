@@ -7,7 +7,7 @@ game = {}
 local entities,log,singletons,next_id,maps
 
 function game.createMap(depth, name)
-  assert(not maps[depth], "map %d already exists", depth)
+  assertf(not maps[depth], "map %d already exists", depth)
 
   local map = game.create 'Map' {
     name = name or "Level "..depth;
@@ -66,7 +66,7 @@ end
 local entity_types = require 'entities'
 function game.create(type)
   return function(data)
-    local proto = assert(entity_types[type], "no entity with type %s", type)
+    local proto = assertf(entity_types[type], "no entity with type %s", type)
 
     local entity = table.copy(proto)
     for i,component in ipairs(entity) do
@@ -75,7 +75,7 @@ function game.create(type)
     table.merge(entity, data, "overwrite")
 
     entity.id,next_id = next_id,next_id+1
-    assert(not entities[entity.id], "attempt to add entity with duplicate id")
+    assertf(not entities[entity.id], "attempt to add entity with duplicate id %d", entity.id)
 
     entities[entity.id] = Entity(entity)
     return game.ref(entity.id)
@@ -85,7 +85,7 @@ end
 function game.createSingleton(type, name)
   return function(data)
     if singletons[name] then
-      assert(singletons[name].type == type,
+      assertf(singletons[name].type == type,
           "mismatched types initializing singleton %s: %s ~= %s",
           name, type, singletons[name].type)
       return singletons[name]
@@ -98,16 +98,17 @@ end
 
 function game.get(id)
   if type(id) == 'number' then
-    return game.ref(assert(entities[id], "no such entity: %d" % id))
+    return game.ref(assertf(entities[id], "no such entity: %d", id))
   elseif type(id) == 'string' then
-    return assert(singletons[id], "no singleton named %s", id)
+    return assertf(singletons[id], "no singleton named %s", id)
   else
-    error("Invalid argument %s to game.get" % name)
+    errorf("Invalid argument %s to game.get", name)
   end
 end
 
 function game.getMap(n)
-  return assert(maps[n], "no map at depth %d", n)
+  assertf(type(n) == 'number', "bad argument to getMap: %s (%s)", n, type(n))
+  return assertf(maps[n], "no map at depth %d", n)
 end
 
 local function ref_index(ref, k)

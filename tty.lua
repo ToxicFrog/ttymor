@@ -51,9 +51,9 @@ end
 -- Push a new drawing region onto the stack.
 function tty.pushwin(win)
   -- Check that the window is fully in bounds.
-  assert(in_bounds(win.x, win.y), "window position out of bounds: %d,%d" % {win.x, win.y})
-  assert(in_bounds(win.x + win.w, win.y + win.h), "window size out of bounds: %d,%d+%dx%d > %dx%d" % {
-      win.x, win.y, win.w, win.h, top.w, top.h})
+  assertf(in_bounds(win.x, win.y), "window position out of bounds: %d,%d", win.x, win.y)
+  assertf(in_bounds(win.x + win.w, win.y + win.h), "window size out of bounds: %d,%d+%dx%d > %dx%d",
+      win.x, win.y, win.w, win.h, top.w, top.h)
   win.x = win.x + top.x
   win.y = win.y + top.y
   table.insert(stack, win)
@@ -85,7 +85,7 @@ function tty.move(x, y)
   if x == X and y == Y then return end
   -- Check that the new cursor position is within the bounds of the current drawing
   -- window. A check in tty.pushwin() ensures that the window itself is valid.
-  assert(in_bounds(x, y), "out of bounds draw: %d,%d" % {x,y})
+  assertf(in_bounds(x, y), "out of bounds draw: %d,%d", x, y)
   -- This is where the transformation from logical to screen coordinates happens.
   -- The TTY uses a (1,1) origin, so we add 1 to both values after applying the
   -- CTM, and the H command is in (row,column) order, so we flip the arguments.
