@@ -20,7 +20,7 @@ end
 function Map:load()
   table.merge(self, game.loadObject("%d.map" % self.depth), overwrite)
   for id,ent in pairs(self.entities) do
-    print(game.ref(id))
+    print(game.get(id))
   end
 end
 

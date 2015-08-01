@@ -2,6 +2,7 @@ require "repr"
 local Entity = require 'game.Entity'
 local Component = require 'game.Component'
 local Map = require 'game.Map'
+Ref = require 'game.Ref'
 
 game = {}
 
@@ -103,7 +104,7 @@ function game.create(type)
     assertf(not state.entities[entity.id], "attempt to add entity with duplicate id %d", entity.id)
 
     state.entities[entity.id] = Entity(entity)
-    return game.ref(entity.id)
+    return Ref(entity.id)
   end
 end
 
@@ -123,7 +124,7 @@ end
 
 function game.get(id)
   if type(id) == 'number' then
-    return game.ref(assertf(state.entities[id], "no such entity: %d", id))
+    return Ref(assertf(state.entities[id], "no such entity: %d", id))
   elseif type(id) == 'string' then
     return assertf(state.singletons[id], "no singleton named %s", id)
   else
@@ -131,46 +132,12 @@ function game.get(id)
   end
 end
 
+function game.rawget(id)
+  return state.entities[id]
+end
+
 function game.getMap(n)
   assertf(type(n) == 'number', "bad argument to getMap: %s (%s)", n, type(n))
   return assertf(state.maps[n], "no map at depth %d", n)
 end
 
-local function ref_index(ref, k)
-  return state.entities[ref.id][k]
-end
-
-local function ref_repr(ref)
-  return 'game.ref(%d)' % ref.id
-end
-
-local function ref_ipairs(ref)
-  return ipairs(state.entities[ref.id])
-end
-
-local function ref_pairs(ref)
-  return pairs(state.entities[ref.id])
-end
-
-local function ref_tostring(ref)
-  return "Ref[%s]" % tostring(state.entities[ref.id])
-end
-
-local ref_mt = {
-  __repr = ref_repr;
-  __tostring = ref_tostring;
-  __pairs = ref_pairs;
-  __ipairs = ref_ipairs;
-  __index = ref_index;
-}
-
-function game.ref(id)
-  assert(id, "no argument passed to game.ref")
-  if type(id) ~= 'number' then
-    if id._REF then
-      return id
-    end
-    return game.ref(id.id)
-  end
-  return setmetatable({ _REF = true; id = id; }, ref_mt)
-end
