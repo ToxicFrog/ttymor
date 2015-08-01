@@ -5,22 +5,28 @@ local Map = require 'game.Map'
 
 game = {}
 
-local entities,log,singletons,next_id,maps
+local state = {}
 
 function game.createMap(depth, name)
-  assertf(not maps[depth], "map %d already exists", depth)
+  assertf(not state.maps[depth], "map %d already exists", depth)
 
   local map = Map {
     name = name or "Level "..depth;
     depth = depth;
   }
-  maps[depth] = map
+  state.maps[depth] = map
   return map
 end
 
-function game.new()
-  entities,log,singletons,maps = {},{},{},{}
-  next_id = 1
+function game.new(name)
+  state = {
+    name = name;
+    entities = {};
+    log = {};
+    singletons = {};
+    maps = {};
+    next_id = 1;
+  }
 
   local map = game.createMap(0, "test map")
   map:generate(100, 100)
@@ -42,48 +48,44 @@ function game.new()
 end
 
 function game.log(line, ...)
-  table.insert(log, line:format(...))
+  table.insert(state.log, line:format(...))
 end
 
 function game.getLog()
-  return log
+  return state.log
 end
 
 function game.saveObject(file, object)
-  return io.writefile('test.sav/'..file, 'return '..repr(object))
+  return io.writefile('%s.sav/%s' % { state.name, file }, 'return '..repr(object))
 end
 
 function game.loadObject(file)
-  return assert(loadfile('test.sav/'..file))()
+  return assert(loadfile('%s.sav/%s' % { state.name, file }))()
 end
 
-function game.load()
-  entities = game.loadObject("entities")
+function game.load(name)
+  state = { name = name }
 
-  local state = game.loadObject("state")
-  singletons,log,next_id,maps = state.singletons,state.log,state.next_id,state.maps
+  table.merge(state, game.loadObject("state"), "overwrite")
+  state.entities = game.loadObject("entities")
 
-  for depth,map in pairs(maps) do
-    maps[depth] = false
+  for depth,map in pairs(state.maps) do
+    state.maps[depth] = false
     game.createMap(depth):load()
   end
 end
 
 function game.save()
   os.execute("mkdir -p '%s'" % 'test.sav') -- at some point will be based on character name
-  for depth,map in pairs(maps) do
+  for depth,map in pairs(state.maps) do
     if map ~= true then
       map:save()
-      maps[depth] = true
+      state.maps[depth] = true
     end
   end
-  game.saveObject("entities", entities)
-  game.saveObject("state", {
-    singletons = singletons;
-    log = log;
-    next_id = next_id;
-    maps = maps;
-  })
+  game.saveObject("entities", state.entities)
+  state.entities = nil
+  game.saveObject("state", state)
 end
 
 local entity_types = require 'entities'
@@ -97,33 +99,33 @@ function game.create(type)
     end
     table.merge(entity, data, "overwrite")
 
-    entity.id,next_id = next_id,next_id+1
-    assertf(not entities[entity.id], "attempt to add entity with duplicate id %d", entity.id)
+    entity.id,state.next_id = state.next_id,state.next_id+1
+    assertf(not state.entities[entity.id], "attempt to add entity with duplicate id %d", entity.id)
 
-    entities[entity.id] = Entity(entity)
+    state.entities[entity.id] = Entity(entity)
     return game.ref(entity.id)
   end
 end
 
 function game.createSingleton(type, name)
   return function(data)
-    if singletons[name] then
-      assertf(singletons[name].type == type,
+    if state.singletons[name] then
+      assertf(state.singletons[name].type == type,
           "mismatched types initializing singleton %s: %s ~= %s",
-          name, type, singletons[name].type)
-      return singletons[name]
+          name, type, state.singletons[name].type)
+      return state.singletons[name]
     else
-      singletons[name] = game.getMap(0):create(type)(data)
+      state.singletons[name] = game.getMap(0):create(type)(data)
     end
-    return singletons[name]
+    return state.singletons[name]
   end
 end
 
 function game.get(id)
   if type(id) == 'number' then
-    return game.ref(assertf(entities[id], "no such entity: %d", id))
+    return game.ref(assertf(state.entities[id], "no such entity: %d", id))
   elseif type(id) == 'string' then
-    return assertf(singletons[id], "no singleton named %s", id)
+    return assertf(state.singletons[id], "no singleton named %s", id)
   else
     errorf("Invalid argument %s to game.get", name)
   end
@@ -131,11 +133,11 @@ end
 
 function game.getMap(n)
   assertf(type(n) == 'number', "bad argument to getMap: %s (%s)", n, type(n))
-  return assertf(maps[n], "no map at depth %d", n)
+  return assertf(state.maps[n], "no map at depth %d", n)
 end
 
 local function ref_index(ref, k)
-  return entities[ref.id][k]
+  return state.entities[ref.id][k]
 end
 
 local function ref_repr(ref)
@@ -143,15 +145,15 @@ local function ref_repr(ref)
 end
 
 local function ref_ipairs(ref)
-  return ipairs(entities[ref.id])
+  return ipairs(state.entities[ref.id])
 end
 
 local function ref_pairs(ref)
-  return pairs(entities[ref.id])
+  return pairs(state.entities[ref.id])
 end
 
 local function ref_tostring(ref)
-  return "Ref[%s]" % tostring(entities[ref.id])
+  return "Ref[%s]" % tostring(state.entities[ref.id])
 end
 
 local ref_mt = {

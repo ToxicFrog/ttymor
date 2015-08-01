@@ -31,7 +31,7 @@ function main(...)
     game.load(flags.parsed.load)
     player = game.get 'player'
   else
-    player = game.new()
+    player = game.new('test')
   end
 
   tty.init()

@@ -34,8 +34,8 @@ end
 
 function Map:generate(w, h)
   self.w, self.h = w,h
-  local wall = game.create 'Wall' {}
-  local floor = game.create 'Floor' {}
+  local wall = self:create 'Wall' {}
+  local floor = self:create 'Floor' {}
   for x=1,self.w do
     self[x] = {}
     for y=1,self.h do
