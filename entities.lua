@@ -23,7 +23,7 @@ EntityType 'Player' {
 
 EntityType 'Wall' {
   name = 'wall';
-  Component 'render' { face = '#' };
+  Component 'render' { face = '▒' };
 }
 
 EntityType 'Floor' {
