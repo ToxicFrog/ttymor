@@ -35,6 +35,10 @@ function Map:create(type)
     local entity = table.copy(proto)
     for i,component in ipairs(entity) do
       entity[i] = Component(component.name)(component.proto)
+      if data[component.name] then
+        table.merge(entity[i], data[component.name], "overwrite")
+        data[component.name] = nil
+      end
     end
     table.merge(entity, data, "overwrite")
 
@@ -46,26 +50,14 @@ function Map:create(type)
   end
 end
 
-function Map:generate(w, h)
-  self.w, self.h = w,h
-  local wall = self:create 'Wall' {}
-  local floor = self:create 'Floor' {}
-  for x=1,self.w do
-    self[x] = {}
-    for y=1,self.h do
-      if math.random(1,8) == 8
-          or x == 1 or x == self.w
-          or y == 1 or y == self.h then
-        self[x][y] = { wall }
-      else
-        self[x][y] = { floor }
-      end
-    end
-  end
-end
+-- Map generation is large enough that it gets its own library.
+Map.generate = require 'game.mapgen'
 
 function Map:try_move(x, y)
-  return self[x][y][1].name == "floor"
+  return not (
+    self[x][y][1] and
+    self[x][y][1].name == "wall"
+  )
 end
 
 function Map:render_screen(cx, cy)
@@ -107,6 +99,8 @@ function Map:render_screen(cx, cy)
       local cell = self[x+1][y+1]
       if #cell > 0 then
         cell[#cell]:render(x+dx, y+dy)
+      else
+        tty.put(x+dy, y+dy, ' ')
       end
     end
   end

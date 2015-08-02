@@ -33,6 +33,7 @@ function main(...)
 
   math.randomseed(flags.parsed.seed)
   settings.load()
+  dredmor.loadRooms()
 
   if flags.parsed.load then
     game.load(flags.parsed.load)

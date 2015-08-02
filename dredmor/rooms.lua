@@ -24,7 +24,7 @@ local function attrsToTable(tag)
   return T
 end
 
-function dredmor.load_rooms(path)
+local function loadRooms(path)
   local dom = xml.load(path)
   for roomdef in xml.walk(dom.root, 'room') do
     if rooms[roomdef.attr.name] then
@@ -51,15 +51,19 @@ function dredmor.load_rooms(path)
         end
       end
       rooms[room.name] = room
+      table.insert(rooms, room)
     end
   end
 end
 
+function dredmor.loadRooms()
+  loadRooms(flags.parsed.dredmor_dir..'/game/rooms.xml')
+  loadRooms(flags.parsed.dredmor_dir..'/expansion/game/rooms.xml')
+  loadRooms(flags.parsed.dredmor_dir..'/expansion2/game/rooms.xml')
+  --loadRooms(flags.parsed.dredmor_dir..'/expansion3/game/rooms.xml') Wizardlands doesn't have one.
+end
+
 function dredmor.debug_rooms()
-  dredmor.load_rooms(flags.parsed.dredmor_dir..'/game/rooms.xml')
-  dredmor.load_rooms(flags.parsed.dredmor_dir..'/expansion/game/rooms.xml')
-  dredmor.load_rooms(flags.parsed.dredmor_dir..'/expansion2/game/rooms.xml')
-  --dredmor.load_rooms(flags.parsed.dredmor_dir..'/expansion3/game/rooms.xml') Wizardlands doesn't have one.
   local tree = { name = 'Room List' }
   for name,room in pairs(rooms) do
     table.insert(tree, room)
