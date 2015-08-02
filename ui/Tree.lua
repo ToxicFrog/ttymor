@@ -36,22 +36,18 @@ function Tree:focus_next()
 end
 
 function Tree:focus_page_up()
-  self:set_focus(self._focused - (self.h/2):ceil())
+  self:set_focus(self._focused - (self.h:min(self.rows)/2):ceil())
   self:scroll_to_focused()
 end
 
 function Tree:focus_page_down()
-  self:set_focus(self._focused + (self.h/2):ceil())
+  self:set_focus(self._focused + (self.h:min(self.rows)/2):ceil())
   self:scroll_to_focused()
 end
 
 -- scroll up/down the given number of lines, without wrapping or changing focus
 function Tree:scroll_by(n)
-  if not self.max_h then
-    self.scroll = nil
-  else
-    self.scroll = math.bound(0, self.scroll+n, self.max_h - self.h):floor()
-  end
+  self.scroll = math.bound(0, self.scroll+n, self.rows - self.h):floor()
 end
 
 -- Scroll up/down one line without wrapping or changing focus.
@@ -63,16 +59,15 @@ function Tree:scroll_down()
 end
 -- Scroll up/down one half screen without wrapping or changing focus.
 function Tree:page_up()
-  self:scroll_by(-self.h/2)
+  self:scroll_by(-self.h:min(self.rows)/2)
 end
 function Tree:page_down()
-  self:scroll_by(self.h/2)
+  self:scroll_by(self.h:min(self.rows)/2)
 end
 
 -- Scroll so that the focused element is in the center of the screen, or close to.
 function Tree:scroll_to_focused()
-  if not self.max_h then return end
-  self.scroll = math.bound(0, self._focused - self.h/2, self.max_h - self.h):floor()
+  self.scroll = math.bound(0, self._focused - self.h/2, self.rows - self.h):floor()
 end
 
 -- Return a DFS iterator over all nodes in the tree; yields (node,depth) for
@@ -95,19 +90,20 @@ function Tree:render()
   tty.colour(unpack(self.colour))
   tty.pushwin(self.view)
   ui.box(nil, self.name)
-  local scroll = self.scroll or 0
 
-  if self.scroll then
+  if self.scrollable then
     -- render scrollbar
-    ui.clear({ x=self.view.w-1; y=1; w=1; h=self.view.h-2 }, '┊')
+    ui.clear({ x=self.view.w-1; y=1; w=1; h=self.h }, '┊')
     tty.put(self.view.w-1, 1, '┻')
-    tty.put(self.view.w-1, self.view.h-2, '┳')
-    local sb_distance = (self.scroll/(self.max_h - self.h)*(self.h - 2 - self.scroll_height)):floor()
+    tty.put(self.view.w-1, self.h, '┳')
+    local sb_distance = (self.scroll/(self.rows - self.h)*(self.h - 2 - self.scroll_height)):floor()
     ui.clear({ x=self.view.w-1; y=2+sb_distance; w=1; h=self.scroll_height }, '▓') --█
   end
 
-  for y=1,self.h:min(#self.nodes) do
-    self.nodes[y+scroll]:render(1, y)
+  for y=1,self.h:min(self.rows) do
+    -- assertf(self.nodes[y+scroll], "scroll error: y=%d h=%d mh=%d scroll=%d #nodes=%d",
+    --     y, self.h, self.max_h or 0, scroll, #self.nodes)
+    self.nodes[y+self.scroll]:render(1, y)
   end
 
   tty.popwin()
@@ -123,6 +119,14 @@ function Tree:refresh()
     if node.focused then
       self._focused = node._index
     end
+  end
+  self.rows = #self.nodes
+  if self.rows > self.h then
+    self.scrollable = true
+    self.scroll_height = (self.h/self.rows*(self.h-2)):ceil()
+  else
+    self.scrollable = false
+    self.scroll = 0
   end
 end
 
@@ -171,6 +175,90 @@ function Tree:run()
   return R
 end
 
-return function(t)
-  return setmetatable(t, Tree)
+-- API for creating a Tree from a tree of tables and/or strings.
+
+local Node = require 'ui.Node'
+
+-- Default command bindings for tree mode.
+-- This lets you navigate with the directional keys, choose a node (exiting tree
+-- mode and returning that node) with enter, and cancel (exiting tree mode and
+-- returning false) with cancel.
+local bindings = {
+  up = 'focus_prev';
+  down = 'focus_next';
+  left = 'collapse';
+  right = 'expand';
+  activate = 'activate';
+  cancel = 'cancel';
+  scrollup = 'focus_page_up';
+  scrolldn = 'focus_page_down';
+}
+
+local readonly_bindings = {
+  up = 'scroll_up';
+  down = 'scroll_down';
+  activate = 'cancel';
+  cancel = 'cancel';
+  scrollup = 'page_up';
+  scrolldn = 'page_down';
+}
+
+-- Turn a mere tree of tables into a Tree.
+-- This consists of installing the default methods for Tree on the top level,
+-- and for Node on all its children; installing the default bindings; setting
+-- the first top-level child as the focused node; setting up the next, previous,
+-- parent, and tree links; and computing the width and height of the box needed
+-- to display the fully expanded tree.
+return function(tree)
+  tree = setmetatable(tree, Tree)
+  tree.w,tree.h,tree.scroll = 0,0,0
+  if tree.name then
+    tree.w = #tree.name
+  end
+
+  local function convert_tree(node, depth)
+    for i,child in ipairs(node) do
+      if type(child) == 'string' then
+        child = { name = child }
+      end
+      child._tree = tree
+      child._parent = node
+      child._depth = depth
+      node[i] = Node(child)
+      tree.h = tree.h+1
+      tree.w = tree.w:max(node[i]:width()+depth)
+      convert_tree(child, depth+1)
+    end
+  end
+
+  convert_tree(tree, 0)
+  for _,node in ipairs(tree) do node._parent = nil end
+
+  -- tree.w and tree.h are the *displayable* width and height of the tree.
+  -- w is equal to 2 (margins) + the total width (indent + text) of the widest node
+  -- h is equal to the number of nodes in the tree
+  -- Both, however, are capped at what will fit on the screen; furthermore, w cannot
+  -- be any less than the minimum needed to display the title.
+  -- There is a separate field, tree.rows, updated by tree:refresh(), for the total
+  -- number of rows currently being viewed. If it exceeds tree.h, scrolling is
+  -- enabled.
+  tree.w = tree.w+2
+  tree.view = ui.centered(tree.w+2,tree.h+2)
+  tree.w = tree.w:min(tree.view.w-2)
+  tree.h = tree.h:min(tree.view.h-2)
+
+  tree:refresh()
+
+  if tree.readonly then
+    tree.bindings = setmetatable(tree.bindings or {}, {__index = readonly_bindings})
+  else
+    tree.bindings = setmetatable(tree.bindings or {}, {__index = bindings})
+    tree:set_focus(1)
+  end
+
+  return tree
 end
+
+-- External API functions. --
+
+

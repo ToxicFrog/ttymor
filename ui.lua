@@ -1,6 +1,5 @@
 ui = {}
 
-require 'ui.tree'
 require 'ui.keys'
 
 local last_init,last_hud,last_map,last_log,last_tty,last_frame = 0,0,0,0,0,0
@@ -161,15 +160,22 @@ function ui.tree_test()
   game.log("tree: %s", node and node.name or '<<canceled>>')
 end
 
+local Tree = require 'ui.Tree'
+
+-- Turn a tree into a Tree and activate it, running until one of the handlers
+-- returns a value.
+function ui.tree(tree)
+  return Tree(tree):run()
+end
+
 function ui.message(title, message)
   if type(message) == 'string' then
     return ui.message(title, {message})
   end
 
-  local tree = table.map(message, f'x => { name = x }')
-  tree.name = title
-  tree.readonly = true
-  ui.tree(tree)
+  message = table.copy(message)
+  message.name = title
+  ui.tree(message)
 end
 
 function ui.clear(view, char)
@@ -184,4 +190,3 @@ function ui.clear(view, char)
   end
   tty.popwin()
 end
-
