@@ -99,8 +99,6 @@ function Map:render_screen(cx, cy)
       local cell = self[x+1][y+1]
       if #cell > 0 then
         cell[#cell]:render(x+dx, y+dy)
-      else
-        tty.put(x+dy, y+dy, ' ')
       end
     end
   end
