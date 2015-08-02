@@ -16,6 +16,12 @@ flags.register "load" {
   type = flags.string;
 }
 
+flags.register "seed" {
+  help = "Random seed to use. Default: current time.";
+  type = flags.number;
+  default = os.time();
+}
+
 function main(...)
   local player
   flags.parse(...)
@@ -25,6 +31,7 @@ function main(...)
     return
   end
 
+  math.randomseed(flags.parsed.seed)
   settings.load()
 
   if flags.parsed.load then
