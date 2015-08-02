@@ -7,17 +7,15 @@ end
 
 local function spliceRoom(map, room, ox, oy)
   assert(in_bounds(map, ox, oy, room.w, room.h))
-  for y=oy,oy+room.h-1 do
-    local row = room.map[y-oy+1]
-    assertf(row, "error reading room at row %d: %s", y-oy+1, repr(room))
-    for x=ox,ox+room.w-1 do
-      local cell = row:sub(x-ox+1,x-ox+1)
+  for x=1,room.w do
+    for y=1,room.h do
+      local cell = room.map[x][y]
       if cell == '#' then
-        map[x][y] = { game.createSingleton('Wall', 'tile:#') {} }
+        map[x+ox-1][y+oy-1] = { game.createSingleton('Wall', 'tile:#') {} }
       elseif cell == '.' then
-        map[x][y] = { game.createSingleton('Floor', 'tile:.') {} }
+        map[x+ox-1][y+oy-1] = { game.createSingleton('Floor', 'tile:.') {} }
       else
-        map[x][y] = {
+        map[x+ox-1][y+oy-1] = {
           game.createSingleton('Floor', 'tile:.') {};
           map:create 'TestObject' { render = { face = cell } };
         }
