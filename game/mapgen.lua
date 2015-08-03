@@ -5,18 +5,52 @@ local function in_bounds(map, x, y, w, h)
   return x >= 0 and y >= 0 and x+w < map.w and y+h < map.h
 end
 
-local function placeRoom(map, room, ox, oy)
+local opposite = { n='s'; s='n'; e='w'; w='e'; }
+
+local function pushDoor(self, door, x, y)
+  table.insert(self._doors, {
+    x = x+door.x; y = y+door.y;
+    dir = opposite[door.dir]
+  })
+end
+
+local function pullDoor(self)
+  return table.remove(self._doors, 1)
+end
+
+local function placeRoom(self, room, ox, oy)
   log.debug("Placing %s (%dx%d) at (%d,%d)",
       room.name, room.w, room.h, ox, oy)
-  assertf(in_bounds(map, ox, oy, room.w, room.h),
+  assertf(in_bounds(self, ox, oy, room.w, room.h),
     "out of bounds room placement: %s (%dx%d) at (%d,%d)",
     room.name, room.w, room.h, ox, oy)
+
+  -- Copy the terrain into the map.
   for x,y,terrain in room:cells(ox,oy) do
-    local cell = map[x][y]
-    assertf(not cell.terrain or (cell.terrain == 'Wall' and terrain == 'Wall'),
-      "error placing roomtile %s at (%d,%d)", terrain, x, y)
-    cell.terrain = terrain
-    cell.name = room.name
+    if terrain then
+      local cell = self[x][y]
+      assertf(not cell[1] or not terrain or (cell[1] == 'Wall' and terrain == 'Wall'),
+        "error placing roomtile %s at (%d,%d): %s", terrain, x, y, cell[1])
+      cell[1] = terrain
+      cell.name = room.name
+    end
+  end
+
+  -- Copy the objects into the map.
+  for _,obj in ipairs(room.contents) do
+    obj = table.copy(obj)
+    if not obj.x or not obj.y then
+      log.debug("Object has no location! %s", repr(obj))
+    else
+      obj.x = ox + obj.x
+      obj.y = oy + obj.y
+      table.insert(self._objects, obj)
+    end
+  end
+
+  -- push all doors from that room into the queue
+  for door in room:doors() do
+    pushDoor(self, door, ox+1, oy+1)
   end
 end
 
@@ -32,7 +66,9 @@ local function fillDoor(map, door)
   for x=x,mx do
     for y=y,my do
       local cell = map[x][y]
-      cell.terrain = 'Wall';
+      cell[1] = 'Wall';
+      -- Temporary addition so that places where doors were filled in stand out.
+      -- For debugging the map generator.
       cell[2] = game.createSingleton('Wall', 'DoorFiller') {
         render = { face = '░' };
       }
@@ -53,7 +89,8 @@ local function placeDoor(self, door)
     segments[3] = { x = x; y = y+1; open = '╻'; shut = '╿' }
   end
   for _,segment in ipairs(segments) do
-    self[segment.x][segment.y].terrain = 'Floor'
+    print(repr(segment))
+    self[segment.x][segment.y][1] = 'Floor'
     local door = self:create 'Door' {
       door = {
         face_open = segment.open;
@@ -71,9 +108,9 @@ local function createTerrain(self)
   for x=1,self.w do
     for y=1,self.h do
       local cell = self[x][y]
-      if cell.terrain then
-        assert(type(cell.terrain) == 'string', repr(cell))
-        cell[1] = game.createSingleton(cell.terrain, 'terrain:'..cell.terrain) {}
+      if cell[1] then
+        assert(type(cell[1]) == 'string', repr(cell))
+        cell[1] = game.createSingleton(cell[1], 'terrain:'..cell[1]) {}
       end
     end
   end
@@ -82,6 +119,7 @@ end
 local function placeObjects(self)
   for _,obj in ipairs(self._objects) do
     local ent = self:create 'TestObject' {
+      name = obj.name or obj.type or obj._type or "???";
       render = {
         face = (obj.type or '?'):sub(1,1);
       };
@@ -95,8 +133,6 @@ local function placeObjects(self)
   self._objects = nil
 end
 
-local opposite = { n='s'; s='n'; e='w'; w='e'; }
-
 local function isRoomCompatible(self, door, doorway)
   local ox = doorway.x - door.x - 1
   local oy = doorway.y - door.y - 1
@@ -106,7 +142,7 @@ local function isRoomCompatible(self, door, doorway)
 
   for x,y,cell in door.room:cells(ox, oy) do
     local mapcell = self[x][y]
-    if mapcell.terrain and (mapcell.terrain ~= cell or mapcell.terrain ~= 'Wall') then
+    if mapcell[1] and (mapcell[1] ~= cell or mapcell[1] ~= 'Wall') then
       -- collision with existing terrain
       return false
     end
@@ -115,7 +151,23 @@ local function isRoomCompatible(self, door, doorway)
   return true
 end
 
-return function(self, w, h)
+local function placeRoomAtDoor(self, room, door, target_door)
+  -- calculate offsets based on position of target_door
+  local ox,oy = target_door.x - door.x, target_door.y - door.y
+  placeRoom(self, room, ox-1, oy-1)
+  placeDoor(self, target_door)
+end
+
+local function findCompatibleRoom(self, target)
+  for i=1,5 do
+    local door = dredmor.randomDoor(target.dir)
+    if isRoomCompatible(self, door, target) then
+      return door.room,door
+    end
+  end
+end
+
+return function(self, w, h, room)
   self.w, self.h = w,h
   for x=1,self.w do
     self[x] = {}
@@ -127,55 +179,24 @@ return function(self, w, h)
   self._doors = {}
   self._objects = {}
 
-  local function pushDoor(door, x, y)
-    table.insert(self._doors, {
-      x = x+door.x; y = y+door.y;
-      dir = opposite[door.dir]
-    })
-  end
-
   -- place the first room in the middle of the map
-  local room = dredmor.randomRoom()
+  if room then
+    room = dredmor.room(room)
+  else
+    room = dredmor.randomRoom()
+  end
   local x = (self.w/2 - room.w/2):floor()
   local y = (self.h/2 - room.h/2):floor()
-
-  -- push all doors from that room into the queue
   placeRoom(self, room, x, y)
-  for door in room:doors() do pushDoor(door, x+1, y+1) end
 
-  while #self._doors > 0 do
-    local doorway = table.remove(self._doors, 1)
-    log.debug('checking door %s', repr(doorway))
+  for target_door in pullDoor,self do
+    log.debug('checking door %s', repr(target_door))
     -- find a compatible random room
-    for i=1,5 do
-      local door = dredmor.randomDoor(doorway.dir)
-      if isRoomCompatible(self, door, doorway) then
-        -- place it
-        local ox,oy = doorway.x - door.x, doorway.y - door.y
-        placeRoom(self, door.room, ox-1, oy-1)
-        for newdoor in door.room:doors() do
-          if newdoor ~= door then pushDoor(newdoor, ox, oy) end
-        end
-        placeDoor(self, doorway)
-        for _,obj in ipairs(door.room.contents) do
-          obj = table.copy(obj)
-          if not obj.x or not obj.y then
-            log.debug("Object has no location! %s", repr(obj))
-          else
-            obj.x = ox + obj.x
-            obj.y = oy + obj.y
-            table.insert(self._objects, obj)
-          end
-        end
-        doorway = nil
-        break
-      else
-        log.debug('rejected %s', door.room.name)
-      end
-    end
-    -- Couldn't find a room. Close the door.
-    if doorway then
-      fillDoor(self, doorway)
+    local room,door = findCompatibleRoom(self, target_door)
+    if room then
+      placeRoomAtDoor(self, room, door, target_door)
+    elseif not self[target_door.x][target_door.y][2] then
+      fillDoor(self, target_door)
     end
   end
 

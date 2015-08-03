@@ -58,6 +58,20 @@ function Map:try_move(x, y)
   return true
 end
 
+-- Return an iterator over map cells in the given rectangle
+function Map:cells(x, y, w, h)
+  x,y = x or 1,y or 1
+  w,h = w or self.w,h or self.h
+
+  return coroutine.wrap(function()
+    for x=x,x+w-1 do
+      for y=y,y+h-1 do
+        coroutine.yield(x, y, self[x][y])
+      end
+    end
+  end)
+end
+
 function Map:render_screen(cx, cy)
   local sw,sh = tty.size() -- screen width and height
   local rw,rh -- render width and height
@@ -89,15 +103,9 @@ function Map:render_screen(cx, cy)
   end
 
   game.log("draw: %d,%d+%d+%d (%dx%d)", ox, oy, rw, rh, sw, sh)
-  for x=ox,ox+rw-1 do
-    for y=oy,oy+rh-1 do
-      assert(x >= 0 and x < self.w, "x out of bounds: "..x)
-      assert(y >= 0 and y < self.h, "y out of bounds: "..y)
-
-      local cell = self[x+1][y+1]
-      if #cell > 0 then
-        cell[#cell]:render(x+dx, y+dy)
-      end
+  for x,y,cell in self:cells(ox+1,oy+1,rw,rh) do
+    if #cell > 0 then
+      cell[#cell]:render(x+dx-1, y+dy-1)
     end
   end
 end
