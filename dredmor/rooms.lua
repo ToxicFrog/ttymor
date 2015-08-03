@@ -24,6 +24,64 @@ local function attrsToTable(tag)
   return T
 end
 
+-- doors
+-- ╸ ╺ open
+-- ╼━╾ closed
+-- ╹ ╽
+--   ┃
+-- ╻ ╿
+
+
+-- table mapping terrain chars to cell contents
+-- each one is either a table, in which case the 0 key is the EntityType of the
+-- terrain to use and everything else is to be added to the object table with the
+-- (x,y) of the tile, or is a function, in which case it's called and passed the
+-- room object and (x,y) and can do whatever it likes.
+-- an EntityType of false means that that cell is empty space.
+local terrain = {
+  ['#'] = { 'Wall' }; ['.'] = { 'Floor' }; [' '] = { false };
+  W = { 'Water' }; G = { 'Goo' }; I = { 'Ice' }; L = { 'Lava' };
+  ['!'] = { 'Floor', 'FakeWall' }; ['X'] = { 'InvisibleWall' };
+  P = { 'Wall', 'Tapestry' };
+  ['^'] = { 'Floor', 'Carpet' };
+  ['@'] = { 'Wall', 'DecorativeBlocker' };
+
+  S = { 'Floor'; 'Shopkeeper' };
+  i = { 'Wall', 'ShopPedestal' };
+  s = function(room, x, y)
+    room.shop_door = {x,y}
+    room.map[x][y] = 'Floor'
+  end;
+  -- north-south door
+  D = function(room, x, y)
+    local map = room.map
+    table.insert(room.doors, {
+      x = x-1;
+      y = y-1;
+      dir = y == 1 and "n" or "s";
+    })
+    map[x-1][y],map[x][y],map[x+1][y] = false,false,false
+  end;
+  -- east-west door
+  d = function(room, x, y)
+    local map = room.map
+    table.insert(room.doors, {
+      x = x-1;
+      y = y-1;
+      dir = x == 1 and "w" or "e";
+    })
+    map[x][y-1],map[x][y],map[x][y+1] = false,false,false
+  end;
+}
+
+local function bad_tile(icon)
+  return function(map)
+    return { game.createSingleton('Floor', 'error:'..icon) {
+      render = { face = icon; style = 'v'; colour = { 255, 0, 0 }}
+    }}
+  end
+end
+
 local function insert_row(map, row)
   local y = map[1] and #map[1]+1 or 1
   for x=1,#row do
@@ -32,11 +90,45 @@ local function insert_row(map, row)
   end
 end
 
+-- Room postprocessor. There's a bunch of things that have to happen here, eventually,
+-- but for now the most important ones are this:
+-- - beacons (1-9) need to be located, replaced with '.', and entered into the location array
+-- - doors need to be located, their direction determined, and entered into the doors array
+-- - terrain needs to be replaced with the EntityType of the corresponding terrain
+-- - everything else needs to be added to the room.contents array and replaced with terrain
+local function postprocess(room)
+  local map = room.map
+  for x=1,room.w do
+    for y=1,room.h do
+      local cell = map[x][y] or ' ' -- not all rooms are perfect rectangles!
+      if cell:match('%d') then -- location marker
+        room.locations[tonumber(cell)] = { x=x-1, y=y-1 }
+        map[x][y] = 'Floor'
+      elseif terrain[cell] then
+        local content = terrain[cell]
+        if type(content) == 'table' then
+          map[x][y] = content[1]
+          for i=2,#content do
+            table.insert(room.contents, {_type = "Terrain"; name=content[i]})
+          end
+        else
+          content(room, x, y)
+        end
+      else
+        errorf('Unhandled terrain cell type "%s" reading room %s"',
+          cell, room.name)
+      end
+    end
+  end
+end
+
 local function roomFromXML(node)
   local room = {
     name = node.attr.name;
     map = {};
     contents = {};
+    locations = {};
+    doors = {};
   }
   for tag in xml.walk(node) do
     if tag.name == 'room' then
@@ -58,18 +150,10 @@ local function roomFromXML(node)
   -- in the tag and calculates w/h from the <row> elements. We do the same here.
   room.w = #room.map
   room.h = #room.map[1]
+  postprocess(room)
 
   return room
 end
-
--- Room postprocessor. There's a bunch of things that have to happen here, eventually,
--- but for now the most important ones are this:
--- - beacons (1-9) need to be located, replaced with '.', and entered into the location array
--- - doors need to be located, their direction determined, and entered into the doors array
-local function postprocess(room)
-  for row,buf in ipairs(room.map) do end
-end
-
 
 local function loadRooms(path)
   local dom = xml.load(path)

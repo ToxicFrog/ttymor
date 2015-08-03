@@ -25,6 +25,26 @@ EntityType 'Wall' {
   name = 'wall';
   Component 'render' { face = '▒' };
 }
+EntityType 'InvisibleWall' {
+  name = 'floor';
+  Component 'render' { face = '.'; style = 'v' };
+}
+EntityType 'Water' {
+  name = 'liquid';
+  Component 'render' { face = '≈'; colour = {0,128,255} };
+}
+EntityType 'Goo' {
+  name = 'liquid';
+  Component 'render' { face = '≈'; colour = {0,255,0} };
+}
+EntityType 'Ice' {
+  name = 'liquid';
+  Component 'render' { face = '≈'; colour = {128,255,0} };
+}
+EntityType 'Lava' {
+  name = 'liquid';
+  Component 'render' { face = '≈'; colour = {255,64,0} };
+}
 
 EntityType 'Floor' {
   name = 'floor';

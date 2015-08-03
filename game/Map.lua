@@ -54,10 +54,8 @@ end
 Map.generate = require 'game.mapgen'
 
 function Map:try_move(x, y)
-  return not (
-    self[x][y][1] and
-    self[x][y][1].name == "wall"
-  )
+  -- todo: replace with actual collision detection
+  return true
 end
 
 function Map:render_screen(cx, cy)

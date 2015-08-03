@@ -5,21 +5,31 @@ local function in_bounds(map, x, y, w, h)
   return x > 0 and y > 0 and x+w <= map.w and y+h <= map.h
 end
 
+local function tiles(self)
+  local function iter()
+    for x=1,self.w do
+      for y=1,self.h do
+        coroutine.yield(x,y,self[x][y])
+      end
+    end
+  end
+  return coroutine.wrap(iter)
+end
+
 local function spliceRoom(map, room, ox, oy)
   assert(in_bounds(map, ox, oy, room.w, room.h))
   for x=1,room.w do
     for y=1,room.h do
-      local cell = room.map[x][y]
-      if cell == '#' then
-        map[x+ox-1][y+oy-1] = { game.createSingleton('Wall', 'tile:#') {} }
-      elseif cell == '.' then
-        map[x+ox-1][y+oy-1] = { game.createSingleton('Floor', 'tile:.') {} }
-      else
-        map[x+ox-1][y+oy-1] = {
-          game.createSingleton('Floor', 'tile:.') {};
-          map:create 'TestObject' { render = { face = cell } };
-        }
-      end
+      map[x+ox-1][y+oy-1] = { terrain = room.map[x][y]; name = room.name }
+    end
+  end
+end
+
+local function createTerrain(self)
+  for x,y,tile in tiles(self) do
+    if tile.terrain then
+      assert(type(tile.terrain) == 'string', repr(tile))
+      tile[1] = game.createSingleton(tile.terrain, 'terrain:'..tile.terrain) {}
     end
   end
 end
@@ -31,8 +41,6 @@ end
 
 return function(self, w, h)
   self.w, self.h = w,h
-  local wall = self:create 'Wall' {}
-  local floor = self:create 'Floor' {}
   for x=1,self.w do
     self[x] = {}
     for y=1,self.h do
@@ -48,6 +56,7 @@ return function(self, w, h)
       y = y + room.h
     end
     if not in_bounds(self, x, y, room.w, room.h) then
+      createTerrain(self)
       return
     else
       spliceRoom(self, room, x, y)
