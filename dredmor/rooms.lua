@@ -34,7 +34,7 @@ end
 local function roomFromXML(node)
   local room = {
     name = node.attr.name;
-    _contents = {};
+    contents = {};
     _locations = {};
     _doors = {};
   }
@@ -48,7 +48,7 @@ local function roomFromXML(node)
     else
       local obj = attrsToTable(tag)
       obj._type = tag.name
-      table.insert(room._contents, obj)
+      table.insert(room.contents, obj)
     end
   end
 
@@ -93,37 +93,49 @@ function dredmor.loadRooms()
   -- Instead it has a special file for "wizardlands rooms" which is not yet loaded.
 end
 
+local function asChar(tile)
+  if not tile then return ' '
+  elseif tile == 'Wall' then return '#'
+  elseif tile == 'Floor' then return '.'
+  else return tile:sub(1,1)
+  end
+end
+
 function dredmor.debug_rooms()
   local tree = { name = 'Room List' }
   for i,room in ipairs(rooms) do
-    table.insert(tree, room)
-    function room:activate()
+    local node = {
+      name = room.name;
+      _room = room;
+    }
+    table.insert(tree, node)
+    function node:activate()
       local message = {}
 
       local terrain = { name = "TERRAIN"; expanded = true }
-      for x,y,cell in self:cells() do
-        terrain[y] = (terrain[y] or '') .. cell:sub(1,1)
+      for x,y,cell in self._room:cells() do
+        terrain[y] = (terrain[y] or '') .. asChar(cell)
       end
 
       local flags = { name = "FLAGS" }
-      for k,v in pairs(self.flags) do
+      for k,v in pairs(self._room.flags) do
         table.insert(flags, k..': '..v)
       end
 
-      local contents = { name = "CONTENTS" }
-      for _,v in ipairs(self.contents) do
-        table.insert(contents, v._type..': '..(v.name or '???'))
+      local doors = { name = "DOORS" }
+      for door in self._room:doors() do
+        table.insert(doors, (repr({x=door.x;y=door.y;dir=door.dir}):gsub('%s+', ' ')))
       end
 
-      local raw = { name = "REPR" }
-      for line in repr(self):gmatch('[^\n]+') do
-        table.insert(raw, line)
+      local contents = { name = "CONTENTS" }
+      for _,v in ipairs(self._room.contents) do
+        table.insert(contents, v._type..': '..(v.name or '???'))
       end
 
       table.insert(message, terrain)
       table.insert(message, flags)
+      table.insert(message, doors)
       table.insert(message, contents)
-      table.insert(message, raw)
       ui.message(self.name, message)
     end
   end

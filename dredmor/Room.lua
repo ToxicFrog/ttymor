@@ -13,13 +13,13 @@ function Room:doors(dir)
   end)
 end
 
--- Returns an iterator over all tiles in the room, yielding (x,y,tile) for each
+-- Returns an iterator over all cells in the room, yielding (x,y,cell) for each
 -- one.
--- The ox,oy values are added to each tile as it's emitted; this can be used to
--- easily iterate the tiles in map coordinate space, for example.
+-- The ox,oy values are added to each cell as it's emitted; this can be used to
+-- easily iterate the cells in map coordinate space, for example.
 -- Note that the default values of (0,0) result in room coordinates ranging from
 -- (1,1) to (w,h).
-function Room:tiles(ox,oy)
+function Room:cells(ox,oy)
   ox = ox or 0
   oy = oy or 0
   return coroutine.wrap(function()
@@ -74,7 +74,7 @@ local terrain = {
 -- - terrain needs to be replaced with the EntityType of the corresponding terrain
 -- - everything else needs to be added to the room.contents array and replaced with terrain
 local function postprocess(self)
-  for x,y,cell in self:tiles() do
+  for x,y,cell in self:cells() do
     if cell == false then
       self[x][y] = false
     elseif cell:match('%d') then -- location marker
@@ -85,7 +85,7 @@ local function postprocess(self)
       if type(content) == 'table' then
         self[x][y] = content[1]
         for i=2,#content do
-          table.insert(self._contents, {_type = "Terrain"; name=content[i]})
+          table.insert(self.contents, {_type = "Terrain"; name=content[i]})
         end
       else
         content(self, x, y)
@@ -95,14 +95,14 @@ local function postprocess(self)
         cell, self.name)
     end
   end
-  for i,obj in ipairs(self._contents) do
+  for i,obj in ipairs(self.contents) do
     if obj.at then
       local at = assertf(self._locations[obj.at], "couldn't find location %s in room %s", obj.at, self.name)
       obj.x,obj.y = at[1],at[2]
       obj.at = nil
     end
-    self._contents = nil
   end
+  self._locations = nil
 end
 
 return function(t)

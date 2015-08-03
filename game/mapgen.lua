@@ -5,7 +5,7 @@ local function in_bounds(map, x, y, w, h)
   return x >= 0 and y >= 0 and x+w < map.w and y+h < map.h
 end
 
-local function tiles(self)
+local function cells(self)
   local function iter()
     for x=1,self.w do
       for y=1,self.h do
@@ -34,7 +34,7 @@ local function spliceRoom(map, room, ox, oy)
 end
 
 local function createTerrain(self)
-  for x,y,tile in tiles(self) do
+  for x,y,tile in cells(self) do
     if tile.terrain then
       assert(type(tile.terrain) == 'string', repr(tile))
       tile[1] = game.createSingleton(tile.terrain, 'terrain:'..tile.terrain) {}
@@ -51,7 +51,7 @@ local function isRoomCompatible(self, door, doorway)
     return false
   end
 
-  for x,y,tile in tiles(door.room) do
+  for x,y,tile in cells(door.room) do
     local maptile = self[ox+x][oy+y]
     if maptile.terrain and (maptile.terrain ~= tile or maptile.terrain ~= 'Wall') then
       -- collision with existing terrain
