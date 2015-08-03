@@ -60,7 +60,7 @@ end
 
 -- Return an iterator over map cells in the given rectangle
 function Map:cells(x, y, w, h)
-  x,y = x or 1,y or 1
+  x,y = x or 0,y or 0
   w,h = w or self.w,h or self.h
 
   return coroutine.wrap(function()
@@ -103,9 +103,9 @@ function Map:render_screen(cx, cy)
   end
 
   game.log("draw: %d,%d+%d+%d (%dx%d)", ox, oy, rw, rh, sw, sh)
-  for x,y,cell in self:cells(ox+1,oy+1,rw,rh) do
+  for x,y,cell in self:cells(ox,oy,rw,rh) do
     if #cell > 0 then
-      cell[#cell]:render(x+dx-1, y+dy-1)
+      cell[#cell]:render(x+dx, y+dy)
     end
   end
 end

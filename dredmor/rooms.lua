@@ -23,12 +23,14 @@ local function attrsToTable(tag)
   return T
 end
 
-local function insert_row(map, row)
-  local y = map[1] and #map[1]+1 or 1
-  for x=1,#row do
-    map[x] = map[x] or {}
-    map[x][y] = row:sub(x,x)
+local function insert_row(room, row)
+  local y = room.h
+  for x=0,#row-1 do
+    room[x] = room[x] or {}
+    room[x][y] = row:sub(x+1,x+1)
   end
+  room.h = room.h + 1
+  room.w = room.w:max(#row)
 end
 
 local function roomFromXML(node)
@@ -37,11 +39,14 @@ local function roomFromXML(node)
     contents = {};
     _locations = {};
     _doors = {};
+    w = 0; h = 0;
   }
   for tag in xml.walk(node) do
     if tag.name == 'room' then
       -- skip
     elseif tag.name == 'row' then
+      -- Width and height are calculated by insert_row, since we can't trust the
+      -- values in the <room> tag.
       insert_row(room, tag.attr.text)
     elseif tag.name == 'flags' then
       room.flags = attrsToTable(tag)
@@ -51,13 +56,6 @@ local function roomFromXML(node)
       table.insert(room.contents, obj)
     end
   end
-
-  -- A bunch of rooms in the expansion2 rooms.xml have the wrong width/height
-  -- values in the <room> tag.
-  -- This doesn't seem to bother Dredmor itself. Presumably it ignores the values
-  -- in the tag and calculates w/h from the <row> elements. We do the same here.
-  room.w = #room
-  room.h = #room[1]
 
   -- The Room constructor is responsible for converting the terrain into something
   -- we can actually work with, building the door list, and suchlike.

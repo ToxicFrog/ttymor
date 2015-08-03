@@ -5,7 +5,7 @@ Room.__index = Room
 -- only doors facing in that direction.
 function Room:doors(dir)
   return coroutine.wrap(function()
-    for i,d in ipairs(self._doors) do
+    for _,d in ipairs(self._doors) do
       if not dir or d.dir == dir then
         coroutine.yield(d)
       end
@@ -17,14 +17,13 @@ end
 -- one.
 -- The ox,oy values are added to each cell as it's emitted; this can be used to
 -- easily iterate the cells in map coordinate space, for example.
--- Note that the default values of (0,0) result in room coordinates ranging from
--- (1,1) to (w,h).
+-- All coordinates returned are in the range (0,0) to (w-1,h-1).
 function Room:cells(ox,oy)
   ox = ox or 0
   oy = oy or 0
   return coroutine.wrap(function()
-    for x=1,self.w do
-      for y=1,self.h do
+    for x=0,self.w-1 do
+      for y=0,self.h-1 do
         coroutine.yield(x+ox,y+oy,self[x][y] or false)
       end
     end
@@ -39,12 +38,12 @@ end
 
 local function doorNS(self, x, y)
   table.insert(self._doors,
-    { x = x-1; y = y-1; room = self; dir = (y == 1 and 'n' or 's'); })
+    { x = x; y = y; room = self; dir = (y == 0 and 'n' or 's'); })
   self[x-1][y],self[x][y],self[x+1][y] = false,false,false
 end
 local function doorEW(self, x, y)
   table.insert(self._doors,
-    { x = x-1; y = y-1; room = self; dir = (x == 1 and 'w' or 'e'); })
+    { x = x; y = y; room = self; dir = (x == 0 and 'w' or 'e'); })
   self[x][y-1],self[x][y],self[x][y+1] = false,false,false
 end
 
@@ -78,14 +77,14 @@ local function postprocess(self)
     if cell == false then
       self[x][y] = false
     elseif cell:match('%d') then -- location marker
-      self._locations[cell] = { x=x-1, y=y-1 }
+      self._locations[cell] = { x=x, y=y }
       self[x][y] = 'Floor'
     elseif terrain[cell] then
       local content = terrain[cell]
       if type(content) == 'table' then
         self[x][y] = content[1]
         for i=2,#content do
-          table.insert(self.contents, {_type = "Terrain"; name=content[i], x=x-1, y=y-1})
+          table.insert(self.contents, {_type = "Terrain"; name=content[i], x=x, y=y})
         end
       else
         content(self, x, y)

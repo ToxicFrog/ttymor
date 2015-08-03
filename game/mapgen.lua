@@ -62,7 +62,6 @@ local function placeRoom(self, room, ox, oy)
 
   -- Copy the terrain into the map.
   for x,y,terrain in room:cells(ox,oy) do
-    log.debug("Placing tile %s at (%d,%d)", terrain, x, y)
     local cell = self[x][y]
     cell.name = room.name
     copyTerrain(cell, terrain)
@@ -70,12 +69,12 @@ local function placeRoom(self, room, ox, oy)
 
   -- Copy the objects into the map.
   for _,obj in ipairs(room.contents) do
-    placeObject(self, obj, ox+1, oy+1)
+    placeObject(self, obj, ox, oy)
   end
 
   -- Push all doors from that room into the queue.
   for door in room:doors() do
-    pushDoor(self, door, ox+1, oy+1)
+    pushDoor(self, door, ox, oy)
   end
 end
 
@@ -129,22 +128,19 @@ local function placeDoor(self, door)
 end
 
 local function createTerrain(self)
-  for x=1,self.w do
-    for y=1,self.h do
-      local cell = self[x][y]
-      if cell[1] then
-        assert(type(cell[1]) == 'string', tostring(cell[1]))
-        cell[1] = game.createSingleton(cell[1], 'terrain:'..cell[1]) {}
-      else
-        cell[1] = nil
-      end
+  for x,y,cell in self:cells() do
+    if cell[1] then
+      assert(type(cell[1]) == 'string', tostring(cell[1]))
+      cell[1] = game.createSingleton(cell[1], 'terrain:'..cell[1]) {}
+    else
+      cell[1] = nil
     end
   end
 end
 
-local function isRoomCompatible(self, door, doorway)
-  local ox = doorway.x - door.x - 1
-  local oy = doorway.y - door.y - 1
+local function isRoomCompatible(self, door, target)
+  local ox = target.x - door.x
+  local oy = target.y - door.y
   if not in_bounds(self, ox, oy, door.room.w, door.room.h) then
     return false
   end
@@ -163,7 +159,7 @@ end
 local function placeRoomAtDoor(self, room, door, target_door)
   -- calculate offsets based on position of target_door
   local ox,oy = target_door.x - door.x, target_door.y - door.y
-  placeRoom(self, room, ox-1, oy-1)
+  placeRoom(self, room, ox, oy)
   placeDoor(self, target_door)
 end
 
@@ -178,9 +174,9 @@ end
 
 return function(self, w, h, room)
   self.w, self.h = w,h
-  for x=1,self.w do
+  for x=0,self.w-1 do
     self[x] = {}
-    for y=1,self.h do
+    for y=0,self.h-1 do
       self[x][y] = {}
     end
   end

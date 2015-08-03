@@ -1,7 +1,7 @@
 local position = {}
 
 function position:map()
-  return game.getMap(self._map)
+  return game.getMap(self.z)
 end
 
 function position:move(ent, dx, dy)
@@ -11,14 +11,14 @@ function position:move(ent, dx, dy)
   end
 end
 
-function position:setMap(ent, map)
-  if self._map then
+function position:setMap(ent, z)
+  if self.z then
     self:map():removeFrom(ent, self.x, self.y)
   end
-  if type(map) == 'number' then
-    self._map = map
+  if type(z) == 'number' then
+    self.z = z
   else
-    self._map = map.depth
+    self.z = z.depth
   end
 end
 
@@ -31,7 +31,7 @@ function position:moveTo(ent, x, y)
 end
 
 function position:position(ent)
-  return self.x,self.y,self._map
+  return self.x,self.y,self.z
 end
 
 return position

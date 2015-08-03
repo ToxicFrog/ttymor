@@ -4,7 +4,6 @@ local control = {}
 function control:turn(ent)
   game.log("--- turn: %s", ent)
   local cmd = ui.readkey()
-  local x,y = ent:position()
   if cmd == 'cancel' then
     ui.mainmenu()
   elseif cmd == 'up' then

@@ -10,7 +10,7 @@ local door = {
   open = false;
 }
 
-function door:render(ent, x, y)
+function door:render(ent)
   for i,component in ipairs(ent) do
     if component._NAME == 'render' then
       component.face = self.open and self.face_open or self.face_shut
