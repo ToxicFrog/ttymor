@@ -18,6 +18,41 @@ local function pullDoor(self)
   return table.remove(self._doors, 1)
 end
 
+-- Copy a single cell into place, with checks
+local function copyTerrain(cell, terrain)
+  if not terrain then return end
+  assertf(not cell[1] or (cell[1] == 'Wall' and terrain == 'Wall'),
+    "error placing terrain %s: %s", terrain, cell[1])
+  cell[1] = terrain
+end
+
+-- Instantiate and place an object from a room's object table
+local function placeObject(self, obj, ox, oy)
+  if not obj.x then
+    log.debug("Object has no location! %s", repr(obj))
+    return
+  end
+
+  local x,y = obj.x+ox,obj.y+oy
+  local ent = self:create 'TestObject' {
+    name = obj.name or obj.type or obj._type or "???";
+    render = {
+      face = (obj.type or '?'):sub(1,1);
+    };
+    position = {
+      x = x; y = y;
+    }
+  }
+  if not self[x][y][1] then
+    log.debug("Object %s at (%d,%d) in void!", ent, x, y)
+    ent.render.colour = { 255, 0, 0 }
+    ent.render.style = 'v'
+  end
+  self:placeAt(ent, x, y)
+end
+
+-- Place an entire room into the map, create and place all of its objects, and
+-- enqueue all of its doors.
 local function placeRoom(self, room, ox, oy)
   log.debug("Placing %s (%dx%d) at (%d,%d)",
       room.name, room.w, room.h, ox, oy)
@@ -27,28 +62,18 @@ local function placeRoom(self, room, ox, oy)
 
   -- Copy the terrain into the map.
   for x,y,terrain in room:cells(ox,oy) do
-    if terrain then
-      local cell = self[x][y]
-      assertf(not cell[1] or not terrain or (cell[1] == 'Wall' and terrain == 'Wall'),
-        "error placing roomtile %s at (%d,%d): %s", terrain, x, y, cell[1])
-      cell[1] = terrain
-      cell.name = room.name
-    end
+    log.debug("Placing tile %s at (%d,%d)", terrain, x, y)
+    local cell = self[x][y]
+    cell.name = room.name
+    copyTerrain(cell, terrain)
   end
 
   -- Copy the objects into the map.
   for _,obj in ipairs(room.contents) do
-    obj = table.copy(obj)
-    if not obj.x or not obj.y then
-      log.debug("Object has no location! %s", repr(obj))
-    else
-      obj.x = ox + obj.x
-      obj.y = oy + obj.y
-      table.insert(self._objects, obj)
-    end
+    placeObject(self, obj, ox+1, oy+1)
   end
 
-  -- push all doors from that room into the queue
+  -- Push all doors from that room into the queue.
   for door in room:doors() do
     pushDoor(self, door, ox+1, oy+1)
   end
@@ -89,7 +114,6 @@ local function placeDoor(self, door)
     segments[3] = { x = x; y = y+1; open = '╻'; shut = '╿' }
   end
   for _,segment in ipairs(segments) do
-    print(repr(segment))
     self[segment.x][segment.y][1] = 'Floor'
     local door = self:create 'Door' {
       door = {
@@ -109,28 +133,13 @@ local function createTerrain(self)
     for y=1,self.h do
       local cell = self[x][y]
       if cell[1] then
-        assert(type(cell[1]) == 'string', repr(cell))
+        assert(type(cell[1]) == 'string', tostring(cell[1]))
         cell[1] = game.createSingleton(cell[1], 'terrain:'..cell[1]) {}
+      else
+        cell[1] = nil
       end
     end
   end
-end
-
-local function placeObjects(self)
-  for _,obj in ipairs(self._objects) do
-    local ent = self:create 'TestObject' {
-      name = obj.name or obj.type or obj._type or "???";
-      render = {
-        face = (obj.type or '?'):sub(1,1);
-      };
-      position = {
-        x = obj.x;
-        y = obj.y;
-      }
-    }
-    self:placeAt(ent, obj.x, obj.y)
-  end
-  self._objects = nil
 end
 
 local function isRoomCompatible(self, door, doorway)
@@ -177,7 +186,6 @@ return function(self, w, h, room)
   end
 
   self._doors = {}
-  self._objects = {}
 
   -- place the first room in the middle of the map
   if room then
@@ -190,7 +198,7 @@ return function(self, w, h, room)
   placeRoom(self, room, x, y)
 
   for target_door in pullDoor,self do
-    log.debug('checking door %s', repr(target_door))
+    log.debug('checking door %s', repr(target_door):gsub('%s+', ''))
     -- find a compatible random room
     local room,door = findCompatibleRoom(self, target_door)
     if room then
@@ -201,5 +209,4 @@ return function(self, w, h, room)
   end
 
   createTerrain(self)
-  placeObjects(self)
 end
