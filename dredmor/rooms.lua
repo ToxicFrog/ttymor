@@ -1,4 +1,5 @@
 require 'repr'
+local Room = require 'dredmor.Room'
 
 -- subtag types
 -- row: terrain row
@@ -22,48 +23,6 @@ local function attrsToTable(tag)
   return T
 end
 
--- table mapping terrain chars to cell contents
--- each one is either a table, in which case the 0 key is the EntityType of the
--- terrain to use and everything else is to be added to the object table with the
--- (x,y) of the tile, or is a function, in which case it's called and passed the
--- room object and (x,y) and can do whatever it likes.
--- an EntityType of false means that that cell is empty space.
-local terrain = {
-  ['#'] = { 'Wall' }; ['.'] = { 'Floor' }; [' '] = { false };
-  W = { 'Water' }; G = { 'Goo' }; I = { 'Ice' }; L = { 'Lava' };
-  ['!'] = { 'Floor', 'FakeWall' }; ['X'] = { 'InvisibleWall' };
-  P = { 'Wall', 'Tapestry' };
-  ['^'] = { 'Floor', 'Carpet' };
-  ['@'] = { 'Wall', 'DecorativeBlocker' };
-
-  S = { 'Floor'; 'Shopkeeper' };
-  i = { 'Wall', 'ShopPedestal' };
-  s = function(room, x, y)
-    room.shop_door = {x,y}
-    room[x][y] = 'Floor'
-  end;
-  -- north-south door
-  D = function(room, x, y)
-    table.insert(room.doors, {
-      x = x-1;
-      y = y-1;
-      dir = y == 1 and "n" or "s";
-      room = room;
-    })
-    room[x-1][y],room[x][y],room[x+1][y] = false,false,false
-  end;
-  -- east-west door
-  d = function(room, x, y)
-    table.insert(room.doors, {
-      x = x-1;
-      y = y-1;
-      dir = x == 1 and "w" or "e";
-      room = room;
-    })
-    room[x][y-1],room[x][y],room[x][y+1] = false,false,false
-  end;
-}
-
 local function insert_row(map, row)
   local y = map[1] and #map[1]+1 or 1
   for x=1,#row do
@@ -72,43 +31,12 @@ local function insert_row(map, row)
   end
 end
 
--- Room postprocessor. There's a bunch of things that have to happen here, eventually,
--- but for now the most important ones are this:
--- - beacons (1-9) need to be located, replaced with '.', and entered into the location array
--- - doors need to be located, their direction determined, and entered into the doors array
--- - terrain needs to be replaced with the EntityType of the corresponding terrain
--- - everything else needs to be added to the room.contents array and replaced with terrain
-local function postprocess(room)
-  for x=1,room.w do
-    for y=1,room.h do
-      local cell = room[x][y] or ' ' -- not all rooms are perfect rectangles!
-      if cell:match('%d') then -- location marker
-        room.locations[tonumber(cell)] = { x=x-1, y=y-1 }
-        room[x][y] = 'Floor'
-      elseif terrain[cell] then
-        local content = terrain[cell]
-        if type(content) == 'table' then
-          room[x][y] = content[1]
-          for i=2,#content do
-            table.insert(room.contents, {_type = "Terrain"; name=content[i]})
-          end
-        else
-          content(room, x, y)
-        end
-      else
-        errorf('Unhandled terrain cell type "%s" reading room %s"',
-          cell, room.name)
-      end
-    end
-  end
-end
-
 local function roomFromXML(node)
   local room = {
     name = node.attr.name;
-    contents = {};
-    locations = {};
-    doors = {};
+    _contents = {};
+    _locations = {};
+    _doors = {};
   }
   for tag in xml.walk(node) do
     if tag.name == 'room' then
@@ -120,7 +48,7 @@ local function roomFromXML(node)
     else
       local obj = attrsToTable(tag)
       obj._type = tag.name
-      table.insert(room.contents, obj)
+      table.insert(room._contents, obj)
     end
   end
 
@@ -130,13 +58,17 @@ local function roomFromXML(node)
   -- in the tag and calculates w/h from the <row> elements. We do the same here.
   room.w = #room
   room.h = #room[1]
-  postprocess(room)
 
-  return room
+  -- The Room constructor is responsible for converting the terrain into something
+  -- we can actually work with, building the door list, and suchlike.
+  return Room(room)
 end
 
+-- Master table of all rooms, which is both a list and indexed by room name.
 local rooms = {}
+-- Master table of all doors, grouped by facing direction.
 local doors = { n={}; s={}; e={}; w={}; }
+
 local function loadRooms(path)
   local dom = xml.load(path)
   for roomdef in xml.walk(dom.root, 'room') do
@@ -146,7 +78,7 @@ local function loadRooms(path)
       local room = roomFromXML(roomdef)
       rooms[room.name] = room
       table.insert(rooms, room)
-      for i,door in ipairs(room.doors) do
+      for door in room:doors() do
         table.insert(doors[door.dir], door)
       end
     end
@@ -157,7 +89,8 @@ function dredmor.loadRooms()
   loadRooms(flags.parsed.dredmor_dir..'/game/rooms.xml')
   loadRooms(flags.parsed.dredmor_dir..'/expansion/game/rooms.xml')
   loadRooms(flags.parsed.dredmor_dir..'/expansion2/game/rooms.xml')
-  --loadRooms(flags.parsed.dredmor_dir..'/expansion3/game/rooms.xml') Wizardlands doesn't have one.
+  -- No entry for expansion3 because Wizardlands doesn't come with a rooms.xml
+  -- Instead it has a special file for "wizardlands rooms" which is not yet loaded.
 end
 
 function dredmor.debug_rooms()
@@ -168,12 +101,8 @@ function dredmor.debug_rooms()
       local message = {}
 
       local terrain = { name = "TERRAIN"; expanded = true }
-      for y=1,self.h do
-        local row = ''
-        for x=1,self.w do
-          row = row..self[x][y]
-        end
-        table.insert(terrain, row)
+      for x,y,cell in self:cells() do
+        terrain[y] = (terrain[y] or '') .. cell:sub(1,1)
       end
 
       local flags = { name = "FLAGS" }

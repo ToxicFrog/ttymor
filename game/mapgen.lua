@@ -93,7 +93,7 @@ return function(self, w, h)
 
   -- push all doors from that room into the queue
   spliceRoom(self, room, x, y)
-  for _,door in ipairs(room.doors) do pushDoor(door, x+1, y+1) end
+  for door in room:doors() do pushDoor(door, x+1, y+1) end
 
   while #doors > 0 do
     local doorway = table.remove(doors, 1)
@@ -104,7 +104,7 @@ return function(self, w, h)
       if isRoomCompatible(self, door, doorway) then
         -- place it
         spliceRoom(self, door.room, doorway.x - door.x - 1, doorway.y - door.y - 1)
-        for _,newdoor in ipairs(door.room.doors) do
+        for newdoor in door.room:doors() do
           if newdoor ~= door then pushDoor(newdoor, doorway.x - door.x, doorway.y - door.y) end
         end
         break
