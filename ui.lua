@@ -12,6 +12,7 @@ function ui.draw(player)
 
   local w,h = tty.size()
   tty.colour(255, 255, 255, 0, 0, 0)
+  tty.style('o')
   tty.clear()
   local x,y,map = player:position()
 
@@ -126,38 +127,12 @@ function ui.mainmenu()
       ui.keybinds_screen()
     end; };
     { name="View Config"; activate = function() settings.show() end; };
-    { name="Tree Test"; activate = function() ui.tree_test() end; };
     { name="Room Debug"; activate = dredmor.debug_rooms };
     { name="Save Game"; activate = function() game.save(); return false; end };
     { name="Load Game"; activate = function() game.load('test'); return false; end };
     { name="Quit And Save"; activate = function() game.save(); shutdown(); end };
     { name="Quit Without Saving"; activate = shutdown; };
   }
-end
-
-function ui.tree_test()
-  tty.colour(0, 255, 255)
-  tty.bgcolour(0, 0, 0)
-  local node = ui.tree {
-    name = "Test Menu";
-    { name = "save" };
-    { name = "load" };
-    { name = "quit";
-      { name = "...and save"; };
-      { name = "...and revert"; };
-      { name = "...and delete"; };
-    };
-    { name = "options"; expanded = true;
-      { name = "sound" };
-      { name = "music" };
-      { name = "tiles" };
-      { name = "controls";
-        { name = "move" };
-        { name = "attack" };
-      };
-    };
-  }
-  game.log("tree: %s", node and node.name or '<<canceled>>')
 end
 
 local Tree = require 'ui.Tree'
