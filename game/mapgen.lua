@@ -14,12 +14,31 @@ local function placeRoom(map, room, ox, oy)
   for x,y,terrain in room:cells(ox,oy) do
     local cell = map[x][y]
     assertf(not cell.terrain or (cell.terrain == 'Wall' and terrain == 'Wall'),
-      "error placing roomtile (%d,%d) on maptile (%d,%d)", x,y,x+ox-1,y+oy-1)
+      "error placing roomtile %s at (%d,%d)", terrain, x, y)
     cell.terrain = terrain
     cell.name = room.name
   end
 end
 
+-- Fill in a doorway with wall, since we couldn't create a room there.
+local function fillDoor(map, door)
+  local x,y = door.x,door.y
+  local mx,my = x,y
+  if door.dir == 'n' or door.dir == 's' then
+    x,mx = x-1,x+1
+  else
+    y,my = y-1,y+1
+  end
+  for x=x,mx do
+    for y=y,my do
+      local cell = map[x][y]
+      cell.terrain = 'Wall';
+      cell[2] = game.createSingleton('Wall', 'DoorFiller') {
+        render = { face = '░' };
+      }
+    end
+  end
+end
 local function createTerrain(self)
   for x=1,self.w do
     for y=1,self.h do
