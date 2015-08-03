@@ -28,15 +28,7 @@ function game.new(name)
   local player = game.createSingleton('Player', 'player') {}
 
   player:setMap(map)
-  player:moveTo(10, 11)
-
-  local tobj = game.getMap(0):create 'TestObject' {}
-  tobj:setMap(map)
-  tobj:moveTo(10, 12)
-
-  local tobj = game.getMap(0):create 'TestObject' {}
-  tobj:setMap(map)
-  tobj:moveTo(11, 11)
+  player:moveTo((map.w/2):floor(), (map.h/2):floor())
 
   return player
 end

@@ -2,7 +2,7 @@
 -- The function returned by this library becomes the Map:generate() method.
 
 local function in_bounds(map, x, y, w, h)
-  return x > 0 and y > 0 and x+w <= map.w and y+h <= map.h
+  return x >= 0 and y >= 0 and x+w < map.w and y+h < map.h
 end
 
 local function tiles(self)
@@ -17,10 +17,18 @@ local function tiles(self)
 end
 
 local function spliceRoom(map, room, ox, oy)
-  assert(in_bounds(map, ox, oy, room.w, room.h))
+  print("Placing %s (%dx%d) at (%d,%d)",
+      room.name, room.w, room.h, ox, oy)
+  assertf(in_bounds(map, ox, oy, room.w, room.h),
+    "out of bounds room placement: %s (%dx%d) at (%d,%d)",
+    room.name, room.w, room.h, ox, oy)
   for x=1,room.w do
     for y=1,room.h do
-      map[x+ox-1][y+oy-1] = { terrain = room.map[x][y]; name = room.name }
+      local cell = map[x+ox][y+oy]
+      assertf(not cell.terrain or (cell.terrain == 'Wall' and room[x][y] == 'Wall'),
+        "error placing roomtile (%d,%d) on maptile (%d,%d)", x,y,x+ox-1,y+oy-1)
+      cell.terrain = room[x][y]
+      cell.name = room.name
     end
   end
 end
@@ -34,10 +42,32 @@ local function createTerrain(self)
   end
 end
 
-local function randomRoom()
-  local rooms = dredmor.rooms()
-  return rooms[math.random(1, #rooms)]
+local opposite = { n='s'; s='n'; e='w'; w='e'; }
+
+local function isRoomCompatible(self, door, doorway)
+  local ox = doorway.x - door.x - 1
+  local oy = doorway.y - door.y - 1
+  if not in_bounds(self, ox, oy, door.room.w, door.room.h) then
+    return false
+  end
+
+  for x,y,tile in tiles(door.room) do
+    local maptile = self[ox+x][oy+y]
+    if maptile.terrain and (maptile.terrain ~= tile or maptile.terrain ~= 'Wall') then
+      -- collision with existing terrain
+      return false
+    end
+  end
+
+  return true
 end
+
+-- doors
+-- ╸ ╺ open
+-- ╼━╾ closed
+-- ╹ ╽
+--   ┃
+-- ╻ ╿
 
 return function(self, w, h)
   self.w, self.h = w,h
@@ -48,19 +78,44 @@ return function(self, w, h)
     end
   end
 
-  local x,y = 1,1
-  while true do
-    local room = randomRoom()
-    if x + room.w > w then
-      x = 1
-      y = y + room.h
-    end
-    if not in_bounds(self, x, y, room.w, room.h) then
-      createTerrain(self)
-      return
-    else
-      spliceRoom(self, room, x, y)
-      x = x + room.w
-    end
+  local doors = {}
+  local function pushDoor(door, x, y)
+    table.insert(doors, {
+      x = x+door.x; y = y+door.y;
+      dir = opposite[door.dir]
+    })
   end
+
+  -- place the first room in the middle of the map
+  local room = dredmor.randomRoom()
+  local x = (self.w/2 - room.w/2):floor()
+  local y = (self.h/2 - room.h/2):floor()
+
+  -- push all doors from that room into the queue
+  spliceRoom(self, room, x, y)
+  for _,door in ipairs(room.doors) do pushDoor(door, x+1, y+1) end
+
+  while #doors > 0 do
+    local doorway = table.remove(doors, 1)
+    print('checking door', repr(doorway))
+    -- find a compatible random room
+    for i=1,20 do
+      local door = dredmor.randomDoor(doorway.dir)
+      if isRoomCompatible(self, door, doorway) then
+        -- place it
+        spliceRoom(self, door.room, doorway.x - door.x - 1, doorway.y - door.y - 1)
+        for _,newdoor in ipairs(door.room.doors) do
+          if newdoor ~= door then pushDoor(newdoor, doorway.x - door.x, doorway.y - door.y) end
+        end
+        break
+      else
+        print('rejected '..door.room.name)
+      end
+    end
+    -- create door objects
+    -- push doors from that room
+  end
+
+  createTerrain(self)
+  do return end
 end

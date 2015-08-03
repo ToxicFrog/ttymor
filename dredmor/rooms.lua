@@ -1,7 +1,5 @@
 require 'repr'
 
-local rooms = {}
-
 -- subtag types
 -- row: terrain row
 -- flags: room attributes
@@ -24,14 +22,6 @@ local function attrsToTable(tag)
   return T
 end
 
--- doors
--- ╸ ╺ open
--- ╼━╾ closed
--- ╹ ╽
---   ┃
--- ╻ ╿
-
-
 -- table mapping terrain chars to cell contents
 -- each one is either a table, in which case the 0 key is the EntityType of the
 -- terrain to use and everything else is to be added to the object table with the
@@ -50,37 +40,29 @@ local terrain = {
   i = { 'Wall', 'ShopPedestal' };
   s = function(room, x, y)
     room.shop_door = {x,y}
-    room.map[x][y] = 'Floor'
+    room[x][y] = 'Floor'
   end;
   -- north-south door
   D = function(room, x, y)
-    local map = room.map
     table.insert(room.doors, {
       x = x-1;
       y = y-1;
       dir = y == 1 and "n" or "s";
+      room = room;
     })
-    map[x-1][y],map[x][y],map[x+1][y] = false,false,false
+    room[x-1][y],room[x][y],room[x+1][y] = false,false,false
   end;
   -- east-west door
   d = function(room, x, y)
-    local map = room.map
     table.insert(room.doors, {
       x = x-1;
       y = y-1;
       dir = x == 1 and "w" or "e";
+      room = room;
     })
-    map[x][y-1],map[x][y],map[x][y+1] = false,false,false
+    room[x][y-1],room[x][y],room[x][y+1] = false,false,false
   end;
 }
-
-local function bad_tile(icon)
-  return function(map)
-    return { game.createSingleton('Floor', 'error:'..icon) {
-      render = { face = icon; style = 'v'; colour = { 255, 0, 0 }}
-    }}
-  end
-end
 
 local function insert_row(map, row)
   local y = map[1] and #map[1]+1 or 1
@@ -97,17 +79,16 @@ end
 -- - terrain needs to be replaced with the EntityType of the corresponding terrain
 -- - everything else needs to be added to the room.contents array and replaced with terrain
 local function postprocess(room)
-  local map = room.map
   for x=1,room.w do
     for y=1,room.h do
-      local cell = map[x][y] or ' ' -- not all rooms are perfect rectangles!
+      local cell = room[x][y] or ' ' -- not all rooms are perfect rectangles!
       if cell:match('%d') then -- location marker
         room.locations[tonumber(cell)] = { x=x-1, y=y-1 }
-        map[x][y] = 'Floor'
+        room[x][y] = 'Floor'
       elseif terrain[cell] then
         local content = terrain[cell]
         if type(content) == 'table' then
-          map[x][y] = content[1]
+          room[x][y] = content[1]
           for i=2,#content do
             table.insert(room.contents, {_type = "Terrain"; name=content[i]})
           end
@@ -125,7 +106,6 @@ end
 local function roomFromXML(node)
   local room = {
     name = node.attr.name;
-    map = {};
     contents = {};
     locations = {};
     doors = {};
@@ -134,7 +114,7 @@ local function roomFromXML(node)
     if tag.name == 'room' then
       -- skip
     elseif tag.name == 'row' then
-      insert_row(room.map, tag.attr.text)
+      insert_row(room, tag.attr.text)
     elseif tag.name == 'flags' then
       room.flags = attrsToTable(tag)
     else
@@ -148,13 +128,15 @@ local function roomFromXML(node)
   -- values in the <room> tag.
   -- This doesn't seem to bother Dredmor itself. Presumably it ignores the values
   -- in the tag and calculates w/h from the <row> elements. We do the same here.
-  room.w = #room.map
-  room.h = #room.map[1]
+  room.w = #room
+  room.h = #room[1]
   postprocess(room)
 
   return room
 end
 
+local rooms = {}
+local doors = { n={}; s={}; e={}; w={}; }
 local function loadRooms(path)
   local dom = xml.load(path)
   for roomdef in xml.walk(dom.root, 'room') do
@@ -164,6 +146,9 @@ local function loadRooms(path)
       local room = roomFromXML(roomdef)
       rooms[room.name] = room
       table.insert(rooms, room)
+      for i,door in ipairs(room.doors) do
+        table.insert(doors[door.dir], door)
+      end
     end
   end
 end
@@ -183,10 +168,10 @@ function dredmor.debug_rooms()
       local message = {}
 
       local terrain = { name = "TERRAIN"; expanded = true }
-      for y=1,room.h do
+      for y=1,self.h do
         local row = ''
-        for x=1,room.w do
-          row = row..room.map[x][y]
+        for x=1,self.w do
+          row = row..self[x][y]
         end
         table.insert(terrain, row)
       end
@@ -202,7 +187,7 @@ function dredmor.debug_rooms()
       end
 
       local raw = { name = "REPR" }
-      for line in repr(self.map):gmatch('[^\n]+') do
+      for line in repr(self):gmatch('[^\n]+') do
         table.insert(raw, line)
       end
 
@@ -219,4 +204,13 @@ end
 
 function dredmor.rooms()
   return rooms
+end
+
+function dredmor.randomRoom()
+  return rooms[math.random(1, #rooms)]
+end
+
+function dredmor.randomDoor(dir)
+  local doors = doors[dir]
+  return doors[math.random(1, #doors)]
 end
