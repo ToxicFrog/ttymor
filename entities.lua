@@ -15,7 +15,7 @@ local function Component(name)
 end
 
 EntityType 'Player' {
-  name = 'eyebrows';
+  name = 'player';
   Component 'render' { face = '@'; style = 'v' };
   Component 'control' {};
   Component 'position' {};
@@ -30,30 +30,25 @@ EntityType 'InvisibleWall' {
   Component 'render' { face = '.'; style = 'v' };
 }
 EntityType 'Water' {
-  name = 'liquid';
+  name = 'water';
   Component 'render' { face = '≈'; colour = {0,128,255} };
 }
 EntityType 'Goo' {
-  name = 'liquid';
+  name = 'goo';
   Component 'render' { face = '≈'; colour = {0,255,0} };
 }
 EntityType 'Ice' {
-  name = 'liquid';
+  name = 'ice';
   Component 'render' { face = '≈'; colour = {128,255,0} };
 }
 EntityType 'Lava' {
-  name = 'liquid';
+  name = 'lava';
   Component 'render' { face = '≈'; colour = {255,64,0} };
 }
 
 EntityType 'Floor' {
   name = 'floor';
   Component 'render' { face = '.' }
-}
-
-EntityType 'Map' {
-  name = "<unknown level>";
-  Component 'map' {};
 }
 
 EntityType 'TestObject' {
