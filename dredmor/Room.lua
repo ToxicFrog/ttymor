@@ -85,7 +85,7 @@ local function postprocess(self)
       if type(content) == 'table' then
         self[x][y] = content[1]
         for i=2,#content do
-          table.insert(self.contents, {_type = "Terrain"; name=content[i]})
+          table.insert(self.contents, {_type = "Terrain"; name=content[i], x=x-1, y=y-1})
         end
       else
         content(self, x, y)
@@ -98,7 +98,7 @@ local function postprocess(self)
   for i,obj in ipairs(self.contents) do
     if obj.at then
       local at = assertf(self._locations[obj.at], "couldn't find location %s in room %s", obj.at, self.name)
-      obj.x,obj.y = at[1],at[2]
+      obj.x,obj.y = at.x,at.y
       obj.at = nil
     end
   end

@@ -79,6 +79,22 @@ local function createTerrain(self)
   end
 end
 
+local function placeObjects(self)
+  for _,obj in ipairs(self._objects) do
+    local ent = self:create 'TestObject' {
+      render = {
+        face = (obj.type or '?'):sub(1,1);
+      };
+      position = {
+        x = obj.x;
+        y = obj.y;
+      }
+    }
+    self:placeAt(ent, obj.x, obj.y)
+  end
+  self._objects = nil
+end
+
 local opposite = { n='s'; s='n'; e='w'; w='e'; }
 
 local function isRoomCompatible(self, door, doorway)
@@ -108,9 +124,11 @@ return function(self, w, h)
     end
   end
 
-  local doors = {}
+  self._doors = {}
+  self._objects = {}
+
   local function pushDoor(door, x, y)
-    table.insert(doors, {
+    table.insert(self._doors, {
       x = x+door.x; y = y+door.y;
       dir = opposite[door.dir]
     })
@@ -125,19 +143,30 @@ return function(self, w, h)
   placeRoom(self, room, x, y)
   for door in room:doors() do pushDoor(door, x+1, y+1) end
 
-  while #doors > 0 do
-    local doorway = table.remove(doors, 1)
+  while #self._doors > 0 do
+    local doorway = table.remove(self._doors, 1)
     log.debug('checking door %s', repr(doorway))
     -- find a compatible random room
-    for i=1,20 do
+    for i=1,5 do
       local door = dredmor.randomDoor(doorway.dir)
       if isRoomCompatible(self, door, doorway) then
         -- place it
-        placeRoom(self, door.room, doorway.x - door.x - 1, doorway.y - door.y - 1)
+        local ox,oy = doorway.x - door.x, doorway.y - door.y
+        placeRoom(self, door.room, ox-1, oy-1)
         for newdoor in door.room:doors() do
-          if newdoor ~= door then pushDoor(newdoor, doorway.x - door.x, doorway.y - door.y) end
+          if newdoor ~= door then pushDoor(newdoor, ox, oy) end
         end
         placeDoor(self, doorway)
+        for _,obj in ipairs(door.room.contents) do
+          obj = table.copy(obj)
+          if not obj.x or not obj.y then
+            log.debug("Object has no location! %s", repr(obj))
+          else
+            obj.x = ox + obj.x
+            obj.y = oy + obj.y
+            table.insert(self._objects, obj)
+          end
+        end
         doorway = nil
         break
       else
@@ -151,5 +180,5 @@ return function(self, w, h)
   end
 
   createTerrain(self)
-  do return end
+  placeObjects(self)
 end
