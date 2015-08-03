@@ -73,7 +73,7 @@ local function loadRooms(path)
   local dom = xml.load(path)
   for roomdef in xml.walk(dom.root, 'room') do
     if rooms[roomdef.attr.name] then
-      -- print("skipping duplicate room definition %s" % room.attr.name)
+      log.debug("skipping duplicate room definition %s", roomdef.attr.name)
     else
       local room = roomFromXML(roomdef)
       rooms[room.name] = room
