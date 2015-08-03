@@ -62,4 +62,11 @@ EntityType 'TestObject' {
   Component 'position' {};
 }
 
+EntityType 'Door' {
+  name = 'door';
+  Component 'position' {};
+  Component 'door' {};
+  Component 'render' { face='!'; colour = {0xFF,0x99,0x33} };
+}
+
 return entities

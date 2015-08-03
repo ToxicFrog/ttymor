@@ -39,6 +39,34 @@ local function fillDoor(map, door)
     end
   end
 end
+
+local function placeDoor(self, door)
+  local segments = {}
+  local x,y = door.x,door.y
+  if door.dir == 'n' or door.dir == 's' then
+    segments[1] = { x = x-1; y = y; open = '╸'; shut = '╼' }
+    segments[2] = { x = x;   y = y; open = ' '; shut = '━' }
+    segments[3] = { x = x+1; y = y; open = '╺'; shut = '╾' }
+  else
+    segments[1] = { x = x; y = y-1; open = '╹'; shut = '╽' }
+    segments[2] = { x = x; y = y;   open = ' '; shut = '┃' }
+    segments[3] = { x = x; y = y+1; open = '╻'; shut = '╿' }
+  end
+  for _,segment in ipairs(segments) do
+    self[segment.x][segment.y].terrain = 'Floor'
+    local door = self:create 'Door' {
+      door = {
+        face_open = segment.open;
+        face_shut = segment.shut;
+      };
+      position = {
+        x = segment.x; y = segment.y; z = self.depth;
+      }
+    }
+    self[segment.x][segment.y][2] = door
+  end
+end
+
 local function createTerrain(self)
   for x=1,self.w do
     for y=1,self.h do
@@ -60,8 +88,8 @@ local function isRoomCompatible(self, door, doorway)
     return false
   end
 
-  for x,y,cell in door.room:cells() do
-    local mapcell = self[ox+x][oy+y]
+  for x,y,cell in door.room:cells(ox, oy) do
+    local mapcell = self[x][y]
     if mapcell.terrain and (mapcell.terrain ~= cell or mapcell.terrain ~= 'Wall') then
       -- collision with existing terrain
       return false
@@ -70,13 +98,6 @@ local function isRoomCompatible(self, door, doorway)
 
   return true
 end
-
--- doors
--- ╸ ╺ open
--- ╼━╾ closed
--- ╹ ╽
---   ┃
--- ╻ ╿
 
 return function(self, w, h)
   self.w, self.h = w,h
@@ -116,13 +137,17 @@ return function(self, w, h)
         for newdoor in door.room:doors() do
           if newdoor ~= door then pushDoor(newdoor, doorway.x - door.x, doorway.y - door.y) end
         end
+        placeDoor(self, doorway)
+        doorway = nil
         break
       else
         log.debug('rejected %s', door.room.name)
       end
     end
-    -- create door objects
-    -- push doors from that room
+    -- Couldn't find a room. Close the door.
+    if doorway then
+      fillDoor(self, doorway)
+    end
   end
 
   createTerrain(self)
