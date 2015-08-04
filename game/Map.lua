@@ -28,6 +28,7 @@ end
 -- in the global entity lookup table, but is available only as long as this map
 -- is loaded.
 local entity_types = require 'entities'
+local Entity = require 'game.Entity'
 function Map:create(type)
   return function(data)
     local proto = assertf(entity_types[type], "no entity with type %s", type)

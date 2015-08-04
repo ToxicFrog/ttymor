@@ -3,7 +3,7 @@ require 'repr'
 
 -- Core implementation of the entity-component system.
 local Entity_MT = {}
-function Entity(data)
+local function Entity(data)
   return setmetatable(data, Entity_MT)
 end
 
