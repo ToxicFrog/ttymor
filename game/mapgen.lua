@@ -34,7 +34,7 @@ local function placeObject(self, obj, ox, oy)
   end
 
   local x,y = obj.x+ox,obj.y+oy
-  local ent = self:create 'TestObject' {
+  local ent = {
     name = obj.name or obj.type or obj._type or "???";
     render = {
       face = (obj.type or '?'):sub(1,1);
@@ -48,7 +48,7 @@ local function placeObject(self, obj, ox, oy)
     ent.render.colour = { 255, 0, 0 }
     ent.render.style = 'v'
   end
-  self:placeAt(ent, x, y)
+  self:placeAt(self:create('TestObject')(ent), x, y)
 end
 
 -- Place an entire room into the map, create and place all of its objects, and
@@ -129,10 +129,9 @@ end
 
 local function createTerrain(self)
   for x,y,cell in self:cells() do
-    if cell[1] then
-      assert(type(cell[1]) == 'string', tostring(cell[1]))
+    if type(cell[1]) == 'string' then
       cell[1] = game.createSingleton(cell[1], 'terrain:'..cell[1]) {}
-    else
+    elseif cell[1] == false then
       cell[1] = nil
     end
   end
@@ -194,7 +193,6 @@ return function(self, w, h, room)
   placeRoom(self, room, x, y)
 
   for target_door in pullDoor,self do
-    log.debug('checking door %s', repr(target_door):gsub('%s+', ''))
     -- find a compatible random room
     local room,door = findCompatibleRoom(self, target_door)
     if room then
