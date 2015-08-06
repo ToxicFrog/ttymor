@@ -76,6 +76,11 @@ local function placeRoom(self, room, ox, oy)
   for door in room:doors() do
     pushDoor(self, door, ox, oy)
   end
+
+  -- Strike the room from the list if it's a once-per-level room.
+  if room.flags.special then
+    self._excluded[room] = true
+  end
 end
 
 -- Fill in a doorway with wall, since we couldn't create a room there.
@@ -162,12 +167,35 @@ local function placeRoomAtDoor(self, room, door, target_door)
   placeDoor(self, target_door)
 end
 
+local function randomRoom(self)
+  local room = self._room_pool[math.random(1, #self._room_pool)]
+  if self._excluded[room] then
+    return randomRoom(self)
+  end
+  return room
+end
+
 local function findCompatibleRoom(self, target)
+  local tries = 5
   for i=1,5 do
-    local door = dredmor.randomDoor(target.dir)
-    if isRoomCompatible(self, door, target) then
+    local room = randomRoom(self)
+    local doors = {}
+    for door in room:doors() do
+      if isRoomCompatible(self, door, target) then
+        table.insert(doors, door)
+      end
+    end
+    if #doors > 0 then
+      local door = doors[math.random(1, #doors)]
       return door.room,door
     end
+  end
+end
+
+local function filter(depth)
+  return function(room)
+    return (room.flags.minLevel or 0) <= depth
+       and depth <= (room.flags.maxLevel or math.huge)
   end
 end
 
@@ -181,12 +209,14 @@ return function(self, w, h, room)
   end
 
   self._doors = {}
+  self._excluded = {}
+  self._room_pool = dredmor.rooms(filter(self.depth))
 
   -- place the first room in the middle of the map
   if room then
     room = dredmor.room(room)
   else
-    room = dredmor.randomRoom()
+    room = randomRoom(self)
   end
   local x = (self.w/2 - room.w/2):floor()
   local y = (self.h/2 - room.h/2):floor()
@@ -203,4 +233,5 @@ return function(self, w, h, room)
   end
 
   createTerrain(self)
+  self._doors,self._excluded,self._room_pool = nil,nil,nil
 end

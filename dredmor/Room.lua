@@ -77,7 +77,7 @@ local function postprocess(self)
     if cell == false then
       self[x][y] = false
     elseif cell:match('%d') then -- location marker
-      self._locations[cell] = { x=x, y=y }
+      self._locations[tonumber(cell)] = { x=x, y=y }
       self[x][y] = 'Floor'
     elseif terrain[cell] then
       local content = terrain[cell]

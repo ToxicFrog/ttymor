@@ -18,7 +18,7 @@ local Room = require 'dredmor.Room'
 local function attrsToTable(tag)
   local T = {}
   for _,attr in ipairs(tag.attr) do
-    T[attr.name] = attr.value
+    T[attr.name] = tonumber(attr.value) or attr.value
   end
   return T
 end
@@ -62,25 +62,22 @@ local function roomFromXML(node)
   return Room(room)
 end
 
--- Master table of all rooms, which is both a list and indexed by room name.
+-- Master table of all rooms, indexed by room name.
 local rooms = {}
--- Master table of all doors, grouped by facing direction.
-local doors = { n={}; s={}; e={}; w={}; }
 
 local function loadRooms(path)
   local dom = xml.load(path)
+  local count = 0
   for roomdef in xml.walk(dom.root, 'room') do
     if rooms[roomdef.attr.name] then
       log.debug("skipping duplicate room definition %s", roomdef.attr.name)
     else
+      count = count+1
       local room = roomFromXML(roomdef)
       rooms[room.name] = room
-      table.insert(rooms, room)
-      for door in room:doors() do
-        table.insert(doors[door.dir], door)
-      end
     end
   end
+  log.debug("Loaded %d rooms from %s", count, path)
 end
 
 function dredmor.loadRooms()
@@ -101,7 +98,7 @@ end
 
 function dredmor.debug_rooms()
   local tree = { name = 'Room List' }
-  for i,room in ipairs(rooms) do
+  for name,room in pairs(rooms) do
     local node = {
       name = room.name;
       _room = room;
@@ -141,15 +138,18 @@ function dredmor.debug_rooms()
   ui.tree(tree)
 end
 
-function dredmor.rooms()
-  return rooms
+function dredmor.rooms(filter)
+  local R = {}
+  filter = filter or f' => true'
+  for _,room in pairs(rooms) do
+    if filter(room) then
+      table.insert(R, room)
+    end
+  end
+  log.debug("Returning filtered list of %d rooms", #R)
+  return R
 end
 
-function dredmor.randomRoom()
-  return rooms[math.random(1, #rooms)]
-end
-
-function dredmor.randomDoor(dir)
-  local doors = doors[dir]
-  return doors[math.random(1, #doors)]
+function dredmor.room(name)
+  return rooms[name]
 end
