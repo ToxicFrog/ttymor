@@ -10,16 +10,22 @@ local Entity = {}
 -- TODO: is this really the API I want? Value returns in particular are kind
 -- of gross.
 function Entity:__index(k)
-  return function(self, ...)
-    for i,component in ipairs(self) do
-      if component[k] then
-        local rv = { component[k](self, ...) }
-        if #rv > 0 then
-          return unpack(rv)
-        end
+  local fns = {}
+  for i,component in ipairs(self) do
+    if component[k] then
+      fns[#fns+1] = component[k]
+    end
+  end
+  assertf(#fns > 0, '%s: read of nonexistent field %s', self, k)
+  self[k] = function(self, ...)
+    for _,fn in ipairs(fns) do
+      local rv = { fn(self, ...) }
+      if #rv > 0 then
+        return unpack(rv)
       end
     end
   end
+  return self[k]
 end
 
 function Entity:__tostring()
