@@ -4,18 +4,16 @@
 -- For this reason, it implements :render. Entities with a door component should
 -- place it before the render component so it can affect the rendering code.
 
-local door = {
-  face_open = '■';
-  face_shut = '+';
-  open = false;
+local Door = {
+  defaults = {
+    face_open = '■';
+    face_shut = '+';
+    open = false;
+  };
 }
 
-function door:render(ent)
-  for i,component in ipairs(ent) do
-    if component._NAME == 'render' then
-      component.face = self.open and self.face_open or self.face_shut
-    end
-  end
+function Door:render()
+  self.Render.face = self.Door.open and self.Door.face_open or self.Door.face_shut
 end
 
-return door
+return Door

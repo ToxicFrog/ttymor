@@ -36,10 +36,10 @@ local function placeObject(self, obj, ox, oy)
   local x,y = obj.x+ox,obj.y+oy
   local ent = {
     name = obj.name or obj.type or obj._type or "???";
-    render = {
+    Render = {
       face = (obj.type or '?'):sub(1,1);
     };
-    position = {
+    Position = {
       x = x; y = y;
     }
   }
@@ -94,7 +94,7 @@ local function fillDoor(map, door)
       -- Temporary addition so that places where doors were filled in stand out.
       -- For debugging the map generator.
       cell[2] = game.createSingleton('Wall', 'DoorFiller') {
-        render = { face = '░' };
+        Render = { face = '░' };
       }
     end
   end
@@ -115,11 +115,11 @@ local function placeDoor(self, door)
   for _,segment in ipairs(segments) do
     self[segment.x][segment.y][1] = 'Floor'
     local door = self:create 'Door' {
-      door = {
+      Door = {
         face_open = segment.open;
         face_shut = segment.shut;
       };
-      position = {
+      Position = {
         x = segment.x; y = segment.y; z = self.depth;
       }
     }

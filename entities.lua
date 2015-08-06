@@ -3,7 +3,7 @@ local entities = {}
 
 local function EntityType(name)
   return function(proto)
-    proto.type = name
+    proto._TYPE = name
     entities[name] = proto
   end
 end
@@ -16,52 +16,52 @@ end
 
 EntityType 'Player' {
   name = 'player';
-  Component 'render' { face = '@'; style = 'v' };
-  Component 'control' {};
-  Component 'position' {};
+  Component 'Render' { face = '@'; style = 'v' };
+  Component 'Control' {};
+  Component 'Position' {};
 }
 
 EntityType 'Wall' {
   name = 'wall';
-  Component 'render' { face = '▒' };
+  Component 'Render' { face = '▒' };
 }
 EntityType 'InvisibleWall' {
   name = 'floor';
-  Component 'render' { face = '.'; style = 'v' };
+  Component 'Render' { face = '.'; style = 'v' };
 }
 EntityType 'Water' {
   name = 'water';
-  Component 'render' { face = '≈'; colour = {0,128,255} };
+  Component 'Render' { face = '≈'; colour = {0,128,255} };
 }
 EntityType 'Goo' {
   name = 'goo';
-  Component 'render' { face = '≈'; colour = {0,255,0} };
+  Component 'Render' { face = '≈'; colour = {0,255,0} };
 }
 EntityType 'Ice' {
   name = 'ice';
-  Component 'render' { face = '≈'; colour = {128,255,0} };
+  Component 'Render' { face = '≈'; colour = {128,255,0} };
 }
 EntityType 'Lava' {
   name = 'lava';
-  Component 'render' { face = '≈'; colour = {255,64,0} };
+  Component 'Render' { face = '≈'; colour = {255,64,0} };
 }
 
 EntityType 'Floor' {
   name = 'floor';
-  Component 'render' { face = '.' }
+  Component 'Render' { face = '.' }
 }
 
 EntityType 'TestObject' {
   name = "test object";
-  Component 'render' { face = '?' };
-  Component 'position' {};
+  Component 'Render' { face = '?' };
+  Component 'Position' {};
 }
 
 EntityType 'Door' {
   name = 'door';
-  Component 'position' {};
-  Component 'door' {};
-  Component 'render' { face='!'; colour = {0xFF,0x99,0x33} };
+  Component 'Position' {};
+  Component 'Door' {};
+  Component 'Render' { face='!'; colour = {0xFF,0x99,0x33} };
 }
 
 return entities

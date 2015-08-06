@@ -5,8 +5,6 @@ require 'game'
 require 'ui'
 require 'dredmor'
 
-local Component = require 'game.Component'
-
 flags.register "help" {
   help = "This text.";
 }

@@ -1,8 +1,9 @@
 require "repr"
-local Entity = require 'game.Entity'
-local Component = require 'game.Component'
 local Map = require 'game.Map'
-Ref = require 'game.Ref' -- must be global for game loading. TODO: fix
+
+-- These two must be global for game loading. TODO: fix
+Entity = require 'game.Entity'
+Ref = require 'game.Ref'
 
 game = {}
 
@@ -121,9 +122,9 @@ end
 function game.createSingleton(type, name)
   return function(data)
     if state.singletons[name] then
-      assertf(state.singletons[name].type == type,
+      assertf(state.singletons[name]._TYPE == type,
           "mismatched types initializing singleton %s: %s ~= %s",
-          name, type, state.singletons[name].type)
+          name, type, state.singletons[name]._TYPE)
       return state.singletons[name]
     else
       -- all singletons are stored in map 0, the persistent map

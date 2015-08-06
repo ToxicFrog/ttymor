@@ -27,27 +27,15 @@ end
 -- Create a new entity owned by this map. It will be automatically registered
 -- in the global entity lookup table, but is available only as long as this map
 -- is loaded.
-local entity_types = require 'entities'
 local Entity = require 'game.Entity'
 function Map:create(type)
   return function(data)
-    local proto = assertf(entity_types[type], "no entity with type %s", type)
+    data.id = game.nextID()
 
-    local entity = table.copy(proto)
-    for i,component in ipairs(entity) do
-      entity[i] = Component(component.name)(component.proto)
-      if data[component.name] then
-        table.merge(entity[i], data[component.name], "overwrite")
-        data[component.name] = nil
-      end
-    end
-    table.merge(entity, data, "overwrite")
-
-    entity.id = game.nextID()
-    self.entities[entity.id] = Entity(entity)
-
-    game.register(self.entities[entity.id])
-    return Ref(entity.id)
+    local ent = Entity(type)(data)
+    self.entities[data.id] = ent
+    game.register(ent)
+    return Ref(ent)
   end
 end
 

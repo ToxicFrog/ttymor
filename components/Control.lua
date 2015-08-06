@@ -1,19 +1,19 @@
 -- Component for keyboard control of the containing entity.
-local control = {}
+local Control = {}
 
-function control:turn(ent)
-  game.log("--- turn: %s", ent)
+function Control:turn()
+  game.log("--- turn: %s", self)
   local cmd = ui.readkey()
   if cmd == 'cancel' then
     ui.mainmenu()
   elseif cmd == 'up' then
-    ent:move(0, -1)
+    self:move(0, -1)
   elseif cmd == 'down' then
-    ent:move(0, 1)
+    self:move(0, 1)
   elseif cmd == 'left' then
-    ent:move(-1, 0)
+    self:move(-1, 0)
   elseif cmd == 'right' then
-    ent:move(1, 0)
+    self:move(1, 0)
   elseif cmd == 'key:s-T' then
     ui.keybinds_screen()
   elseif cmd == 'key:T' then
@@ -23,4 +23,4 @@ function control:turn(ent)
   end
 end
 
-return control
+return Control
