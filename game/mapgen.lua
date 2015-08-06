@@ -45,8 +45,8 @@ local function placeObject(self, obj, ox, oy)
   }
   if not self[x][y][1] then
     log.debug("Object %s at (%d,%d) in void!", ent, x, y)
-    ent.render.colour = { 255, 0, 0 }
-    ent.render.style = 'v'
+    ent.Render.colour = { 255, 0, 0 }
+    ent.Render.style = 'v'
   end
   self:placeAt(self:create('TestObject')(ent), x, y)
 end
