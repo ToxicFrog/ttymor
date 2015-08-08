@@ -99,7 +99,10 @@ end
 
 for _,category in ipairs(default_tree) do
   for _,command in ipairs(category) do
-    command.keys = settings.register('keys', command.command, command.keys)
+    command.keys = settings.register('keys', command.command, {
+      name = command.command;
+      value = command.keys;
+    })
     table.merge(command, KeyCommand, 'error')
   end
 end

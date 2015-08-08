@@ -1,7 +1,11 @@
 -- Settings management framework.
 local Category = require 'settings.Category'
 
-settings = {}
+settings = {
+  Raw = require 'settings.Raw';
+  Int = require 'settings.Int';
+  Float = require 'settings.Float';
+}
 
 local registered = {}
 
@@ -24,19 +28,16 @@ end
 
 -- Register the given key in the given category. Returns an accessor for that key.
 -- Safe to use in multiple files, but asserts if the defaults don't match.
-function settings.register(cat, key, default)
+function settings.register(cat, key, setting)
   if not registered[cat] then
     registered[cat] = Category(cat)
   end
   if registered[cat].settings[key] then
-    assertf(default == registered[cat].settings[key].value,
+    assertf(setting.value == registered[cat].settings[key].value,
       "multiple registrations of configuration key %s::%s with conflicting default values %s ~= %s",
-      cat, key, registered[cat].settings[key].value, default)
+      cat, key, registered[cat].settings[key].value, setting.value)
   else
-    registered[cat]:add {
-      name = key;
-      value = default;
-    }
+    registered[cat]:add(setting)
   end
   return settings.accessor(cat, key)
 end

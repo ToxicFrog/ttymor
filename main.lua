@@ -1,4 +1,5 @@
 require 'util'
+require 'Object'
 require 'settings'
 require 'tty'
 require 'game'

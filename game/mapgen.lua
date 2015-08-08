@@ -1,8 +1,18 @@
 -- Implementation of map generation.
 -- The function returned by this library becomes the Map:generate() method.
 
-local retries_per_room = settings.register('game', 'retries_per_room', 20)
-local map_density = settings.register('game', 'map_density', 0.6)
+local retries_per_room = settings.Int {
+  category = 'Map Generation';
+  name = 'Retries Per Room';
+  value = 10; min = 1, max = 20;
+  help = 'Number of times to try placing a room before giving up.';
+};
+local map_density = settings.Float {
+  category = 'Map Generation';
+  name = 'Map Density';
+  value = 0.6; min = 0.0, max = 1.0;
+  help = 'Minimum proportion of the map that needs to be filled.';
+};
 
 local function in_bounds(map, x, y, w, h)
   return x >= 0 and y >= 0 and x+w < map.w and y+h < map.h
