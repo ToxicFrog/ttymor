@@ -1,18 +1,23 @@
-local Category = {
+local Category = Object:subclass {
   per_game = false;
 }
-Category.__index = Category
 
--- Save
+function Category:__init(...)
+  Object.__init(self, ...)
+  self.settings = {}
+  settings.categories[self.name] = self
+  table.insert(settings.categories, self)
+end
+
 function Category:save()
   game.saveObject(
       '%s.cfg' % self.name,
       table.mapv(self.settings, f's => s.value'),
-      self.per_game)
+      game.name() and self.per_game)
 end
 
 function Category:load()
-  local saved = game.loadOptional('%s.cfg' % self.name, self.per_game)
+  local saved = game.loadOptional('%s.cfg' % self.name, game.name() and self.per_game)
   for k,v in pairs(saved or {}) do
     if self.settings[k] then
       self.settings[k].value = v
@@ -43,6 +48,4 @@ function Category:tree()
   return node
 end
 
-return function(name)
-  return setmetatable({name = name, settings = {}}, Category)
-end
+return Category

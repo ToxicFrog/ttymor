@@ -36,7 +36,7 @@ end
 
 function game.objectPath(file, per_game)
   if per_game then
-    assert(state.name, 'game.saveObject(..., true) called when no game is loaded')
+    assert(state.name, 'game.objectPath(..., true) called when no game is loaded')
     return '%s/%s.sav/%s' % { flags.parsed.config_dir, state.name, file }
   end
   return '%s/%s' % { flags.parsed.config_dir, file }
@@ -55,6 +55,10 @@ function game.loadOptional(file, per_game)
   if io.exists(game.objectPath(file, per_game)) then
     return game.loadObject(file, per_game)
   end
+end
+
+function game.name()
+  return state.name
 end
 
 function game.save()

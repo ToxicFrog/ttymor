@@ -1,3 +1,7 @@
+settings.Category {
+  name = 'Keybinds';
+}
+
 local bindings = {} -- key -> command map
 
 function ui.readkey()
@@ -11,7 +15,7 @@ end
 -- one command.
 function ui.validate_bindings()
   local errors = {}
-  local map = settings.get('keys')
+  local map = settings.get('Keybinds')
 
   for _,command in ipairs { 'activate', 'cancel', 'up', 'down', 'left', 'right' } do
     if #map[command] == 0 then
@@ -37,7 +41,7 @@ end
 
 function ui.update_bindings()
   bindings = {}
-  for command,keys in settings.pairs('keys') do
+  for command,keys in settings.pairs('Keybinds') do
     for _,key in ipairs(keys) do
       assert(not bindings[key], "multiple binding for key "..key)
       bindings[key] = command
@@ -99,7 +103,7 @@ end
 
 for _,category in ipairs(default_tree) do
   for _,command in ipairs(category) do
-    command.keys = settings.register('keys', command.command, {
+    command.keys = settings.register('Keybinds', command.command, {
       name = command.command;
       value = command.keys;
     })

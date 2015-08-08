@@ -1,6 +1,11 @@
 -- Implementation of map generation.
 -- The function returned by this library becomes the Map:generate() method.
 
+settings.Category {
+  name = 'Map Generation';
+  per_game = true;
+}
+
 local retries_per_room = settings.Int {
   category = 'Map Generation';
   name = 'Retries Per Room';

@@ -1,13 +1,13 @@
 -- Settings management framework.
-local Category = require 'settings.Category'
-
 settings = {
   Raw = require 'settings.Raw';
   Int = require 'settings.Int';
   Float = require 'settings.Float';
+  Category = require 'settings.Category';
+  categories = {};
 }
 
-local registered = {}
+local registered = settings.categories;
 
 flags.register "config-dir" {
   help = "Directory to store settings and save files in.";
@@ -29,9 +29,7 @@ end
 -- Register the given key in the given category. Returns an accessor for that key.
 -- Safe to use in multiple files, but asserts if the defaults don't match.
 function settings.register(cat, key, setting)
-  if not registered[cat] then
-    registered[cat] = Category(cat)
-  end
+  assert_registered(cat)
   if registered[cat].settings[key] then
     assertf(setting.value == registered[cat].settings[key].value,
       "multiple registrations of configuration key %s::%s with conflicting default values %s ~= %s",
