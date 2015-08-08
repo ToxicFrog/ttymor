@@ -1,6 +1,9 @@
 -- Implementation of map generation.
 -- The function returned by this library becomes the Map:generate() method.
 
+local retries_per_room = settings.register('game', 'retries_per_room', 20)
+local map_density = settings.register('game', 'map_density', 0.6)
+
 local function in_bounds(map, x, y, w, h)
   return x >= 0 and y >= 0 and x+w < map.w and y+h < map.h
 end
@@ -81,6 +84,9 @@ local function placeRoom(self, room, ox, oy)
   if room.flags.special then
     self._excluded[room] = true
   end
+
+  -- Update the density calculation.
+  self._density = self._density + (room.w*room.h)/(self.w*self.h)
 end
 
 -- Fill in a doorway with wall, since we couldn't create a room there.
@@ -177,7 +183,7 @@ end
 
 local function findCompatibleRoom(self, target)
   local tries = 5
-  for i=1,5 do
+  for i=1,retries_per_room() do
     local room = randomRoom(self)
     local doors = {}
     for door in room:doors() do
@@ -199,7 +205,7 @@ local function filter(depth)
   end
 end
 
-return function(self, w, h, room)
+local function generate(self, w, h, starting_room)
   self.w, self.h = w,h
   for x=0,self.w-1 do
     self[x] = {}
@@ -208,13 +214,17 @@ return function(self, w, h, room)
     end
   end
 
+  self._density = 0.0
   self._doors = {}
   self._excluded = {}
   self._room_pool = dredmor.rooms(filter(self.depth))
 
   -- place the first room in the middle of the map
-  if room then
-    room = dredmor.room(room)
+  local room
+  if starting_room then
+    room = assertf(dredmor.room(starting_room),
+        "Couldn't find room %s to start map generation with",
+        starting_room)
   else
     room = randomRoom(self)
   end
@@ -222,16 +232,30 @@ return function(self, w, h, room)
   local y = (self.h/2 - room.h/2):floor()
   placeRoom(self, room, x, y)
 
+  local count = 1
   for target_door in pullDoor,self do
     -- find a compatible random room
     local room,door = findCompatibleRoom(self, target_door)
     if room then
+      count = count + 1
       placeRoomAtDoor(self, room, door, target_door)
     elseif not self[target_door.x][target_door.y][2] then
       fillDoor(self, target_door)
     end
   end
 
+  -- Restart the whole process if we didn't hit the target density.
+  if self._density < map_density() then
+    log.info("Restarting map generation: density %0.2f < target %0.2f",
+        self._density, map_density())
+    return generate(self, w, h, starting_room)
+  else
+    log.info("Generated map with %d rooms and %0.2f density",
+        count, self._density)
+  end
+
   createTerrain(self)
   self._doors,self._excluded,self._room_pool = nil,nil,nil
 end
+
+return generate
