@@ -1,5 +1,5 @@
 -- Settings management framework.
-require 'repr'
+local Category = require 'settings.Category'
 
 settings = {}
 
@@ -11,100 +11,95 @@ flags.register "config-dir" {
   default = os.getenv('HOME')..'/.config/ttymor/';
 }
 
-local function assert_registered(file, key)
-  assertf(registered[file],
-    "attempt to access unregistered configuration file %s", file)
+local function assert_registered(cat, key)
+  assertf(registered[cat],
+    "attempt to access unregistered configuration category %s", cat)
   if key then
-    assertf(registered[file][key] ~= nil,
-      "attempt to access unregistered configuration key %s::%s", file, key)
+    return assertf(registered[cat].settings[key],
+      "attempt to access unregistered configuration key %s::%s", cat, key)
+  else
+    return registered[cat]
   end
 end
 
--- Register the given key in the given file. Returns an accessor for that key.
+-- Register the given key in the given category. Returns an accessor for that key.
 -- Safe to use in multiple files, but asserts if the defaults don't match.
-function settings.register(file, key, default)
-  if not registered[file] then
-    registered[file] = {}
+function settings.register(cat, key, default)
+  if not registered[cat] then
+    registered[cat] = Category(cat)
   end
-  if registered[key] ~= nil then
-    assertf(default == registered[key],
+  if registered[cat].settings[key] then
+    assertf(default == registered[cat].settings[key].value,
       "multiple registrations of configuration key %s::%s with conflicting default values %s ~= %s",
-      file, key, registered[key], default)
+      cat, key, registered[cat].settings[key].value, default)
   else
-    registered[file][key] = default
+    registered[cat]:add {
+      name = key;
+      value = default;
+    }
   end
-  return settings.accessor(file, key)
+  return settings.accessor(cat, key)
 end
 
 -- Return an accessor for an existing key.
-function settings.accessor(file, key)
-  assert_registered(file, key)
+function settings.accessor(cat, key)
+  local setting = assert_registered(cat, key)
   return function(val)
     if val ~= nil then
-      registered[file][key] = val
+      setting.value = val
     end
-    return registered[file][key]
+    return setting.value
   end
 end
 
 -- Get the current value. If key is unspecified, returns the entire table for
--- that file.
-function settings.get(file, key)
-  assert_registered(file, key)
+-- that category.
+function settings.get(cat, key)
+  local setting = assert_registered(cat, key)
   if key then
-    return registered[file][key]
+    return setting.value
   else
-    return registered[file]
+    return table.mapv(setting.settings, f's => s.value')
   end
 end
 
-function settings.pairs(file)
-  assert_registered(file)
-  return pairs(registered[file])
+-- Iterate over all (key,value) settingpairs in a category.
+function settings.pairs(cat)
+  cat = assert_registered(cat)
+  return cat:pairs()
 end
 
--- Set the current value.
-function settings.set(file, key, value)
-  assert_registered(file, key)
-  registered[file][key] = value
-end
-
--- Save the listed files to disk.
+-- Save the listed categories to disk.
 function settings.save(...)
   local args = {...}
   if #args == 0 then
     return settings.save(unpack(table.keys(registered)))
   end
 
-  for _,file in ipairs(args) do
-    game.saveObject('%s.cfg' % file, registered[file])
+  for _,cat in ipairs(args) do
+    registered[cat]:save()
   end
 end
 
--- Load the listed files. Loading is done by loading a temporary and then using
--- table.merge, so keys not present in the file loaded will retain their defaults
--- rather than becoming nil.
+-- Load the listed categories. Keys not present in the file loaded will retain
+-- their default value rather than becoming nil.
 function settings.load(...)
   local args = {...}
   if #args == 0 then
     return settings.load(unpack(table.keys(registered)))
   end
 
-  for _,file in ipairs(args) do
-    table.merge(registered[file], game.loadObject('%s.cfg' % file))
+  for _,cat in ipairs(args) do
+    registered[cat]:load()
   end
 end
 
+-- Display a tree containing all settings. For debugging. Will eventually be
+-- fleshed out into a settings editor.
 function settings.show()
   local tree = { name = "Settings" }
-  for file,keys in pairs(registered) do
-    local node = { name = file }
-    table.insert(tree, node)
-    for key,val in pairs(keys) do
-      table.insert(node, {
-        name = "%s = %s" % { key, repr(val):gsub('%s+', ' ') }
-      })
-    end
+  for _,cat in pairs(registered) do
+    table.insert(tree, cat:tree())
   end
   return ui.tree(tree)
 end

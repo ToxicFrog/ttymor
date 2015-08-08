@@ -34,21 +34,26 @@ function game.new(name)
   return player
 end
 
-function game.saveObject(file, object, per_game)
+function game.objectPath(file, per_game)
   if per_game then
     assert(state.name, 'game.saveObject(..., true) called when no game is loaded')
-    return io.writefile('%s/%s.sav/%s' % { flags.parsed.config_dir, state.name, file }, 'return '..repr(object))
-  else
-    return io.writefile('%s/%s' % { flags.parsed.config_dir, file }, 'return '..repr(object))
+    return '%s/%s.sav/%s' % { flags.parsed.config_dir, state.name, file }
   end
+  return '%s/%s' % { flags.parsed.config_dir, file }
+end
+
+
+function game.saveObject(file, object, per_game)
+  return io.writefile(game.objectPath(file, per_game), 'return '..repr(object))
 end
 
 function game.loadObject(file, per_game)
-  if per_game then
-    assert(state.name, 'game.loadObject(..., true) called when no game is loaded')
-    return assert(loadfile('%s/%s.sav/%s' % { flags.parsed.config_dir, state.name, file }))()
-  else
-    return assert(loadfile('%s/%s' % { flags.parsed.config_dir, file }))()
+  return assert(loadfile(game.objectPath(file, per_game)))()
+end
+
+function game.loadOptional(file, per_game)
+  if io.exists(game.objectPath(file, per_game)) then
+    return game.loadObject(file, per_game)
   end
 end
 
