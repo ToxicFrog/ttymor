@@ -34,16 +34,26 @@ function game.new(name)
   return player
 end
 
-function game.saveObject(file, object)
-  return io.writefile('%s.sav/%s' % { state.name, file }, 'return '..repr(object))
+function game.saveObject(file, object, per_game)
+  if per_game then
+    assert(state.name, 'game.saveObject(..., true) called when no game is loaded')
+    return io.writefile('%s/%s.sav/%s' % { flags.parsed.config_dir, state.name, file }, 'return '..repr(object))
+  else
+    return io.writefile('%s/%s' % { state.name, file }, 'return '..repr(object))
+  end
 end
 
-function game.loadObject(file)
-  return assert(loadfile('%s.sav/%s' % { state.name, file }))()
+function game.loadObject(file, per_game)
+  if per_game then
+    assert(state.name, 'game.loadObject(..., true) called when no game is loaded')
+    return assert(loadfile('%s/%s.sav/%s' % { flags.parsed.config_dir, state.name, file }))()
+  else
+    return assert(loadfile('%s/%s' % { flags.parsed.config_dir, file }))()
+  end
 end
 
 function game.save()
-  os.execute("mkdir -p '%s'" % 'test.sav') -- at some point will be based on character name
+  os.execute("mkdir -p '%s/%s.sav'" % { flags.parsed.config_dir, state.name })
   for depth,map in pairs(state.maps) do
     map:save()
   end
@@ -51,13 +61,13 @@ function game.save()
       { maps = table.mapv(state.maps, f' => true'); entities = {} },
       state, 'ignore')
 
-  game.saveObject("state", save)
+  game.saveObject("state", save, true)
 end
 
 function game.load(name)
   state = { name = name }
 
-  table.merge(state, game.loadObject("state"), "overwrite")
+  table.merge(state, game.loadObject("state", true), "overwrite")
 
   for depth,map in pairs(state.maps) do
     state.maps[depth] = false

@@ -14,11 +14,11 @@ local function new(data)
 end
 
 function Map:save()
-  return game.saveObject("%d.map" % self.depth, self)
+  return game.saveObject("%d.map" % self.depth, self, true)
 end
 
 function Map:load()
-  table.merge(self, game.loadObject("%d.map" % self.depth), overwrite)
+  table.merge(self, game.loadObject("%d.map" % self.depth, true), overwrite)
   for id,ent in pairs(self.entities) do
     game.register(ent)
   end
