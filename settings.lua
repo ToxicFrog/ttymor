@@ -96,9 +96,31 @@ end
 -- Display a tree containing all settings. For debugging. Will eventually be
 -- fleshed out into a settings editor.
 function settings.show()
-  local tree = { name = "Settings" }
-  for _,cat in pairs(registered) do
+  local tree = { name = "Settings Debug View" }
+  for _,cat in ipairs(registered) do
+    local node = { name = cat.name }
+    for _,setting in ipairs(cat) do
+      table.insert(node, {
+        name = '%s = %s' % { setting.name, repr(setting.value):gsub('%s+', ' ') }
+      })
+    end
+    table.insert(tree, node)
+  end
+  ui.tree(tree)
+end
+
+function settings.edit()
+  local tree = { name = 'Configuration' }
+  for _,cat in ipairs(registered) do
     table.insert(tree, cat:tree())
   end
-  return ui.tree(tree)
+  table.insert(tree, {
+    name = "Save Configuration";
+    activate = function() settings.save() return false end;
+  })
+  table.insert(tree, {
+    name = "Cancel";
+    activate = function() settings.load() return false end;
+  })
+  ui.tree(tree)
 end
