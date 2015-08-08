@@ -39,7 +39,7 @@ function game.saveObject(file, object, per_game)
     assert(state.name, 'game.saveObject(..., true) called when no game is loaded')
     return io.writefile('%s/%s.sav/%s' % { flags.parsed.config_dir, state.name, file }, 'return '..repr(object))
   else
-    return io.writefile('%s/%s' % { state.name, file }, 'return '..repr(object))
+    return io.writefile('%s/%s' % { flags.parsed.config_dir, file }, 'return '..repr(object))
   end
 end
 

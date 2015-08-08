@@ -71,15 +71,13 @@ end
 
 -- Save the listed files to disk.
 function settings.save(...)
-  os.execute("mkdir -p '%s'" % flags.parsed.config_dir)
   local args = {...}
   if #args == 0 then
     return settings.save(unpack(table.keys(registered)))
   end
 
   for _,file in ipairs(args) do
-    io.writefile("%s/%s.cfg" % { flags.parsed.config_dir, file },
-      'return ' .. repr(registered[file]))
+    game.saveObject('%s.cfg' % file, registered[file])
   end
 end
 
@@ -93,10 +91,7 @@ function settings.load(...)
   end
 
   for _,file in ipairs(args) do
-    filename = "%s/%s.cfg" % { flags.parsed.config_dir, file }
-    if io.exists(filename, 'r') then
-      table.merge(registered[file], loadfile(filename)())
-    end
+    table.merge(registered[file], game.loadObject('%s.cfg' % file))
   end
 end
 
