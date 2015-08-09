@@ -87,6 +87,9 @@ assumption they sum up to less than 0.5.
 There's a comment that says "blockers are 1-in-X, right?" but it doesn't sound
 very certain.
 
+"anvil chance" probably does nothing, since Krong anvils are now part of the rooms.xml
+rather than spawning randomly.
+
   number of teleporters
 Again, not sure if this is min, max, or exact
 
