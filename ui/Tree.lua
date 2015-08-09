@@ -159,7 +159,7 @@ function Tree:call_handler(key)
     return self[key](self)
   else
     return errorf("no handler in tree for %s -- wanted function, got %s (node) and %s (tree)",
-        name, type(node[key]), type(self[key]))
+        key, type(node[key]), type(self[key]))
   end
 end
 
