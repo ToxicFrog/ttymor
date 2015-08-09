@@ -12,11 +12,6 @@ function Raw:label(width)
 end
 
 function Raw:activate()
-  -- 'Readonly' doesn't mean it can't be changed ever, but does mean it can't
-  -- be changed from the normal settings UI. This is used for (e.g.) settings
-  -- that are set at character creation time and then can't be changed, like
-  -- map size.
-  if self.readonly then return end
   self:set(ui.ask(self.name, tostring(self.value)) or self.value)
 end
 

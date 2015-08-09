@@ -34,6 +34,7 @@ function Category:add(setting)
 end
 
 function Category:tree()
+  if self.hidden then return nil end
   return self
 end
 

@@ -4,6 +4,7 @@
 settings.Category {
   name = 'Map Generation';
   per_game = true;
+  hidden = true;
 }
 
 local retries_per_room = settings.Int {
@@ -11,14 +12,14 @@ local retries_per_room = settings.Int {
   name = 'Retries Per Room';
   value = 10; min = 1, max = 20;
   help = 'Number of times to try placing a room before giving up.';
-  readonly = true;
+  hidden = true;
 };
 local map_density = settings.Float {
   category = 'Map Generation';
   name = 'Map Density';
   value = 0.6; min = 0.0, max = 1.0;
   help = 'Minimum proportion of the map that needs to be filled.';
-  readonly = true;
+  hidden = true;
 };
 
 local function in_bounds(map, x, y, w, h)
