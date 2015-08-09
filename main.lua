@@ -33,7 +33,7 @@ function main(...)
   math.randomseed(flags.parsed.seed)
   os.execute("mkdir -p '%s'" % flags.parsed.config_dir)
   settings.load()
-  dredmor.loadRooms()
+  dredmor.loadAll()
 
   if flags.parsed.load then
     game.load(flags.parsed.load)

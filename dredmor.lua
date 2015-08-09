@@ -10,3 +10,9 @@ flags.register "dredmor-dir" {
 dredmor = {}
 
 require 'dredmor.rooms'
+require 'dredmor.tweaks'
+
+function dredmor.loadAll()
+  dredmor.loadRooms()
+  dredmor.loadTweaks()
+end

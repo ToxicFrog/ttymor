@@ -33,7 +33,7 @@ end
 
 -- Return the calculated width of the node's label.
 function Node:width()
-  return #self:label(self._tree.w)
+  return #self:label(self._tree.w - self._depth)
 end
 
 -- Return the node's actual label. This includes the expanded/collapsed

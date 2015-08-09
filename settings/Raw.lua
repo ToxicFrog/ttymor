@@ -8,7 +8,7 @@ local Raw = Object:subclass {}
 function Raw:label(width)
   local val = self:show()
   return ' '..self.name
-    ..(' '):rep(math.max(1, width - #self.name - #val))..val
+    ..(' '):rep(math.max(1, width - #self.name - #val - 1))..val
 end
 
 function Raw:activate()
