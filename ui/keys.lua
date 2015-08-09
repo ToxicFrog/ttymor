@@ -75,6 +75,10 @@ settings.Category {
     ui.update_bindings()
     return settings.Category.save(self)
   end;
+  load = function(self)
+    settings.Category.load(self)
+    ui.update_bindings()
+  end;
 }
 
 local KeySetting = settings.Raw:subclass {}
