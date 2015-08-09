@@ -111,6 +111,7 @@ function settings.edit()
       settings.load()
       return false
     end;
+    reset = function() end;
     bindings = {
       ['key:del'] = 'reset';
     };
