@@ -10,7 +10,7 @@ function Category:__init(...)
 end
 
 function Category:save()
-  game.saveObject(
+  return game.saveObject(
       '%s.cfg' % self.name,
       table.mapv(self.settings, f's => s.value'),
       game.name() and self.per_game)

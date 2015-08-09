@@ -67,11 +67,13 @@ end
 -- Save the listed categories to disk.
 function settings.save(cat)
   if not cat then
+    local success = true
     for _,cat in ipairs(registered) do
-      cat:save()
+      success = success and cat:save()
     end
+    return success
   else
-    registered[cat]:save()
+    return registered[cat]:save()
   end
 end
 
@@ -121,7 +123,11 @@ function settings.edit()
   end
   table.insert(tree, {
     name = "Save Configuration";
-    activate = function() settings.save() return false end;
+    activate = function()
+      if settings.save() then
+        return false
+      end
+    end;
   })
   table.insert(tree, {
     name = "Cancel";
