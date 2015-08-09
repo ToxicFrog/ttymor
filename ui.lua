@@ -124,13 +124,12 @@ function ui.mainmenu()
   ui.tree {
     { name="Return to Game"};
     { name='Configuration'; activate = settings.edit; };
-    { name="Edit Keybinds"; activate = ui.keybinds_screen; };
+    { name="Config Debug"; activate = settings.show };
+    { name="Room Debug"; activate = dredmor.debug_rooms };
     { name="Save Game"; activate = function() game.save(); return false; end };
     { name="Load Game"; activate = function() game.load(game.name()); return false; end };
     { name="Quit And Save"; activate = function() game.save(); shutdown(); end };
     { name="Quit Without Saving"; activate = shutdown; };
-    { name="Config Debug"; activate = settings.show };
-    { name="Room Debug"; activate = dredmor.debug_rooms };
   }
 end
 

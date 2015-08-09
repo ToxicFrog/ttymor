@@ -58,7 +58,9 @@ function settings.get(cat, key)
   if key then
     return setting.value
   else
-    return table.mapv(setting.settings, f's => s.value')
+    return coroutine.wrap(function(cat)
+      for _,setting in ipairs(cat) do coroutine.yield(setting) end
+    end),registered[cat]
   end
 end
 
@@ -69,13 +71,12 @@ function settings.pairs(cat)
 end
 
 -- Save the listed categories to disk.
-function settings.save(...)
-  local args = {...}
-  if #args == 0 then
-    return settings.save(unpack(table.keys(registered)))
-  end
-
-  for _,cat in ipairs(args) do
+function settings.save(cat)
+  if not cat then
+    for _,cat in ipairs(registered) do
+      cat:save()
+    end
+  else
     registered[cat]:save()
   end
 end
@@ -83,12 +84,11 @@ end
 -- Load the listed categories. Keys not present in the file loaded will retain
 -- their default value rather than becoming nil.
 function settings.load(...)
-  local args = {...}
-  if #args == 0 then
-    return settings.load(unpack(table.keys(registered)))
-  end
-
-  for _,cat in ipairs(args) do
+  if not cat then
+    for _,cat in ipairs(registered) do
+      cat:load()
+    end
+  else
     registered[cat]:load()
   end
 end
@@ -110,7 +110,13 @@ function settings.show()
 end
 
 function settings.edit()
-  local tree = { name = 'Configuration' }
+  local tree = {
+    name = 'Configuration';
+    cancel = function()
+      settings.load()
+      return false
+    end;
+  }
   for _,cat in ipairs(registered) do
     table.insert(tree, cat:tree())
   end

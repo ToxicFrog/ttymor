@@ -11,8 +11,4 @@ function Int:set(val)
   return self.value
 end
 
-function Int:show()
-  return tostring(self.value)
-end
-
 return Int

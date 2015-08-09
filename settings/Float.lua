@@ -12,7 +12,7 @@ function Float:set(val)
 end
 
 function Float:show()
-  return '%.2f' % tostring(self.value)
+  return '[%.2f]' % tostring(self.value)
 end
 
 return Float
