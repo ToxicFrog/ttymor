@@ -11,6 +11,14 @@ function Node:__index(k)
   return Node[k]
 end
 
+function Node:__newindex(k, v)
+  if self._ptr[k] ~= nil then
+    self._ptr[k] = v
+  else
+    rawset(self, k, v)
+  end
+end
+
 -- Render the entire line at (x,y), with the label indented appropriate to depth.
 function Node:render(x, y)
   if self.focused then

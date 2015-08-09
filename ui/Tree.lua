@@ -229,7 +229,7 @@ return function(tree)
       child._tree = tree
       child._parent = node
       child._depth = depth
-      node[i] = child
+      rawset(node, i, child)
       tree.h = tree.h+1
       tree.w = tree.w:max(node[i]:width()+depth)
       convert_tree(child, depth+1)

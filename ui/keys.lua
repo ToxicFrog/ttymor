@@ -22,7 +22,7 @@ function ui.validate_bindings()
   local seen = {}
   for setting in settings.get('Keybinds') do
     if critical[setting.command] and #setting() == 0 then
-      table.insert(errors, 'Critical command [%s] is unbound' % command)
+      table.insert(errors, 'Critical command [%s] is unbound' % setting.command)
     else
       for _,key in ipairs(setting()) do
         if seen[key] then
