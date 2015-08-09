@@ -33,28 +33,8 @@ function Category:add(setting)
   self.settings[setting.name] = setting
 end
 
-function Category:pairs()
-  return pairs(table.mapv(self.settings, f's => s.value'))
-end
-
-local function node_label(self, width)
-  local val = self.setting:show()
-  return ' '..self.name
-    ..(' '):rep(math.max(1, width - #self.name - #val))..val
-end
-
 function Category:tree()
-  local node = { name = self.name }
-  for _,setting in ipairs(self) do
-    --;table.insert(node, setting:tree())
-    table.insert(node, {
-      name = setting.name;
-      activate = function() setting:edit() end;
-      label = node_label;
-      setting = setting;
-    })
-  end
-  return node
+  return self
 end
 
 return Category

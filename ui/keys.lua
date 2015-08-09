@@ -55,15 +55,12 @@ end
 -- key remapping UI elements from ui.key_defaults
 --
 local keybind_tree = require 'ui.key_defaults'
+keybind_tree.name = 'Keybinds'
 
 settings.Category {
   name = 'Keybinds';
   tree = function(self)
-    local tree = { name = 'Keybinds' }
-    for _,subcat in ipairs(keybind_tree) do
-      table.insert(tree, settings.Category.tree(subcat))
-    end
-    return tree
+    return keybind_tree
   end;
   save = function(self)
     local r,e = ui.validate_bindings()
@@ -73,10 +70,10 @@ settings.Category {
       table.insert(e, '')
       table.insert(e, 'Keybinds not saved.')
       ui.message('Error', e)
-      return
+      return false
     end
     ui.update_bindings()
-    settings.Category.save(self)
+    return settings.Category.save(self)
   end;
 }
 
@@ -89,7 +86,7 @@ function KeySetting:show()
   }
 end
 
-function KeySetting:edit()
+function KeySetting:activate()
   local width = #self.name+4;
   ui.box(ui.centered(width, 3), self.name)
   tty.flip()

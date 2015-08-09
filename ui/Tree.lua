@@ -8,7 +8,13 @@ local Tree = {
   _focused = 1;
   colour = { 255, 255, 255 };
 }
-Tree.__index = Tree
+
+function Tree:__index(k)
+  if self._ptr[k] ~= nil then
+    return self._ptr[k]
+  end
+  return Tree[k]
+end
 
 -- Focus the given node.
 function Tree:set_focus(index)
@@ -175,8 +181,6 @@ function Tree:run()
   return R
 end
 
--- API for creating a Tree from a tree of tables and/or strings.
-
 local Node = require 'ui.Node'
 
 -- Default command bindings for tree mode.
@@ -210,21 +214,22 @@ local readonly_bindings = {
 -- parent, and tree links; and computing the width and height of the box needed
 -- to display the fully expanded tree.
 return function(tree)
-  tree = setmetatable(tree, Tree)
+  tree = setmetatable({ _ptr = tree }, Tree)
   tree.w,tree.h,tree.scroll = 0,0,0
   if tree.name then
     tree.w = #tree.name
   end
 
   local function convert_tree(node, depth)
-    for i,child in ipairs(node) do
+    for i,child in ipairs(node._ptr) do
       if type(child) == 'string' then
         child = { name = child }
       end
+      child = Node(child)
       child._tree = tree
       child._parent = node
       child._depth = depth
-      node[i] = Node(child)
+      node[i] = child
       tree.h = tree.h+1
       tree.w = tree.w:max(node[i]:width()+depth)
       convert_tree(child, depth+1)

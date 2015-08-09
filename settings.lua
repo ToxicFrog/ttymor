@@ -64,12 +64,6 @@ function settings.get(cat, key)
   end
 end
 
--- Iterate over all (key,value) settingpairs in a category.
-function settings.pairs(cat)
-  cat = assert_registered(cat)
-  return cat:pairs()
-end
-
 -- Save the listed categories to disk.
 function settings.save(cat)
   if not cat then
@@ -93,8 +87,9 @@ function settings.load(...)
   end
 end
 
--- Display a tree containing all settings. For debugging. Will eventually be
--- fleshed out into a settings editor.
+-- Display a tree containing all settings. For debugging.
+-- Unlike settings.edit, this ignores all specialized methods and just yanks
+-- the values out using repr().
 function settings.show()
   local tree = { name = "Settings Debug View" }
   for _,cat in ipairs(registered) do
@@ -126,7 +121,7 @@ function settings.edit()
   })
   table.insert(tree, {
     name = "Cancel";
-    activate = function() settings.load() return false end;
+    activate = tree.cancel;
   })
   ui.tree(tree)
 end

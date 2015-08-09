@@ -3,7 +3,13 @@
 --
 
 local Node = {}
-Node.__index = Node
+
+function Node:__index(k)
+  if self._ptr[k] ~= nil then
+    return self._ptr[k]
+  end
+  return Node[k]
+end
 
 -- Render the entire line at (x,y), with the label indented appropriate to depth.
 function Node:render(x, y)
@@ -95,5 +101,5 @@ function Node:parent_of(node)
 end
 
 return function(t)
-  return setmetatable(t, Node)
+  return setmetatable({ _ptr = t }, Node)
 end
