@@ -95,6 +95,10 @@ function KeySetting:activate()
   self:set { key, self.value[1] }
 end
 
+function KeySetting:reset()
+  self:set {}
+end
+
 for _,category in ipairs(keybind_tree) do
   for i,command in ipairs(category) do
     category[i] = KeySetting {

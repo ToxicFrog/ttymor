@@ -111,6 +111,9 @@ function settings.edit()
       settings.load()
       return false
     end;
+    bindings = {
+      ['key:del'] = 'reset';
+    };
   }
   for _,cat in ipairs(registered) do
     table.insert(tree, cat:tree())
