@@ -7,6 +7,8 @@ settings = {
   categories = {};
 }
 
+setmetatable(settings, { __index = settings.categories })
+
 local registered = settings.categories;
 
 flags.register "config-dir" {

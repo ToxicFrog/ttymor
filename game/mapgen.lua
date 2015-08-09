@@ -7,13 +7,13 @@ settings.Category {
   hidden = true;
 }
 
-local retries_per_room = settings.Int {
+settings.Int {
   category = 'Map Generation';
   name = 'Retries Per Room';
   value = 10; min = 1, max = 20;
   help = 'Number of times to try placing a room before giving up.';
 };
-local map_density = settings.Float {
+settings.Float {
   category = 'Map Generation';
   name = 'Map Density';
   value = 0.6; min = 0.0, max = 1.0;
@@ -199,7 +199,7 @@ end
 
 local function findCompatibleRoom(self, target)
   local tries = 5
-  for i=1,retries_per_room() do
+  for i=1,settings.map_generation.retries_per_room do
     local room = randomRoom(self)
     local doors = {}
     for door in room:doors() do
@@ -261,9 +261,9 @@ local function generate(self, w, h, starting_room)
   end
 
   -- Restart the whole process if we didn't hit the target density.
-  if self._density < map_density() then
+  if self._density < settings.map_generation.map_density then
     log.info("Restarting map generation: density %0.2f < target %0.2f",
-        self._density, map_density())
+        self._density, settings.map_generation.map_density())
     return generate(self, w, h, starting_room)
   else
     log.info("Generated map with %d rooms and %0.2f density",

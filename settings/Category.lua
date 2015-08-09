@@ -1,12 +1,38 @@
 local Category = Object:subclass {
   per_game = false;
+  settings = {};
 }
+
+function Category:__index(k)
+  if Category[k] ~= nil then
+    return Category[k]
+  elseif not rawget(self, 'settings') then
+    return nil
+  end
+  return rawget(self, 'settings')[k]()
+end
+
+function Category:__newindex(k, v)
+  if rawget(self, 'settings') and self.settings[k] then
+    return self.settings[k](v)
+  end
+  return rawset(self, k, v)
+end
 
 function Category:__init(...)
   Object.__init(self, ...)
   self.settings = {}
   settings.categories[self.name] = self
   table.insert(settings.categories, self)
+
+  local key = self.name:gsub('[^a-zA-Z0-9_]+', '_'):lower()
+  if key ~= self.name then
+    if settings.categories[key] then
+      errorf('fast-access key for category %s conflicts with existing category %s',
+        self.name, settings.categories[key].name)
+    end
+    settings.categories[key] = self
+  end
 end
 
 function Category:save()
@@ -31,6 +57,14 @@ end
 function Category:add(setting)
   table.insert(self, setting)
   self.settings[setting.name] = setting
+  local key = setting.name:gsub('[^a-zA-Z0-9_]+', '_'):lower()
+  if key ~= setting.name then
+    if self.settings[key] then
+      errorf('fast-access key for setting %s::%s conflicts with existing setting %s::%s',
+        self.name, setting.name, self.name, self.settings[key].name)
+    end
+    self.settings[key] = setting
+  end
 end
 
 function Category:tree()
