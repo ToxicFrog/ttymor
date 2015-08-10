@@ -263,7 +263,7 @@ local function generate(self, w, h, starting_room)
   -- Restart the whole process if we didn't hit the target density.
   if self._density < settings.map_generation.map_density then
     log.info("Restarting map generation: density %0.2f < target %0.2f",
-        self._density, settings.map_generation.map_density())
+        self._density, settings.map_generation.map_density)
     return generate(self, w, h, starting_room)
   else
     log.info("Generated map with %d rooms and %0.2f density",
