@@ -1,5 +1,6 @@
 require 'util'
 require 'xml'
+require 'settings'
 
 flags.register "dredmor-dir" {
   default = "./dredmor";
@@ -9,10 +10,12 @@ flags.register "dredmor-dir" {
 
 dredmor = {}
 
+require 'dredmor.monDB'
 require 'dredmor.rooms'
 require 'dredmor.tweaks'
 
 function dredmor.loadAll()
+  dredmor.loadMonsters()
   dredmor.loadRooms()
   dredmor.loadTweaks()
 end

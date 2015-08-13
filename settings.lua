@@ -1,4 +1,6 @@
 -- Settings management framework.
+require 'Object'
+
 settings = {
   Raw = require 'settings.Raw';
   Int = require 'settings.Int';

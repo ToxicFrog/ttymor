@@ -1,0 +1,30 @@
+#!/usr/bin/env luajit
+
+require 'dredmor'
+
+flags.parse(...)
+
+dredmor.loadAll()
+
+local entities = setmetatable({}, {__index = function() return 0 end})
+
+for line in io.popen("strings '%s'" % flags.parsed[1]):lines() do
+  line = line:trim()
+  entities[line] = entities[line] + 1
+end
+
+local function report(type, names)
+  print('==== '..type)
+  local total = 0
+  for name in pairs(names) do
+    if entities[name] > 0 then
+      total = total + entities[name]
+      printf('%8d %s\n', entities[name], name)
+    end
+  end
+  printf('%8d total\n\n', total)
+end
+
+report('rooms', dredmor.rooms())
+report('monsters', dredmor.monsters())
+--report('all', entities)

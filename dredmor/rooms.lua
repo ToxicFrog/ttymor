@@ -143,6 +143,7 @@ function dredmor.rooms(filter)
   filter = filter or f' => true'
   for _,room in pairs(rooms) do
     if filter(room) then
+      R[room.name] = room
       table.insert(R, room)
     end
   end
