@@ -132,15 +132,15 @@ local function placeDoor(self, door)
   local x,y = door.x,door.y
   if door.dir == 'n' or door.dir == 's' then
     segments[1] = { x = x-1; y = y; open = '╸'; shut = '╼' }
-    segments[2] = { x = x;   y = y; open = ' '; shut = '━' }
+    segments[2] = { x = x;   y = y; open = '.'; shut = '━' }
     segments[3] = { x = x+1; y = y; open = '╺'; shut = '╾' }
   else
     segments[1] = { x = x; y = y-1; open = '╹'; shut = '╽' }
-    segments[2] = { x = x; y = y;   open = ' '; shut = '┃' }
+    segments[2] = { x = x; y = y;   open = '.'; shut = '┃' }
     segments[3] = { x = x; y = y+1; open = '╻'; shut = '╿' }
   end
+  local master
   for _,segment in ipairs(segments) do
-    self[segment.x][segment.y][1] = 'Floor'
     local door = self:create 'Door' {
       Door = {
         face_open = segment.open;
@@ -150,6 +150,11 @@ local function placeDoor(self, door)
         x = segment.x; y = segment.y; z = self.depth;
       }
     }
+    if not master then
+      master = door
+    end
+    door.Door.master = master
+    self[segment.x][segment.y][1] = 'Floor'
     self[segment.x][segment.y][2] = door
   end
 end

@@ -12,12 +12,26 @@ local Door = {
   };
 }
 
+function Door:open(state)
+  local master = self.Door.master.Door
+  if state ~= nil and state ~= master.open then
+    game.log('The door %s.', state and 'opens' or 'closes')
+    self.Door.master.Door.open = state
+  end
+  return self.Door.master.Door.open
+end
+
 function Door:render()
-  self.Render.face = self.Door.open and self.Door.face_open or self.Door.face_shut
+  self.Render.face = self:open() and self.Door.face_open or self.Door.face_shut
 end
 
 function Door:blocks()
-  return not self.Door.open
+  return not self:open()
+end
+
+function Door:touchedBy(ent)
+  if ent._TYPE ~= 'Player' then return end
+  self:open(true)
 end
 
 return Door

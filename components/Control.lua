@@ -2,7 +2,6 @@
 local Control = {}
 
 function Control:turn()
-  game.log("--- turn: %s", self)
   local cmd = ui.readkey()
   if cmd == 'cancel' then
     ui.mainmenu()
@@ -19,7 +18,7 @@ function Control:turn()
   elseif cmd == 'key:T' then
     ui.tree_test()
   else
-    game.log('command: %s', cmd)
+    game.log('Unknown command: %s', cmd)
   end
 end
 

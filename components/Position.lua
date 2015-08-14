@@ -6,7 +6,10 @@ end
 
 function Position:move(dx, dy)
   local x,y = self.Position.x,self.Position.y
-  if not self:map():blocked(x+dx, y+dy, 'walk') then
+  local blocker = self:map():blocked(x+dx, y+dy, 'walk')
+  if blocker then
+    return blocker:touchedBy(self)
+  else
     self:moveTo(x + dx, y + dy)
   end
 end

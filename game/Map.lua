@@ -95,7 +95,6 @@ function Map:render_screen(cx, cy)
     dy = -oy
   end
 
-  game.log("draw: %d,%d+%d+%d (%dx%d)", ox, oy, rw, rh, sw, sh)
   for x,y,cell in self:cells(ox,oy,rw,rh) do
     if #cell > 0 then
       cell[#cell]:render(x+dx, y+dy)
@@ -104,12 +103,10 @@ function Map:render_screen(cx, cy)
 end
 
 function Map:placeAt(object, x, y)
-  --game.log("%s:placeAt(%s, %d, %d)", ent, object, x, y)
   table.insert(self[x][y], object)
 end
 
 function Map:removeFrom(object, x, y)
-  --game.log("%s:removeFrom(%s, %d, %d)", ent, object, x, y)
   local i,objs = 1,self[x][y]
   local removals = 0
   while i <= #objs do
