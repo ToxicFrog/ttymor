@@ -24,26 +24,32 @@ EntityType 'Player' {
 EntityType 'Wall' {
   name = 'wall';
   Component 'Render' { face = '▒' };
+  Component 'Blocker' { 'fly', 'walk' };
 }
 EntityType 'InvisibleWall' {
   name = 'floor';
   Component 'Render' { face = '.'; style = 'v' };
+  Component 'Blocker' { 'fly', 'walk' };
 }
 EntityType 'Water' {
   name = 'water';
   Component 'Render' { face = '≈'; colour = {0,128,255} };
+  Component 'Blocker' { 'fly' };
 }
 EntityType 'Goo' {
   name = 'goo';
   Component 'Render' { face = '≈'; colour = {0,255,0} };
+  Component 'Blocker' { 'fly' };
 }
 EntityType 'Ice' {
   name = 'ice';
   Component 'Render' { face = '≈'; colour = {128,255,0} };
+  Component 'Blocker' { 'fly' };
 }
 EntityType 'Lava' {
   name = 'lava';
   Component 'Render' { face = '≈'; colour = {255,64,0} };
+  Component 'Blocker' { 'fly' };
 }
 
 EntityType 'Floor' {

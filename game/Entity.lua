@@ -16,7 +16,7 @@ function Entity:__index(k)
       fns[#fns+1] = component[k]
     end
   end
-  assertf(#fns > 0, '%s: read of nonexistent field %s', self, k)
+  --assertf(#fns > 0, '%s: read of nonexistent field %s', self, k)
   self[k] = function(self, ...)
     for _,fn in ipairs(fns) do
       local rv = { fn(self, ...) }

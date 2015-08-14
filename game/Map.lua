@@ -42,9 +42,13 @@ end
 -- Map generation is large enough that it gets its own library.
 Map.generate = require 'game.mapgen'
 
-function Map:try_move(x, y)
-  -- todo: replace with actual collision detection
-  return true
+function Map:blocked(x, y, type)
+  local cell = self[x][y]
+  for i=#cell,1,-1 do
+    if cell[i]:blocks(type) then
+      return cell[i]
+    end
+  end
 end
 
 -- Return an iterator over map cells in the given rectangle
