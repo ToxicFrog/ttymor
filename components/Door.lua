@@ -16,4 +16,8 @@ function Door:render()
   self.Render.face = self.Door.open and self.Door.face_open or self.Door.face_shut
 end
 
+function Door:blocks()
+  return not self.Door.open
+end
+
 return Door
