@@ -1,10 +1,10 @@
 -- Support for Dredmor's tweakDB.xml
 -- Tweaks loaded from it are registered as hidden settings.
 
-settings.Category { name = 'Tweaks (Global)' }
-settings.Category { name = 'Tweaks (Easy)' }
-settings.Category { name = 'Tweaks (Medium)' }
-settings.Category { name = 'Tweaks (Hard)' }
+settings.Category { save = false; name = 'Tweaks (Global)'; }
+settings.Category { save = false; name = 'Tweaks (Easy)'; }
+settings.Category { save = false; name = 'Tweaks (Medium)'; }
+settings.Category { save = false; name = 'Tweaks (Hard)'; }
 
 local cats = {
   tweakDB = 'Tweaks (Global)';

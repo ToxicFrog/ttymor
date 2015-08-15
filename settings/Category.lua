@@ -1,5 +1,6 @@
 local Category = Object:subclass {
-  per_game = false;
+  per_game = false; -- If true, will be included in the save file
+  save = true; -- If false, will not be saved to disk at all
   settings = {};
 }
 

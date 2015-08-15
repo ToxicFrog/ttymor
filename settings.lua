@@ -73,7 +73,9 @@ function settings.save(cat)
   if not cat then
     local success = true
     for _,cat in ipairs(registered) do
-      success = success and cat:save()
+      if cat.save then
+        success = success and cat:save()
+      end
     end
     return success
   else
@@ -86,7 +88,9 @@ end
 function settings.load(...)
   if not cat then
     for _,cat in ipairs(registered) do
-      cat:load()
+      if cat.save then
+        cat:load()
+      end
     end
   else
     registered[cat]:load()
