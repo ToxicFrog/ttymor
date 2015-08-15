@@ -238,6 +238,7 @@ local function generate(self, w, h, starting_room)
   self._density = 0.0
   self._doors = {}
   self._excluded = {}
+  self.entities = {}
   self._room_pool = dredmor.rooms(filter(self.depth))
 
   -- place the first room in the middle of the map
