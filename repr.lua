@@ -52,7 +52,7 @@ function reprs.table(T, handlers, refs, indent)
 
   local keys = {}
   for i,v in ipairs(T) do
-    keys[v] = true
+    keys[i] = true
     v = repr_with(v, handlers, refs, new_indent)
     if v then
       table.insert(S, "%s%s;" % { new_indent, v })
@@ -62,7 +62,7 @@ function reprs.table(T, handlers, refs, indent)
   end
 
   for k,v in pairs(T) do
-    if not keys[v] then
+    if not keys[k] then
       k,v = repr_key(k, handlers, refs, indent), repr_with(v, handlers, refs, new_indent)
       if k and v then
         table.insert(S, string.format("%s%s = %s;", new_indent, k, v))
