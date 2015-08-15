@@ -10,9 +10,9 @@ flags.register 'ui-perf' {
 local last_init,last_hud,last_map,last_log,last_tty,last_frame = 0,0,0,0,0,0
 function ui.draw(player)
   if flags.parsed.ui_perf then
-    game.log("        Log: %.3f TTY: %.3f", last_log, last_tty)
-    game.log("        HUD: %.3f Map: %.3f", last_hud, last_map)
     game.log("Render: Ini: %.3f All: %.3f", last_init, last_frame)
+    game.log("        HUD: %.3f Map: %.3f", last_hud, last_map)
+    game.log("        Log: %.3f TTY: %.3f", last_log, last_tty)
   end
 
   local t = os.clock()
