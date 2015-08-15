@@ -1,4 +1,11 @@
 #!/bin/bash
 
 cd $(dirname $0)
-exec luajit main.lua --config-dir=./config --dredmor-dir="dredxml" "$@"
+2>/tmp/$$ luajit main.lua \
+  --config-dir=./config \
+  --dredmor-dir="dredxml" \
+  --log-level=debug \
+  --log-to=log \
+  "$@"
+cat log /tmp/$$
+rm /tmp/$$

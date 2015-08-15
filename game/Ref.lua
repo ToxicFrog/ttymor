@@ -1,7 +1,8 @@
 local Ref = {}
 
 local function deref(ref)
-  return game.rawget(ref.id)
+  return assertf(game.rawget(ref.id),
+    "Entity %d does not exist, but we tried to deref it!", ref.id)
 end
 
 function Ref:__tostring()

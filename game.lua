@@ -62,6 +62,7 @@ function game.name()
 end
 
 function game.save()
+  log.info("Saving game to %s/%s.sav", flags.parsed.config_dir, state.name)
   os.execute("mkdir -p '%s/%s.sav'" % { flags.parsed.config_dir, state.name })
   for depth,map in pairs(state.maps) do
     map:save()
@@ -74,6 +75,7 @@ function game.save()
 end
 
 function game.load(name)
+  log.info("Loading game from %s/%s.sav", flags.parsed.config_dir, name)
   state = { name = name }
 
   table.merge(state, game.loadObject("state", true), "overwrite")
