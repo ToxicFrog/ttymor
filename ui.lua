@@ -58,9 +58,9 @@ function ui.draw(player)
 
   tty.pushwin(log_win)
   local log = game.getLog()
-  for i=1,h do
-    local line = (log[#log-i+1] or ""):sub(1, (w/2):floor())
-    tty.put(0,i-1,line)
+  for y=h-1,0,-1 do
+    local line = (log[#log-h+y+1] or ""):sub(1, (w/2):floor())
+    tty.put(0, y, line)
   end
   tty.popwin()
 
