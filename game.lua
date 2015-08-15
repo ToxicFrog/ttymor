@@ -23,13 +23,14 @@ function game.new(name)
     next_id = 0;
   }
 
-  local map = game.createMap(0, "test map")
-  map:generate(100, 100)
+  local void = game.createMap(0, "the void")
+  local map = game.createMap(1, "level 1")
+  map:generate(100, 100, "Starting Room")
 
   local player = game.createSingleton('Player', 'player') {}
 
   player:setMap(map)
-  player:moveTo((map.w/2):floor(), (map.h/2):floor())
+  player:moveTo((map.w/2):floor()-1, (map.h/2):floor()-4)
 
   return player
 end
