@@ -19,6 +19,7 @@ EntityType 'Player' {
   Component 'Render' { face = '@'; style = 'v' };
   Component 'Control' {};
   Component 'Position' {};
+  Component 'Blocker' { 'fly', 'walk' };
 }
 
 EntityType 'Wall' {

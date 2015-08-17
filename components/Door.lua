@@ -37,6 +37,12 @@ function Door:touchedBy(ent)
 end
 
 function Door:frob(frobber)
+  for i,segment in ipairs(self.Door.segments) do
+    local x,y = segment:position()
+    if segment:map():blocked(x, y, 'walk') then
+      return nil
+    end
+  end
   if self:open() then
     return {
       name = "Close Door";
