@@ -10,15 +10,17 @@ local Door = {
     face_shut = '+';
     open = false;
   };
+  segments = {};
 }
 
 function Door:open(state)
-  local master = self.Door.master.Door
-  if state ~= nil and state ~= master.open then
+  if state ~= nil and state ~= self.Door.open then
     game.log('The door %s.', state and 'opens' or 'closes')
-    self.Door.master.Door.open = state
+    for _,segment in ipairs(self.Door.segments) do
+      segment.Door.open = state
+    end
   end
-  return self.Door.master.Door.open
+  return self.Door.open
 end
 
 function Door:render()
@@ -32,6 +34,20 @@ end
 function Door:touchedBy(ent)
   if ent._TYPE ~= 'Player' then return end
   self:open(true)
+end
+
+function Door:frob(frobber)
+  if self:open() then
+    return {
+      name = "Close Door";
+      activate = function() return self:open(false) end;
+    }
+  else
+    return {
+      name = "Open Door";
+      activate = function() return self:open(true) end;
+    }
+  end
 end
 
 return Door

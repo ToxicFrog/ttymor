@@ -51,6 +51,17 @@ function Map:blocked(x, y, type)
   end
 end
 
+function Map:frob(x, y, title, frobber)
+  local node = { name = title, expanded = true }
+  local cell = self[x][y]
+  for i=#cell,1,-1 do
+    table.insert(node, cell[i]:frob(frobber) or nil)
+  end
+  if #node > 0 then
+    return node
+  end
+end
+
 -- Return an iterator over map cells in the given rectangle
 function Map:cells(x, y, w, h)
   x,y = x or 0,y or 0

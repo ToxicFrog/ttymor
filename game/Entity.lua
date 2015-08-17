@@ -10,6 +10,10 @@ local Entity = {}
 -- TODO: is this really the API I want? Value returns in particular are kind
 -- of gross.
 function Entity:__index(k)
+  if Entity[k] then
+    return Entity[k]
+  end
+
   local fns = {}
   for i,component in ipairs(self) do
     if component[k] then
@@ -34,6 +38,18 @@ end
 
 function Entity:__repr(...)
   return "Entity '%s' %s" % { self._TYPE, rawrepr(self, ...) }
+end
+
+function Entity:frob(frobber)
+  local node = { name = self.name, expanded = true }
+  for i,cmp in ipairs(self) do
+    if cmp.frob then
+      table.insert(node, cmp.frob(self, frobber) or nil)
+    end
+  end
+  if #node > 0 then
+    return node
+  end
 end
 
 local entity_types = require 'entities'

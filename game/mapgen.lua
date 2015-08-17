@@ -139,8 +139,7 @@ local function placeDoor(self, door)
     segments[2] = { x = x; y = y;   open = '.'; shut = '┃' }
     segments[3] = { x = x; y = y+1; open = '╻'; shut = '╿' }
   end
-  local master
-  for _,segment in ipairs(segments) do
+  for i,segment in ipairs(segments) do
     local door = self:create 'Door' {
       Door = {
         face_open = segment.open;
@@ -150,12 +149,12 @@ local function placeDoor(self, door)
         x = segment.x; y = segment.y; z = self.depth;
       }
     }
-    if not master then
-      master = door
-    end
-    door.Door.master = master
     self[segment.x][segment.y][1] = 'Floor'
     self[segment.x][segment.y][2] = door
+    segments[i] = door
+  end
+  for i,door in ipairs(segments) do
+    door.Door.segments = table.copy(segments, 1)
   end
 end
 
