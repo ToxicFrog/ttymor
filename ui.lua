@@ -1,86 +1,46 @@
 ui = {}
 
 require 'ui.keys'
+local Window = require 'ui.Window'
 
-flags.register 'ui-perf' {
-  default = false;
-  help = 'Log detailed rendering performance info.';
-}
+function ui.init()
+  local w,h = tty.init()
 
-local last_init,last_hud,last_map,last_log,last_tty,last_frame = 0,0,0,0,0,0
-function ui.draw(player)
-  if flags.parsed.ui_perf then
-    game.log("Render: Ini: %.3f All: %.3f", last_init, last_frame)
-    game.log("        HUD: %.3f Map: %.3f", last_hud, last_map)
-    game.log("        Log: %.3f TTY: %.3f", last_log, last_tty)
-  end
-
-  local t = os.clock()
-
-  local w,h = tty.size()
-  tty.colour(255, 255, 255, 0, 0, 0)
-  tty.style('o')
-  tty.clear()
-  local x,y,map = player:position()
-
-  -- Calculate viewport offset.
-  -- x and y are the offset to add to coordinates before they go to the screen.
-  -- w and h are the dimensions of that rectangle.
-  local statline_win = {
+  ui.screen = Window {
+    name = "screen";
     x = 0; y = 0;
-    w = 16; h = (h/2):floor();
-  }
-  local hud_win = {
-    x = 0; y = statline_win.h;
-    w = 16; h = (h/2):ceil();
-  }
-  local log_win = {
-    x = w-40; y = 0;
-    w = 40; h = h;
-  }
-  local map_win = {
-    x = hud_win.w+1; y = 0;
-    w = w-40-hud_win.w-2; h = h;
+    w = w; h = h;
+    render = function(self)
+      tty.colour(255, 255, 255, 0, 0, 0)
+      tty.style('o')
+    end;
   }
 
-  tty.colour(0, 0, 0, 255, 255, 255)
-  tty.colour(255, 255, 255, 0, 0, 0)
-  ui.vline(map_win.x-1)
-  ui.vline(log_win.x-1)
-  tty.colour(255, 255, 255, 0, 0, 0)
+  -- log is upper right, 40 cols wide and half the screen high
+  ui.log_win = require 'ui.log_win' {
+    x = 0; y = 0;
+    w = 40; h = (h/2):ceil();
+  }
 
-  last_init = os.clock()
+  -- HUD is just below log, same width
+  ui.hud_win = require 'ui.hud_win' {
+    x = 0; y = ui.log_win.h;
+    w = 40; h = h - ui.log_win.h;
+  }
 
-  ui.box(hud_win, "HUD")
-  ui.box(statline_win, "stats")
+  -- main view takes up the remaining space
+  ui.main_win = require 'ui.main_win' {
+    x = 40; y = 0;
+    w = w - 40; h = h;
+  }
 
-  last_hud = os.clock()
+  ui.screen:add(ui.log_win)
+  ui.screen:add(ui.hud_win)
+  ui.screen:add(ui.main_win)
+end
 
-  tty.pushwin(log_win)
-  local log = game.getLog()
-  for y=h-1,0,-1 do
-    local line = (log[#log-h+y+1] or ""):sub(1, (w/2):floor())
-    tty.put(0, y, line)
-  end
-  tty.popwin()
-
-  last_log = os.clock()
-
-  tty.pushwin(map_win)
-  game.getMap(map):render_screen(x, y)
-  tty.popwin()
-
-  last_map = os.clock()
-
-  tty.flip()
-
-  last_tty = os.clock()
-  last_frame = last_tty - t
-  last_tty = last_tty - last_map
-  last_map = last_map - last_log
-  last_log = last_log - last_hud
-  last_hud = last_hud - last_init
-  last_init = last_init - t
+function ui.draw()
+  ui.screen:renderAll()
 end
 
 -- Draw a box with the upper left corner at (x,y)

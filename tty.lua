@@ -21,6 +21,7 @@ function tty.init()
   tty.csi('h', '?', 47) -- DECSET alternate screen buffer
   tty.csi('l', '?', 25) -- DECRST cursor
   tty.flip()
+  return tty.size()
 end
 
 function tty.deinit()

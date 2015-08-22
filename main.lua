@@ -42,7 +42,7 @@ function main(...)
     player = game.new('test')
   end
 
-  tty.init()
+  ui.init()
   while true do
     ui.draw(player)
     player:turn()
