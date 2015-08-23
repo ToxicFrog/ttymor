@@ -100,8 +100,8 @@ function ui.mainmenu()
     { name="Room Debug"; activate = dredmor.debug_rooms };
     { name="Save Game"; activate = function() game.save(); return false; end };
     { name="Load Game"; activate = function() game.load(game.name()); return false; end };
-    { name="Quit And Save"; activate = function() game.save(); shutdown(); end };
-    { name="Quit Without Saving"; activate = shutdown; };
+    { name="Quit And Save"; activate = function() game.save(); love.event.quit(); end };
+    { name="Quit Without Saving"; activate = love.event.quit; };
   }
 end
 
