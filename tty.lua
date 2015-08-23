@@ -50,21 +50,25 @@ local function in_bounds(x, y)
 end
 
 -- Push a new drawing region onto the stack.
-function tty.pushwin(win)
+function tty.pushwin(x, y, w, h)
+  if type(x) == 'table' then
+    return tty.pushwin(x.x, x.y, x.w, x.h)
+  end
+
   -- Check that the window is fully in bounds.
-  assertf(in_bounds(win.x, win.y), "window position out of bounds: %d,%d", win.x, win.y)
-  assertf(in_bounds(win.x + win.w, win.y + win.h), "window size out of bounds: %d,%d+%dx%d > %dx%d",
-      win.x, win.y, win.w, win.h, top.w, top.h)
-  win.x = win.x + top.x
-  win.y = win.y + top.y
-  table.insert(stack, win)
-  top = win
+  assertf(in_bounds(x, y), "window position out of bounds: %d,%d", x, y)
+  assertf(in_bounds(x + w, y + h), "window size out of bounds: %d,%d+%dx%d > %dx%d",
+      x, y, w, h, top.w, top.h)
+  x = x + top.x
+  y = y + top.y
+  table.insert(stack, { x = x, y = y; w = w, h = h; })
+  top = stack[#stack]
   return tty.size()
 end
 
 function tty.popwin()
   assert(#stack > 1, "tty window stack underflow")
-  table.remove(stack)
+  local win = table.remove(stack)
   top = stack[#stack]
   return tty.size()
 end

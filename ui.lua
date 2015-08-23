@@ -2,6 +2,7 @@ ui = {}
 
 require 'ui.keys'
 local Window = require 'ui.Window'
+require 'ui.Box'
 
 function ui.init()
   local w,h = tty.init()
@@ -10,37 +11,49 @@ function ui.init()
     name = "screen";
     x = 0; y = 0;
     w = w; h = h;
+    visible = true;
     render = function(self)
       tty.colour(255, 255, 255, 0, 0, 0)
       tty.style('o')
+      tty.clear()
     end;
+    -- HACK HACK HACK
+    -- Windows are required to have a parent when created. The top-level screen,
+    -- of course, doesn't. So we provide a dummy parent.
+    parent = { attach = function() end };
   }
 
   -- log is upper right, 40 cols wide and half the screen high
   ui.log_win = require 'ui.log_win' {
+    parent = ui.screen;
     x = 0; y = 0;
     w = 40; h = (h/2):ceil();
   }
 
   -- HUD is just below log, same width
   ui.hud_win = require 'ui.hud_win' {
+    parent = ui.screen;
     x = 0; y = ui.log_win.h;
     w = 40; h = h - ui.log_win.h;
   }
 
   -- main view takes up the remaining space
   ui.main_win = require 'ui.main_win' {
+    parent = ui.screen;
     x = 40; y = 0;
     w = w - 40; h = h;
   }
-
-  ui.screen:add(ui.log_win)
-  ui.screen:add(ui.hud_win)
-  ui.screen:add(ui.main_win)
 end
 
 function ui.draw()
+  if flags.parsed.ui_perf then
+    log.debug('-- render begin --')
+  end
   ui.screen:renderAll()
+  tty.flip()
+  if flags.parsed.ui_perf then
+    log.debug('-- render end --')
+  end
 end
 
 -- Draw a box with the upper left corner at (x,y)
@@ -77,18 +90,10 @@ function ui.vline(col)
   end
 end
 
-function ui.centered(w, h)
-  local sw,sh = tty.size()
-  return {
-    w = w:min(sw); h = h:min(sh);
-    x = math.floor((sw-w)/2):max(0);
-    y = math.floor((sh-h)/2):max(0);
-  }
-end
-
 function ui.mainmenu()
   tty.colour(0, 255, 255)
   ui.tree {
+    name = 'Main Menu';
     { name="Return to Game"};
     { name='Configuration'; activate = settings.edit; };
     { name="Config Debug"; activate = settings.show };

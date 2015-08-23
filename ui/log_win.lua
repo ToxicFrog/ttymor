@@ -1,5 +1,6 @@
 local LogWin = ui.Window:subclass {
   name = "log";
+  visible = true;
 }
 
 function LogWin:render()

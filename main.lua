@@ -44,7 +44,6 @@ function main(...)
 
   ui.init()
   while true do
-    ui.draw(player)
     player:turn()
   end
 end

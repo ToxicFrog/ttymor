@@ -27,10 +27,6 @@ function Control:turn()
     if #tree > 0 then
       ui.tree(tree)
     end
-  elseif cmd == 'key:s-T' then
-    ui.keybinds_screen()
-  elseif cmd == 'key:T' then
-    ui.tree_test()
   else
     game.log('Unknown command: %s', cmd)
   end

@@ -24,8 +24,8 @@ function Node:render(x, y)
   if self.focused then
     tty.style('v')
   end
-  tty.put(x, y, (' '):rep(self._tree.w))
-  tty.put(x+self._depth+1, y, self:label(self._tree.w - self._depth - 2))
+  tty.put(x, y, (' '):rep(self._tree.text_w))
+  tty.put(x+self._depth+1, y, self:label(self._tree.text_w - self._depth - 2))
   if self.focused then
     tty.style('V')
   end
@@ -33,7 +33,7 @@ end
 
 -- Return the calculated width of the node's label.
 function Node:width()
-  return #self:label(self._tree.w - self._depth)
+  return #self:label(self._tree.text_w - self._depth)
 end
 
 -- Return the node's actual label. This includes the expanded/collapsed

@@ -1,16 +1,16 @@
 local Category = Object:subclass {
   per_game = false; -- If true, will be included in the save file
   save = true; -- If false, will not be saved to disk at all
+  hidden = false; -- If true, won't show up in the settings UI
   settings = {};
 }
 
 function Category:__index(k)
   if Category[k] ~= nil then
     return Category[k]
-  elseif not rawget(self, 'settings') then
-    return nil
+  elseif rawget(self, 'settings') and self.settings[k] then
+    return self.settings[k]()
   end
-  return rawget(self, 'settings')[k]()
 end
 
 function Category:__newindex(k, v)

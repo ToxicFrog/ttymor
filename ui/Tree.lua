@@ -1,16 +1,19 @@
 --
 -- Default method implementations for the tree as a whole. --
 --
-
-
-local Tree = {
-  w = 0; h = 0;
+local Tree = ui.Window:subclass {
+  -- *displayable* text width and height.
+  text_w = 0; text_h = 0;
+  -- Number of lines scrolled down.
+  scroll = 0;
+  -- Line under focus.
   _focused = 1;
   colour = { 255, 255, 255 };
 }
+ui.Tree = Tree
 
 function Tree:__index(k)
-  if self._ptr[k] ~= nil then
+  if rawget(self, '_ptr') and self._ptr[k] ~= nil then
     return self._ptr[k]
   end
   return Tree[k]
@@ -42,18 +45,18 @@ function Tree:focus_next()
 end
 
 function Tree:focus_page_up()
-  self:set_focus(self._focused - (self.h:min(self.rows)/2):ceil())
+  self:set_focus(self._focused - (self.text_h:min(self.rows)/2):ceil())
   self:scroll_to_focused()
 end
 
 function Tree:focus_page_down()
-  self:set_focus(self._focused + (self.h:min(self.rows)/2):ceil())
+  self:set_focus(self._focused + (self.text_h:min(self.rows)/2):ceil())
   self:scroll_to_focused()
 end
 
 -- scroll up/down the given number of lines, without wrapping or changing focus
 function Tree:scroll_by(n)
-  self.scroll = math.bound(0, self.scroll+n, self.rows - self.h):floor()
+  self.scroll = math.bound(0, self.scroll+n, self.rows - self.text_h):floor()
 end
 
 -- Scroll up/down one line without wrapping or changing focus.
@@ -65,15 +68,15 @@ function Tree:scroll_down()
 end
 -- Scroll up/down one half screen without wrapping or changing focus.
 function Tree:page_up()
-  self:scroll_by(-self.h:min(self.rows)/2)
+  self:scroll_by(-self.text_h:min(self.rows)/2)
 end
 function Tree:page_down()
-  self:scroll_by(self.h:min(self.rows)/2)
+  self:scroll_by(self.text_h:min(self.rows)/2)
 end
 
 -- Scroll so that the focused element is in the center of the screen, or close to.
 function Tree:scroll_to_focused()
-  self.scroll = math.bound(0, self._focused - self.h/2, self.rows - self.h):floor()
+  self.scroll = math.bound(0, self._focused - self.text_h/2, self.rows - self.text_h):floor()
 end
 
 -- Return a DFS iterator over all nodes in the tree; yields (node,depth) for
@@ -94,25 +97,22 @@ end
 -- visible node with appropriate coordinates passed in.
 function Tree:render()
   tty.colour(unpack(self.colour))
-  tty.pushwin(self.view)
   ui.box(nil, self.name)
 
   if self.scrollable then
     -- render scrollbar
-    ui.clear({ x=self.view.w-1; y=1; w=1; h=self.h }, '┊')
-    tty.put(self.view.w-1, 1, '┻')
-    tty.put(self.view.w-1, self.h, '┳')
-    local sb_distance = (self.scroll/(self.rows - self.h)*(self.h - 2 - self.scroll_height)):floor()
-    ui.clear({ x=self.view.w-1; y=2+sb_distance; w=1; h=self.scroll_height }, '▓') --█
+    ui.clear({ x=self.w-1; y=1; w=1; h=self.text_h }, '┊')
+    tty.put(self.w-1, 1, '┻')
+    tty.put(self.w-1, self.text_h, '┳')
+    local sb_distance = (self.scroll/(self.rows - self.text_h)*(self.text_h - 2 - self.scroll_height)):floor()
+    ui.clear({ x=self.w-1; y=2+sb_distance; w=1; h=self.scroll_height }, '▓') --█
   end
 
-  for y=1,self.h:min(self.rows) do
+  for y=1,self.text_h:min(self.rows) do
     -- assertf(self.nodes[y+scroll], "scroll error: y=%d h=%d mh=%d scroll=%d #nodes=%d",
-    --     y, self.h, self.max_h or 0, scroll, #self.nodes)
+    --     y, self.text_h, self.max_h or 0, scroll, #self.nodes)
     self.nodes[y+self.scroll]:render(1, y)
   end
-
-  tty.popwin()
 end
 
 -- Build the list of displayable nodes. Called when the list changes due to nodes
@@ -127,9 +127,9 @@ function Tree:refresh()
     end
   end
   self.rows = #self.nodes
-  if self.rows > self.h then
+  if self.rows > self.text_h then
     self.scrollable = true
-    self.scroll_height = (self.h/self.rows*(self.h-2)):ceil()
+    self.scroll_height = (self.text_h/self.rows*(self.text_h-2)):ceil()
   else
     self.scrollable = false
     self.scroll = 0
@@ -172,12 +172,14 @@ end
 -- handler, if any, for that input event. As soon as a handler returns a non-
 -- nil value, break out of the loop and return that value.
 function Tree:run()
+  self:show()
   local R
   repeat
-    self:render()
+    log.debug('entering tree loop')
     R = self:call_handler(ui.readkey())
   until R ~= nil
-  ui.clear(self.view)
+  log.debug('leaving tree loop, destroying tree')
+  self:destroy()
   return R
 end
 
@@ -213,11 +215,12 @@ local readonly_bindings = {
 -- the first top-level child as the focused node; setting up the next, previous,
 -- parent, and tree links; and computing the width and height of the box needed
 -- to display the fully expanded tree.
-return function(tree)
-  tree = setmetatable({ _ptr = tree }, Tree)
-  tree.w,tree.h,tree.scroll = 0,0,0
-  if tree.name then
-    tree.w = #tree.name
+function Tree:__init(data)
+  self._ptr = data
+  self.parent = data.parent or ui.main_win
+
+  if self.name then
+    self.text_w = #self.name
   end
 
   local function convert_tree(node, depth)
@@ -226,44 +229,43 @@ return function(tree)
         child = { name = child }
       end
       child = Node(child)
-      child._tree = tree
+      child._tree = self
       child._parent = node
       child._depth = depth
       rawset(node, i, child)
-      tree.h = tree.h+1
-      tree.w = tree.w:max(node[i]:width()+depth)
+      self.text_h = self.text_h+1
+      self.text_w = self.text_w:max(node[i]:width()+depth)
       convert_tree(child, depth+1)
     end
   end
 
-  convert_tree(tree, 0)
-  for _,node in ipairs(tree) do node._parent = nil end
+  convert_tree(self, 0)
+  for _,node in ipairs(self) do node._parent = nil end
 
-  -- tree.w and tree.h are the *displayable* width and height of the tree.
-  -- w is equal to 2 (margins) + the total width (indent + text) of the widest node
-  -- h is equal to the number of nodes in the tree
-  -- Both, however, are capped at what will fit on the screen; furthermore, w cannot
-  -- be any less than the minimum needed to display the title.
-  -- There is a separate field, tree.rows, updated by tree:refresh(), for the total
-  -- number of rows currently being viewed. If it exceeds tree.h, scrolling is
-  -- enabled.
-  tree.w = tree.w+2
-  tree.view = ui.centered(tree.w+2,tree.h+2)
-  tree.w = tree.w:min(tree.view.w-2)
-  tree.h = tree.h:min(tree.view.h-2)
+  -- self.w and self.h are the actual on-screen display size; text_w and text_h
+  -- are the max displayable width and height, i.e. w,h excluding margins and
+  -- decorations. There's a separate field, rows, for number of actual lines of
+  -- text in visible nodes; if rows > text_h, the tree is scrollable.
+  self.w = self.text_w+4
+  self.h = self.text_h+2
 
-  tree:refresh()
+  self:refresh()
 
-  if tree.readonly then
-    tree.bindings = setmetatable(tree.bindings or {}, {__index = readonly_bindings})
+  if self.readonly then
+    self.bindings = setmetatable(self.bindings or {}, {__index = readonly_bindings})
   else
-    tree.bindings = setmetatable(tree.bindings or {}, {__index = bindings})
-    tree:set_focus(1)
+    self.bindings = setmetatable(self.bindings or {}, {__index = bindings})
+    self:set_focus(1)
   end
 
-  return tree
+  -- We call the superclass ctor at the end here, since it's only at the end that
+  -- we know our desired width and height.
+  ui.Window.__init(self, {})
+
+  -- Doing so may have caused the *actual* width and height to change because we
+  -- asked for more than was available, so take that into account.
+  self.text_w = self.w-4
+  self.text_h = self.h-2
 end
 
--- External API functions. --
-
-
+return Tree

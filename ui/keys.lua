@@ -1,7 +1,7 @@
 local bindings = {} -- key -> command map
 
 function ui.readkey()
-  tty.flip()
+  ui.draw()
   local key = tty.readkey()
   return bindings[key] or 'key:'..key
 end
@@ -91,12 +91,19 @@ function KeySetting:show()
 end
 
 function KeySetting:activate()
-  local width = #self.name+4;
-  ui.box(ui.centered(width, 3), self.name)
-  tty.flip()
+  local box = ui.Box {
+    name = self.name;
+    parent = ui.main_win;
+    visible = true;
+    w = #self.name + 4;
+    h = 3;
+  }
+  ui.draw()
   local key = tty.readkey()
-  if key == self.value[1] then return end
-  self:set { key, self.value[1] }
+  if key ~= self.value[1] then
+    self:set { key, self.value[1] }
+  end
+  box:destroy()
 end
 
 function KeySetting:reset()

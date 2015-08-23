@@ -1,5 +1,6 @@
 local MainWin = ui.Window:subclass {
   name = "main";
+  visible = true;
 }
 
 function MainWin:render()
