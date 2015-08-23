@@ -243,9 +243,11 @@ function Tree:__init(data)
   for _,node in ipairs(self) do node._parent = nil end
 
   -- self.w and self.h are the actual on-screen display size; text_w and text_h
-  -- are the max displayable width and height, i.e. w,h excluding margins and
+  -- are the max displayable width and height, i.e. w,h excluding
   -- decorations. There's a separate field, rows, for number of actual lines of
   -- text in visible nodes; if rows > text_h, the tree is scrollable.
+  -- We add 4 to text_w here because we want space for margins, and then only
+  -- subtract 2 later on because the margins are included in the text_w.
   self.w = self.text_w+4
   self.h = self.text_h+2
 
@@ -264,7 +266,7 @@ function Tree:__init(data)
 
   -- Doing so may have caused the *actual* width and height to change because we
   -- asked for more than was available, so take that into account.
-  self.text_w = self.w-4
+  self.text_w = self.w-2
   self.text_h = self.h-2
 end
 
