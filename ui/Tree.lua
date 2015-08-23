@@ -174,8 +174,8 @@ end
 function Tree:run()
   self:show()
   local R
+  log.debug('entering tree loop')
   repeat
-    log.debug('entering tree loop')
     R = self:call_handler(ui.readkey())
   until R ~= nil
   log.debug('leaving tree loop, destroying tree')
