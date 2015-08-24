@@ -6,6 +6,7 @@ cd $(dirname $0)
   --dredmor-dir="dredxml" \
   --log-level=debug \
   --log-to=log \
+  --log-flush \
   "$@"
 cat log /tmp/$$
 rm /tmp/$$
