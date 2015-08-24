@@ -1,7 +1,6 @@
 local bindings = {} -- key -> command map
 
 function ui.readkey()
-  ui.draw()
   local key = tty.readkey()
   return bindings[key] or 'key:'..key
 end
@@ -98,7 +97,6 @@ function KeySetting:activate()
     w = #self.name + 4;
     h = 3;
   }
-  ui.draw()
   local key = tty.readkey()
   if key ~= self.value[1] then
     self:set { key, self.value[1] }

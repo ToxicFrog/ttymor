@@ -10,6 +10,7 @@ if not love then
   require 'lovecompat'
 else
   error 'running under love2d is not yet supported'
+  love.readkey = function() end
 end
 
 flags.register "help" {
@@ -26,6 +27,12 @@ flags.register "seed" {
   type = flags.number;
   default = os.time();
 }
+
+local function turn()
+  while true do
+    game.get('player'):turn()
+  end
+end
 
 function love.load(argv)
   flags.parse(unpack(argv))
@@ -47,14 +54,40 @@ function love.load(argv)
   end
 
   ui.init()
+
+  turn = coroutine.create(turn)
 end
 
 function love.draw()
   ui.draw()
 end
 
+local state = 0
+local keybuffer = {}
+
+function love.keypressed(key)
+  table.insert(keybuffer, key)
+end
+
 function love.update(t)
-  game.get('player'):turn()
+  local _
+  if state == 'key' then
+    -- get a key from the keybuffer, and pass it to the main thread
+    -- if the keybuffer is empty, just sleep briefly and return
+    love.readkey(keybuffer)
+    if #keybuffer > 0 then
+      _,state = assert(coroutine.resume(turn, table.remove(keybuffer, 1)))
+    else
+      log.debug('sleeping')
+      love.timer.sleep(0.033)
+    end
+  else
+    -- state is a delay; decrement it and then resume
+    state = state - t
+    if state <= 0 then
+      _,state = assert(coroutine.resume(turn))
+    end
+  end
 end
 
 function love.errhand(...)
