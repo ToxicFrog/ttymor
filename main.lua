@@ -30,7 +30,8 @@ flags.register "seed" {
 
 local function turn()
   while true do
-    game.get('player'):turn()
+    local player = game.get 'player'
+    xpcall(player.turn, love.errhand, player)
   end
 end
 
@@ -55,7 +56,7 @@ function love.load(argv)
 
   ui.init()
 
-  turn = coroutine.create(turn)
+  turn = coroutine.wrap(turn)
 end
 
 function love.draw()
@@ -76,7 +77,7 @@ function love.update(t)
     -- if the keybuffer is empty, just sleep briefly and return
     love.readkey(keybuffer)
     if #keybuffer > 0 then
-      _,state = assert(coroutine.resume(turn, table.remove(keybuffer, 1)))
+      state = turn(table.remove(keybuffer, 1))
     else
       log.debug('sleeping')
       love.timer.sleep(0.033)
@@ -85,7 +86,7 @@ function love.update(t)
     -- state is a delay; decrement it and then resume
     state = state - t
     if state <= 0 then
-      _,state = assert(coroutine.resume(turn))
+      state = turn()
     end
   end
 end
@@ -93,7 +94,6 @@ end
 function love.errhand(...)
   tty.deinit()
   log.error('Fatal error: %s', debug.traceback(..., 2))
-  io.stderr:write(debug.traceback(..., 2))
   os.exit(1) -- die without saving settings
 end
 
