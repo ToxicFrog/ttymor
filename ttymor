@@ -1,6 +1,7 @@
 #!/bin/bash
 
 cd $(dirname $0)
+>log
 2>/tmp/$$ luajit main.lua \
   --config-dir=./config \
   --dredmor-dir="dredxml" \
