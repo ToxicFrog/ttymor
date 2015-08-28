@@ -92,11 +92,11 @@ end
 function KeySetting:activate()
   local box = ui.Box {
     name = self.name;
-    parent = ui.main_win;
     visible = true;
     w = #self.name + 4;
     h = 3;
   }
+  ui.main_win:attach(box)
   local key = tty.readkey()
   if key ~= self.value[1] then
     self:set { key, self.value[1] }

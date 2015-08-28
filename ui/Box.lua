@@ -1,5 +1,8 @@
-ui.Box = ui.Window:subclass {}
+local Window = require 'ui.Window'
+local Box = Window:subclass {}
 
-function ui.Box:render()
+function Box:render()
   ui.box(nil, self.name)
 end
+
+return Box

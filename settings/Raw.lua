@@ -2,12 +2,12 @@
 -- like the keybinds. It has a no-args constructor and no validation of any kind.
 
 -- It is also a valid TreeNode, implementing the :activate and :label methods.
-
-local Raw = Object:subclass {}
+local Node = require 'ui.Node'
+local Raw = Node:subclass {}
 
 function Raw:label(width)
   local val = self:show()
-  return ' '..self.name
+  return self.name
     ..(' '):rep(math.max(1, width - #self.name - #val - 1))..val
 end
 
@@ -32,8 +32,9 @@ function Raw:__call(val)
   end
 end
 
-function Raw:__init(...)
-  Object.__init(self, ...)
+function Raw:__init(data)
+  local category = settings.categories[data.category]
+  Node.__init(self, settings.tree, category, data)
   settings.register(self.category, self.name, self)
 end
 

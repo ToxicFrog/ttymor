@@ -1,22 +1,43 @@
---
--- Default methods for individual nodes in the tree.
---
+-- A single node in a Tree.
+local Node = Object:subclass {
+  expanded = false;
+  focused = false;
+  w = 0; h = 1;
+  depth = 0;
+}
 
-local Node = {}
-
-function Node:__index(k)
-  if self._ptr[k] ~= nil then
-    return self._ptr[k]
+function Node:__init(tree, parent, data)
+  if type(data) == 'string' then
+    data = {
+      name = data;
+    }
   end
-  return Node[k]
+  Object.__init(self, data)
+  self.depth = parent and parent.depth + 1 or 0
+  self.tree = tree
+  self.parent = parent
+
+  for i,v in ipairs(self) do
+    self[i] = Node(tree, self, v)
+  end
 end
 
-function Node:__newindex(k, v)
-  if self._ptr[k] ~= nil then
-    self._ptr[k] = v
-  else
-    rawset(self, k, v)
+function Node:addNode(data)
+  table.insert(self, Node(self.tree, self, data))
+end
+
+-- Calculate width and height of this node.
+function Node:size()
+  self.w = #self:label(0) + self.depth
+  self.h = 1
+
+  for i,child in ipairs(self) do
+    local w,h = child:size()
+    self.w = self.w:max(w)
+    self.h = self.h + h
   end
+
+  return self.w,self.h
 end
 
 -- Render the entire line at (x,y), with the label indented appropriate to depth.
@@ -24,34 +45,29 @@ function Node:render(x, y)
   if self.focused then
     tty.style('v')
   end
-  tty.put(x, y, (' '):rep(self._tree.text_w))
-  tty.put(x+self._depth+1, y, self:label(self._tree.text_w - self._depth - 2))
+  tty.put(x, y, (' '):rep(self.tree.text_w))
+  tty.put(x+self.depth, y, self:label(self.tree.text_w - self.depth))
   if self.focused then
     tty.style('V')
   end
-end
-
--- Return the calculated width of the node's label.
-function Node:width()
-  return #self:label(self._tree.text_w - self._depth)
 end
 
 -- Return the node's actual label. This includes the expanded/collapsed
 -- indicator, if any.
 -- Passed the width it has available to draw in, for things like right-aligned
 -- labels to use.
--- Note that this may be called during setup to calculate the width of the tree.
--- In that case, it will be passed the calculated width so far of the tree, which
--- may be 0 -- so it should handle things gracefully when that happens.
+-- Note that this function is called during initialization for width calculation,
+-- at which point the current width is 0. It should handle this gracefully.
 function Node:label(width)
+  assert(self.name, repr(self))
   if #self == 0 then
-    return ' '..self.name
+    return self.name
   elseif self.expanded then
     --return '⊟'..self.name
-    return '-'..self.name
+    return '[-] '..self.name
   else
     --return '⊞'..self.name
-    return '+'..self.name
+    return '[+] '..self.name
   end
 end
 
@@ -60,7 +76,7 @@ end
 function Node:expand()
   if #self == 0 then return end
   self.expanded = true
-  self._tree:refresh()
+  self.tree:refresh()
 end
 
 -- The user has requested to collapse this node. By default, collapses the node
@@ -70,16 +86,16 @@ end
 function Node:collapse(recursing)
   if #self > 0 and self.expanded then
     self.expanded = false
-    if self:parent_of(self._tree:focused()) then
-      self._tree:set_focus(self._index)
+    if self:parent_of(self.tree:focused()) then
+      self.tree:set_focus(self.index)
     end
     -- collapse children
     for i,node in ipairs(self) do
       node:collapse(true)
     end
-    self._tree:refresh()
-  elseif self._parent and not recursing then
-    return self._parent:collapse()
+    self.tree:refresh()
+  elseif self.parent and not recursing then
+    return self.parent:collapse()
   end
 end
 
@@ -103,11 +119,9 @@ end
 function Node:parent_of(node)
   repeat
     if node == self then return true end
-    node = node._parent
+    node = node.parent
   until not node
   return false
 end
 
-return function(t)
-  return setmetatable({ _ptr = t }, Node)
-end
+return Node

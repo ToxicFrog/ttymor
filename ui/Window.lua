@@ -1,5 +1,6 @@
 local Window = Object:subclass {
   visible = false;
+  position = 'center';
 }
 
 flags.register 'ui-perf' {
@@ -10,19 +11,28 @@ flags.register 'ui-perf' {
 function Window:__init(...)
   Object.__init(self, ...)
   self.children = {}
-  assertf(self.parent, "attempt to create orphan window %s", self.name)
-  self.parent:attach(self)
-
-  if not self.x then
-    self:center()
-  end
 end
 
-function Window:center()
-  self.w = self.w:min(self.parent.w)
-  self.h = self.h:min(self.parent.h)
-  self.x = ((self.parent.w - self.w)/2):floor():max(0)
-  self.y = ((self.parent.h - self.h)/2):floor():max(0)
+-- Calculate the window's preferred size. By default this just asserts that
+-- width and height are set, but subclasses may do more.
+function Window:resize()
+  assert(self.w and self.h, 'window created without width or height')
+end
+
+-- Calculate the window's (x,y) position and bounds based on the 'position'
+-- property and the size of the parent.
+function Window:reposition()
+  self:resize()
+  if self.position == 'fixed' then
+    assert(self.x and self.y, 'position == fixed requires x and y to be specified')
+  elseif self.position == 'center' then
+    self.w = self.w:min(self.parent.w)
+    self.h = self.h:min(self.parent.h)
+    self.x = ((self.parent.w - self.w)/2):floor():max(0)
+    self.y = ((self.parent.h - self.h)/2):floor():max(0)
+  else
+    errorf('unsupported value "%s" for position', self.position)
+  end
 end
 
 function Window:show()
@@ -49,13 +59,20 @@ function Window:renderAll()
 end
 
 function Window:attach(subwin)
-  assertf(subwin.parent == self, 'Window %s tried to attach to %s, but is already owned by %s',
-      subwin.name, self.name, (subwin.parent or {}).name)
+  log.debug('%s: attaching child %s', self.name, subwin.name)
+  assert(not subwin.parent, 'attempt to attach non-orphan window')
   table.insert(self.children, subwin)
   subwin.parent = self
+  subwin:reposition()
+  log.debug('  child %dx%d @ (%d,%d)', subwin.w, subwin.h, subwin.x, subwin.y)
 end
 
-function Window:remove(subwin)
+function Window:detach(subwin)
+  if not subwin then
+    return self.parent:detach(self)
+  end
+  log.debug('detach %s from %s', subwin.name, self.name)
+
   for i,v in ipairs(self.children) do
     if v == subwin then
       table.remove(self.children, i)
@@ -67,9 +84,8 @@ end
 
 function Window:destroy()
   log.debug('destroy window', self.name)
-  self.parent:remove(self)
+  self:detach()
   self.renderAll = function() error 'renderAll called on destroyed window' end
 end
 
-ui.Window = Window
 return Window

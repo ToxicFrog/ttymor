@@ -1,8 +1,9 @@
 require 'util'
 require 'Object'
-require 'settings'
-require 'game'
 require 'ui'
+require 'settings'
+require 'ui.keys'
+require 'game'
 require 'dredmor'
 
 if not love then

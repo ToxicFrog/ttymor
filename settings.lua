@@ -1,5 +1,12 @@
 -- Settings management framework.
 require 'Object'
+local Tree = require 'ui.Tree'
+
+flags.register "config-dir" {
+  help = "Directory to store settings and save files in.";
+  type = flags.string;
+  default = os.getenv('HOME')..'/.config/ttymor/';
+}
 
 settings = {
   Raw = require 'settings.Raw';
@@ -10,13 +17,20 @@ settings = {
 }
 
 setmetatable(settings, { __index = settings.categories })
-
 local registered = settings.categories;
 
-flags.register "config-dir" {
-  help = "Directory to store settings and save files in.";
-  type = flags.string;
-  default = os.getenv('HOME')..'/.config/ttymor/';
+settings.tree = Tree {
+  name = "Configuration";
+  cancel = function()
+    settings.load()
+    return false
+  end;
+  -- empty function so that trying to reset settings that
+  -- don't support it doesn't blow up
+  reset = function() end;
+  bindings = {
+    ['key:del'] = 'reset';
+  };
 }
 
 local function assert_registered(cat, key)
@@ -30,28 +44,15 @@ local function assert_registered(cat, key)
   end
 end
 
--- Register the given key in the given category. Returns an accessor for that key.
--- Safe to use in multiple files, but asserts if the defaults don't match.
+-- Register the given key in the given category.
 function settings.register(cat, key, setting)
   assert_registered(cat)
   if registered[cat].settings[key] then
-    assertf(setting.value == registered[cat].settings[key].value,
+    errorf(
       "multiple registrations of configuration key %s::%s with conflicting default values %s ~= %s",
       cat, key, registered[cat].settings[key].value, setting.value)
   else
     registered[cat]:add(setting)
-  end
-  return settings.accessor(cat, key)
-end
-
--- Return an accessor for an existing key.
-function settings.accessor(cat, key)
-  local setting = assert_registered(cat, key)
-  return function(val)
-    if val ~= nil then
-      setting.value = val
-    end
-    return setting.value
   end
 end
 
@@ -115,31 +116,25 @@ function settings.show()
 end
 
 function settings.edit()
-  local tree = {
-    name = 'Configuration';
-    cancel = function()
-      settings.load()
-      return false
-    end;
-    reset = function() end;
-    bindings = {
-      ['key:del'] = 'reset';
-    };
-  }
-  for _,cat in ipairs(registered) do
-    table.insert(tree, cat:tree())
+  if not settings.tree.parent then
+    settings.tree.root:addNode {
+      name = "Save Configuration";
+      activate = function()
+        if settings.save() then
+          return false
+        end
+      end;
+    }
+    settings.tree.root:addNode {
+      name = "Cancel";
+      activate = function(self) return self.tree:cancel() end;
+    }
+    ui.main_win:attach(settings.tree)
   end
-  table.insert(tree, {
-    name = "Save Configuration";
-    activate = function()
-      if settings.save() then
-        return false
-      end
-    end;
-  })
-  table.insert(tree, {
-    name = "Cancel";
-    activate = tree.cancel;
-  })
-  ui.tree(tree)
+
+  assert(settings.tree.cancel ~= ui.Tree.cancel)
+
+  settings.tree:show()
+  settings.tree:run()
+  settings.tree:hide()
 end

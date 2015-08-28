@@ -1,7 +1,9 @@
 --
 -- Default method implementations for the tree as a whole. --
 --
-local Tree = ui.Window:subclass {
+local Window = require 'ui.Window'
+
+local Tree = Window:subclass {
   -- *displayable* text width and height.
   text_w = 0; text_h = 0;
   -- Number of lines scrolled down.
@@ -10,14 +12,6 @@ local Tree = ui.Window:subclass {
   _focused = 1;
   colour = { 255, 255, 255 };
 }
-ui.Tree = Tree
-
-function Tree:__index(k)
-  if rawget(self, '_ptr') and self._ptr[k] ~= nil then
-    return self._ptr[k]
-  end
-  return Tree[k]
-end
 
 -- Focus the given node.
 function Tree:set_focus(index)
@@ -90,7 +84,7 @@ function Tree:walk(include_collapsed)
       end
     end
   end
-  return coroutine.wrap(dfs_walk),self,0
+  return coroutine.wrap(dfs_walk),self.root,0
 end
 
 -- Render the entire tree by drawing a titled box, then calling :render on each
@@ -121,9 +115,9 @@ function Tree:refresh()
   self.nodes = {}
   for node in self:walk() do
     table.insert(self.nodes, node)
-    node._index = #self.nodes
+    node.index = #self.nodes
     if node.focused then
-      self._focused = node._index
+      self._focused = node.index
     end
   end
   self.rows = #self.nodes
@@ -172,15 +166,47 @@ end
 -- handler, if any, for that input event. As soon as a handler returns a non-
 -- nil value, break out of the loop and return that value.
 function Tree:run()
+  self:refresh()
+  if not self.readonly then
+    self:set_focus(1)
+  end
   self:show()
   local R
-  log.debug('entering tree loop')
   repeat
     R = self:call_handler(ui.readkey())
   until R ~= nil
-  log.debug('leaving tree loop, destroying tree')
-  self:destroy()
+  self:hide()
   return R
+end
+
+-- Recalculate the width and height for the tree.
+-- Overrides Window:resize.
+function Tree:resize()
+  self.root:size()
+
+  if self.name then
+    self.text_w = #self.name
+  end
+
+  self.text_w = self.text_w:max(self.root.w)
+  self.text_h = self.root.h - 1  -- the root node itself has no height
+
+  -- self.w and self.h are the actual on-screen display size; text_w and text_h
+  -- are the max displayable width and height, i.e. w,h excluding
+  -- decorations. There's a separate field, rows, for number of actual lines of
+  -- text in visible nodes; if rows > text_h, the tree is scrollable.
+  -- We add 4 to text_w here because we want space for margins, and then only
+  -- subtract 2 later on because the margins are included in the text_w.
+  self.w = self.text_w+4
+  self.h = self.text_h+2
+end
+
+-- Override for Window:reposition() so that we set text_w and text_h appropriately
+-- after potentially being resized.
+function Tree:reposition()
+  Window.reposition(self)
+  self.text_w = self.w - 2
+  self.text_h = self.h - 2
 end
 
 local Node = require 'ui.Node'
@@ -209,65 +235,18 @@ local readonly_bindings = {
   scrolldn = 'page_down';
 }
 
--- Turn a mere tree of tables into a Tree.
--- This consists of installing the default methods for Tree on the top level,
--- and for Node on all its children; installing the default bindings; setting
--- the first top-level child as the focused node; setting up the next, previous,
--- parent, and tree links; and computing the width and height of the box needed
--- to display the fully expanded tree.
 function Tree:__init(data)
-  self._ptr = data
-  self.parent = data.parent or ui.main_win
-
-  if self.name then
-    self.text_w = #self.name
-  end
-
-  local function convert_tree(node, depth)
-    for i,child in ipairs(node._ptr) do
-      if type(child) == 'string' then
-        child = { name = child }
-      end
-      child = Node(child)
-      child._tree = self
-      child._parent = node
-      child._depth = depth
-      rawset(node, i, child)
-      self.text_h = self.text_h+1
-      self.text_w = self.text_w:max(node[i]:width()+depth)
-      convert_tree(child, depth+1)
-    end
-  end
-
-  convert_tree(self, 0)
-  for _,node in ipairs(self) do node._parent = nil end
-
-  -- self.w and self.h are the actual on-screen display size; text_w and text_h
-  -- are the max displayable width and height, i.e. w,h excluding
-  -- decorations. There's a separate field, rows, for number of actual lines of
-  -- text in visible nodes; if rows > text_h, the tree is scrollable.
-  -- We add 4 to text_w here because we want space for margins, and then only
-  -- subtract 2 later on because the margins are included in the text_w.
-  self.w = self.text_w+4
-  self.h = self.text_h+2
-
-  self:refresh()
+  Window.__init(self, data)
+  self.root = Node(self, nil, {
+    name = data.name;
+    unpack(data);
+  })
 
   if self.readonly then
     self.bindings = setmetatable(self.bindings or {}, {__index = readonly_bindings})
   else
     self.bindings = setmetatable(self.bindings or {}, {__index = bindings})
-    self:set_focus(1)
   end
-
-  -- We call the superclass ctor at the end here, since it's only at the end that
-  -- we know our desired width and height.
-  ui.Window.__init(self, {})
-
-  -- Doing so may have caused the *actual* width and height to change because we
-  -- asked for more than was available, so take that into account.
-  self.text_w = self.w-2
-  self.text_h = self.h-2
 end
 
 return Tree

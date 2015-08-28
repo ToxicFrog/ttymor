@@ -1,48 +1,48 @@
 ui = {}
 
-require 'ui.keys'
-local Window = require 'ui.Window'
-require 'ui.Box'
+ui.Window = require 'ui.Window'
+ui.Tree = require 'ui.Tree'
+ui.Box = require 'ui.Box'
 
 function ui.init()
   local w,h = tty.init()
 
-  ui.screen = Window {
+  ui.screen = ui.Window {
     name = "screen";
     x = 0; y = 0;
     w = w; h = h;
+    position = 'fixed';
     visible = true;
     render = function(self)
       tty.colour(255, 255, 255, 0, 0, 0)
       tty.style('o')
       tty.clear()
     end;
-    -- HACK HACK HACK
-    -- Windows are required to have a parent when created. The top-level screen,
-    -- of course, doesn't. So we provide a dummy parent.
-    parent = { attach = function() end };
   }
 
   -- log is upper right, 40 cols wide and half the screen high
   ui.log_win = require 'ui.log_win' {
-    parent = ui.screen;
+    position = 'fixed';
     x = 0; y = 0;
     w = 40; h = (h/2):ceil();
   }
+  ui.screen:attach(ui.log_win)
 
   -- HUD is just below log, same width
   ui.hud_win = require 'ui.hud_win' {
-    parent = ui.screen;
+    position = 'fixed';
     x = 0; y = ui.log_win.h;
     w = 40; h = h - ui.log_win.h;
   }
+  ui.screen:attach(ui.hud_win)
 
   -- main view takes up the remaining space
   ui.main_win = require 'ui.main_win' {
-    parent = ui.screen;
+    position = 'fixed';
     x = 40; y = 0;
     w = w - 40; h = h;
   }
+  ui.screen:attach(ui.main_win)
 end
 
 function ui.draw()
@@ -105,12 +105,13 @@ function ui.mainmenu()
   }
 end
 
-local Tree = require 'ui.Tree'
-
 -- Turn a tree into a Tree and activate it, running until one of the handlers
 -- returns a value.
 function ui.tree(tree)
-  return Tree(tree):run()
+  tree = ui.Tree(tree)
+  ui.main_win:attach(tree)
+  tree:run()
+  tree:destroy()
 end
 
 function ui.message(title, message)
