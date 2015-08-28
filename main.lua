@@ -41,7 +41,7 @@ function love.load(argv)
 
   if flags.parsed.help then
     print(flags.help())
-    return
+    os.exit(0)
   end
 
   math.randomseed(flags.parsed.seed)
