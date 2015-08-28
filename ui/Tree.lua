@@ -181,6 +181,7 @@ function Tree:run()
   repeat
     R = self:call_handler(ui.readkey())
   until R ~= nil
+  ui.setHUD(nil)
   self:hide()
   return R
 end

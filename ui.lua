@@ -34,7 +34,7 @@ function ui.init()
     x = 0; y = ui.log_win.h;
     w = 40; h = h - ui.log_win.h;
   }
-  ui.hud_win:setContent('HUD', {})
+  ui.setHUD(nil)
   ui.screen:attach(ui.hud_win)
 
   -- main view takes up the remaining space
