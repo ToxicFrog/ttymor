@@ -17,7 +17,13 @@ local Tree = Window:subclass {
 function Tree:set_focus(index)
   self:focused().focused = false
   self._focused = (index-1) % #self.nodes + 1
-  self:focused().focused = true
+  local node = self:focused()
+  node.focused = true
+  if node.help then
+    ui.setHUD(node.name, node.help)
+  else
+    ui.setHUD(nil)
+  end
 end
 
 function Tree:focused()

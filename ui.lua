@@ -34,6 +34,7 @@ function ui.init()
     x = 0; y = ui.log_win.h;
     w = 40; h = h - ui.log_win.h;
   }
+  ui.hud_win:setContent('HUD', {})
   ui.screen:attach(ui.hud_win)
 
   -- main view takes up the remaining space
@@ -54,6 +55,16 @@ function ui.draw()
   if flags.parsed.ui_perf then
     log.debug('-- render end --')
   end
+end
+
+function ui.setHUD(title, content)
+  if content == nil then
+    content = {}
+  elseif type(content) == 'string' then
+    content = content:wrap(ui.hud_win.w - 4)
+  end
+  assert(type(content) == 'table', 'invalid argument passed to setHUD')
+  ui.hud_win:setContent(title, content)
 end
 
 -- Draw a box with the upper left corner at (x,y)
@@ -94,14 +105,29 @@ function ui.mainmenu()
   tty.colour(0, 255, 255)
   ui.tree {
     name = 'Main Menu';
-    { name="Return to Game"};
-    { name='Configuration'; activate = settings.edit; };
-    { name="Config Debug"; activate = settings.show };
-    { name="Room Debug"; activate = dredmor.debug_rooms };
-    { name="Save Game"; activate = function() game.save(); return false; end };
-    { name="Load Game"; activate = function() game.load(game.name()); return false; end };
-    { name="Quit And Save"; activate = function() game.save(); love.event.quit(); end };
-    { name="Quit Without Saving"; activate = love.event.quit; };
+    { name = 'Return to Game';
+      help = 'Close the menu and return to the game in progress.' };
+    { name = 'Configuration';
+      activate = settings.edit;
+      help = 'Change game settings and key bindings.' };
+    { name = 'Config Debug';
+      activate = settings.show;
+      help = 'View the raw contents of the settings subsystem, including hidden settings.' };
+    { name = 'Room Debug';
+      activate = dredmor.debug_rooms;
+      help = 'View the raw contents of the room database.' };
+    { name = 'Save Game';
+      activate = function() game.save(); return false; end;
+      help = 'Save your game in progress.' };
+    { name = 'Load Game';
+      activate = function() game.load(game.name()); return false; end;
+      help = 'Load your last save.' };
+    { name = 'Quit And Save';
+      activate = function() game.save(); love.event.quit(); end;
+      help = 'Save your game and then quit TTYmor.' };
+    { name = 'Quit Without Saving';
+      activate = love.event.quit;
+      help = 'Immediately quit the same without saving.' };
   }
 end
 
