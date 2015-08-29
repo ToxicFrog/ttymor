@@ -34,7 +34,7 @@ function ui.init()
     x = 0; y = ui.log_win.h;
     w = 40; h = h - ui.log_win.h;
   }
-  ui.setHUD(nil)
+  ui.setHUD('HUD', 'Test HUD content')
   ui.screen:attach(ui.hud_win)
 
   -- main view takes up the remaining space
@@ -59,12 +59,21 @@ end
 
 function ui.setHUD(title, content)
   if content == nil then
-    content = {}
+    content = { name = title }
   elseif type(content) == 'string' then
     content = content:wrap(ui.hud_win.w - 4)
   end
   assert(type(content) == 'table', 'invalid argument passed to setHUD')
-  ui.hud_win:setContent(title, content)
+  content.name = title
+  ui.hud_win:setContent(content)
+end
+
+function ui.pushHUD()
+  ui.hud_win:pushContent()
+end
+
+function ui.popHUD()
+  ui.hud_win:popContent()
 end
 
 -- Draw a box with the upper left corner at (x,y)

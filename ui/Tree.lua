@@ -173,6 +173,7 @@ end
 -- nil value, break out of the loop and return that value.
 function Tree:run()
   self:refresh()
+  ui.pushHUD()
   if not self.readonly then
     self:set_focus(1)
   end
@@ -181,7 +182,7 @@ function Tree:run()
   repeat
     R = self:call_handler(ui.readkey())
   until R ~= nil
-  ui.setHUD(nil)
+  ui.popHUD()
   self:hide()
   return R
 end

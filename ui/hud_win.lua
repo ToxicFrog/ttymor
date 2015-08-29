@@ -5,18 +5,34 @@ local HudWin = Tree:subclass {
   position = 'fixed';
   readonly = true;
   visible = true;
+  stack = nil;
+  content = nil;
 }
+
+function HudWin:__init(...)
+  Tree.__init(self, ...)
+  self.stack = {}
+end
 
 -- Width and height of the HUD are fixed, so this is a no-op.
 function HudWin:resize() end
 
-function HudWin:setContent(name, data)
-  self.name = name
+function HudWin:setContent(data)
+  self.content = data
+  self.name = data.name
   self.root = Node(self, nil, {
-    name = name;
+    name = data.name;
     unpack(data);
   })
   self:refresh()
+end
+
+function HudWin:pushContent()
+  table.insert(self.stack, self.content)
+end
+
+function HudWin:popContent()
+  self:setContent(table.remove(self.stack))
 end
 
 return HudWin
