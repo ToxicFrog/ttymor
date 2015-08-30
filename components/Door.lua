@@ -5,26 +5,25 @@
 -- place it before the render component so it can affect the rendering code.
 
 local Door = {
-  defaults = {
-    face_open = '■';
-    face_shut = '+';
-    open = false;
-  };
+  face_open = '■';
+  face_shut = '+';
+  open = false;
   segments = {};
 }
+
+function Door:__init()
+  self.Render.face = self.Door[self.Door.open and 'face_open' or 'face_shut']
+end
 
 function Door:open(state)
   if state ~= nil and state ~= self.Door.open then
     game.log('The door %s.', state and 'opens' or 'closes')
     for _,segment in ipairs(self.Door.segments) do
       segment.Door.open = state
+      segment.Render.face = segment.Door[state and 'face_open' or 'face_shut']
     end
   end
   return self.Door.open
-end
-
-function Door:render()
-  self.Render.face = self:open() and self.Door.face_open or self.Door.face_shut
 end
 
 function Door:blocks()
@@ -36,7 +35,7 @@ function Door:touchedBy(ent)
   self:open(true)
 end
 
-function Door:frob(frobber)
+function Door:__frob(frobber)
   for i,segment in ipairs(self.Door.segments) do
     local x,y = segment:position()
     if segment:map():blocked(x, y, 'walk') then

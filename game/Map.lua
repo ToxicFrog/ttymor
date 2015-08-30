@@ -45,7 +45,8 @@ Map.generate = require 'game.mapgen'
 function Map:blocked(x, y, type)
   local cell = self[x][y]
   for i=#cell,1,-1 do
-    if cell[i]:blocks(type) then
+    local ent = cell[i]
+    if cell[i].blocks and cell[i]:blocks(type) then
       return cell[i]
     end
   end

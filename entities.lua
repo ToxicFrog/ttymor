@@ -3,14 +3,36 @@ local entities = {}
 
 local function EntityType(name)
   return function(proto)
-    proto._TYPE = name
-    entities[name] = proto
+    local components = {}
+    for i,v in ipairs(proto) do
+      components[i] = v
+      proto[i] = nil
+    end
+    entities[name] = { defaults = proto, components = components }
   end
 end
 
 local function Component(name)
+  local impl = require('components.'..name)
+  local meta,methods,defaults = {},{},{}
+  for k,v in pairs(impl) do
+    if type(k) == 'string' and k:match('^__') then
+      meta[k] = v
+    elseif type(v) == 'function' then
+      methods[k] = v
+    else
+      defaults[k] = v
+    end
+  end
+  meta.__name = name
   return function(proto)
-    return { name = name, proto = proto }
+    table.merge(proto, defaults, 'ignore')
+    return {
+      name = name;
+      meta = meta;
+      methods = methods;
+      defaults = proto;
+    }
   end
 end
 

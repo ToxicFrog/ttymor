@@ -1,9 +1,7 @@
 local Render = {
-  defaults = {
-    face = "?";
-    colour = { 255, 255, 255, 0, 0, 0 };
-    style = 'o'
-  }
+  face = "?";
+  colour = { 255, 255, 255, 0, 0, 0 };
+  style = 'o'
 }
 
 function Render:render(x, y)

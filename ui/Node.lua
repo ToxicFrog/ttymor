@@ -13,12 +13,15 @@ function Node:__init(tree, parent, data)
     }
   end
   Object.__init(self, data)
+  for k,v in pairs(data) do
+    assert(v == self[k])
+  end
   self.depth = parent and parent.depth + 1 or 0
   self.tree = tree
   self.parent = parent
 
   for i,v in ipairs(self) do
-    self[i] = Node(tree, self, v)
+    self[i] = getmetafield(self, '__class')(tree, self, v)
   end
 end
 
