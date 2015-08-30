@@ -77,6 +77,10 @@ function Map:cells(x, y, w, h)
   end)
 end
 
+function Map:cell(x, y)
+  return self[x][y]
+end
+
 function Map:render_screen(cx, cy)
   local sw,sh = tty.size() -- screen width and height
   local rw,rh -- render width and height

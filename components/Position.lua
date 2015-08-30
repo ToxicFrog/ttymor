@@ -11,6 +11,15 @@ function Position:move(dx, dy)
     return blocker:touchedBy(self)
   else
     self:moveTo(x + dx, y + dy)
+    local cell = self:map():cell(x+dx, y+dy)
+    local list = {}
+    for i=1,#cell do
+      list[i] = cell[#cell-i+1]
+    end
+    -- HACK HACK HACK
+    -- This means that every enemy that moves will override the HUD with the
+    -- contents of its square. TODO: move this somewhere player-specific.
+    ui.setHUD(nil, list)
   end
 end
 
