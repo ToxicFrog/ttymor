@@ -2,6 +2,7 @@
 -- Default method implementations for the tree as a whole. --
 --
 local Window = require 'ui.Window'
+local Node = require 'ui.Node'
 
 local Tree = Window:subclass {
   -- *displayable* text width and height.
@@ -93,7 +94,7 @@ function Tree:walk(include_collapsed)
   return coroutine.wrap(dfs_walk),self.root,0
 end
 
--- Render the entire tree by drawing a titled box, then calling :render on each
+-- Render the entire tree by drawing a titled box, then calling :renderLabel on each
 -- visible node with appropriate coordinates passed in.
 function Tree:render()
   tty.colour(unpack(self.colour))
@@ -111,7 +112,7 @@ function Tree:render()
   for y=1,self.text_h:min(self.rows) do
     -- assertf(self.nodes[y+scroll], "scroll error: y=%d h=%d mh=%d scroll=%d #nodes=%d",
     --     y, self.text_h, self.max_h or 0, scroll, #self.nodes)
-    self.nodes[y+self.scroll]:render(1, y)
+    self.nodes[y+self.scroll]:renderLabel(1, y)
   end
 end
 
@@ -216,8 +217,6 @@ function Tree:reposition()
   self.text_w = self.w - 2
   self.text_h = self.h - 2
 end
-
-local Node = require 'ui.Node'
 
 -- Default command bindings for tree mode.
 -- This lets you navigate with the directional keys, choose a node (exiting tree

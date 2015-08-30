@@ -41,7 +41,7 @@ function Node:size()
 end
 
 -- Render the entire line at (x,y), with the label indented appropriate to depth.
-function Node:render(x, y)
+function Node:renderLabel(x, y)
   if self.focused then
     tty.style('v')
   end
