@@ -79,10 +79,28 @@ local function placeRoom(self, room, ox, oy)
     "out of bounds room placement: %s (%dx%d) at (%d,%d)",
     room.name, room.w, room.h, ox, oy)
 
+  -- Generate a random name for this room
+  -- Room names are 'The [adjective] <architecture> [of <plural-noun>]'
+  -- At least one of adjective or plural-noun must appear; both are permitted.
+  local words = math.random(1,3)
+  local name
+  if words == 1 then
+    -- adjective, no noun
+    name = 'The %s %s' % { dredmor.text 'adjective', dredmor.text 'architecture' }
+  elseif words == 2 then
+    -- noun, no adjective
+    name = 'The %s of %s' % { dredmor.text 'architecture', dredmor.text('noun', 'plural') }
+  else
+    -- both
+    name = 'The %s %s of %s' % {
+      dredmor.text 'adjective', dredmor.text 'architecture', dredmor.text('noun', 'plural')
+    }
+  end
+
   -- Copy the terrain into the map.
   for x,y,terrain in room:cells(ox,oy) do
     local cell = self[x][y]
-    cell.name = room.name
+    cell.name = name
     copyTerrain(cell, terrain)
   end
 

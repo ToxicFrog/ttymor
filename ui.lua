@@ -91,7 +91,7 @@ function ui.box(rect, title)
   end
   tty.put(0, h-1, "┗"..("━"):rep(w-2).."┛")
   if title then
-    tty.put(1, 0, '┫'..title..'┣')
+    tty.put(1, 0, '┫'..title:sub(1, w-4)..'┣')
 --    tty.put(1, 0, '╾'..title..'╼')
   end
 

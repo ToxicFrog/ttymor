@@ -23,7 +23,7 @@ function Position:move(dx, dy)
     -- HACK HACK HACK
     -- This means that every enemy that moves will override the HUD with the
     -- contents of its square. TODO: move this somewhere player-specific.
-    ui.setHUD(nil, list)
+    ui.setHUD(cell.name, list)
   end
 end
 
