@@ -8,7 +8,11 @@ function Position:move(dx, dy)
   local x,y = self.Position.x,self.Position.y
   local blocker = self:map():blocked(x+dx, y+dy, 'walk')
   if blocker then
-    return blocker:touchedBy(self)
+    if blocker.touchedBy then
+      return blocker:touchedBy(self)
+    else
+      return nil
+    end
   else
     self:moveTo(x + dx, y + dy)
     local cell = self:map():cell(x+dx, y+dy)

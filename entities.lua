@@ -41,38 +41,38 @@ EntityType 'Player' {
   Component 'Render' { face = '@'; style = 'v' };
   Component 'Control' {};
   Component 'Position' {};
-  Component 'Blocker' { 'fly', 'walk' };
+  Component 'Blocker' { fly = true; walk = true; };
 }
 
 EntityType 'Wall' {
   name = 'wall';
   Component 'Render' { face = '▒' };
-  Component 'Blocker' { 'fly', 'walk' };
+  Component 'Blocker' { fly = true; walk = true; };
 }
 EntityType 'InvisibleWall' {
   name = 'floor';
   Component 'Render' { face = '.'; style = 'v' };
-  Component 'Blocker' { 'fly', 'walk' };
+  Component 'Blocker' { fly = true; walk = true; };
 }
 EntityType 'Water' {
   name = 'water';
   Component 'Render' { face = '≈'; colour = {0,128,255} };
-  Component 'Blocker' { 'walk' };
+  Component 'Blocker' { walk = true; };
 }
 EntityType 'Goo' {
   name = 'goo';
   Component 'Render' { face = '≈'; colour = {0,255,0} };
-  Component 'Blocker' { 'walk' };
+  Component 'Blocker' { walk = true; };
 }
 EntityType 'Ice' {
   name = 'ice';
   Component 'Render' { face = '≈'; colour = {128,255,0} };
-  Component 'Blocker' { 'walk' };
+  Component 'Blocker' { walk = true; };
 }
 EntityType 'Lava' {
   name = 'lava';
   Component 'Render' { face = '≈'; colour = {255,64,0} };
-  Component 'Blocker' { 'walk' };
+  Component 'Blocker' { walk = true; };
 }
 
 EntityType 'Floor' {
