@@ -13,9 +13,11 @@ dredmor = {}
 require 'dredmor.monDB'
 require 'dredmor.rooms'
 require 'dredmor.tweakDB'
+require 'dredmor.text'
 
 function dredmor.loadAll()
   dredmor.loadMonsters()
   dredmor.loadRooms()
   dredmor.loadTweaks()
+  dredmor.loadText()
 end

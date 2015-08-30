@@ -1,15 +1,7 @@
 require 'repr'
 
-local function attrsToTable(tag)
-  local T = {}
-  for _,attr in ipairs(tag.attr) do
-    T[attr.name] = tonumber(attr.value) or attr.value
-  end
-  return T
-end
-
 local function monsterFromXML(node)
-  return attrsToTable(node)
+  return xml.attrs(node)
 end
 
 -- Master table of all monsters, indexed by monster name.

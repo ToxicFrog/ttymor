@@ -3,6 +3,14 @@ local slaxdom = require 'slaxdom'
 
 xml = {}
 
+function xml.attrs(tag)
+  local T = {}
+  for _,attr in ipairs(tag.attr) do
+    T[attr.name] = tonumber(attr.value) or attr.value
+  end
+  return T
+end
+
 function xml.parse(str)
   return slaxdom:dom(str)
 end

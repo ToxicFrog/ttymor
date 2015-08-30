@@ -15,14 +15,6 @@ local Room = require 'dredmor.Room'
 -- pedestal: a readable book on a stand
 -- trap: a trap; for wall traps specifies trigger location, launcher will be installed automatically
 
-local function attrsToTable(tag)
-  local T = {}
-  for _,attr in ipairs(tag.attr) do
-    T[attr.name] = tonumber(attr.value) or attr.value
-  end
-  return T
-end
-
 local function insert_row(room, row)
   local y = room.h
   for x=0,#row-1 do
@@ -49,9 +41,9 @@ local function roomFromXML(node)
       -- values in the <room> tag.
       insert_row(room, tag.attr.text)
     elseif tag.name == 'flags' then
-      room.flags = attrsToTable(tag)
+      room.flags = xml.attrs(tag)
     else
-      local obj = attrsToTable(tag)
+      local obj = xml.attrs(tag)
       obj._type = tag.name
       table.insert(room.contents, obj)
     end
