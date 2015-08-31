@@ -82,7 +82,6 @@ return function(typename)
 
     for i,cmp in ipairs(data) do
       if cmp.__init then
-        log.error('Calling %s:%s:__init', typename, cmp.__name)
         cmp.__init(data)
       end
     end
