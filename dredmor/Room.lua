@@ -90,7 +90,7 @@ local function postprocess(self)
         content(self, x, y)
       end
     else
-      errorf('Unhandled terrain cell type "%s" reading self %s"',
+      error('Unhandled terrain cell type "%s" reading self %s"',
         cell, self.name)
     end
   end

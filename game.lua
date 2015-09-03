@@ -163,7 +163,7 @@ function game.get(id)
   elseif type(id) == 'string' then
     return assertf(state.singletons[id], "no singleton named %s", id)
   else
-    errorf("Invalid argument %s to game.get", name)
+    error("Invalid argument %s to game.get", name)
   end
 end
 

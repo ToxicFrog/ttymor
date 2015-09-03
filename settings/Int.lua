@@ -7,7 +7,7 @@ local Int = require('settings.Raw'):subclass {
 function Int:set(val)
   val = tonumber(val)
   if not val then return end
-  self.value = math.bound(self.min, val, self.max):floor()
+  self.value = val:bound(self.min, self.max):floor()
   return self.value
 end
 

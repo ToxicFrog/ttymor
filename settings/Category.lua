@@ -34,7 +34,7 @@ function Category:__init(...)
   local key = self.name:gsub('[^a-zA-Z0-9_]+', '_'):lower()
   if key ~= self.name then
     if settings.categories[key] then
-      errorf('fast-access key for category %s conflicts with existing category %s',
+      error('fast-access key for category %s conflicts with existing category %s',
         self.name, settings.categories[key].name)
     end
     settings.categories[key] = self
@@ -71,7 +71,7 @@ function Category:add(setting)
   local key = setting.name:gsub('[^a-zA-Z0-9_]+', '_'):lower()
   if key ~= setting.name then
     if self.settings[key] then
-      errorf('fast-access key for setting %s::%s conflicts with existing setting %s::%s',
+      error('fast-access key for setting %s::%s conflicts with existing setting %s::%s',
         self.name, setting.name, self.name, self.settings[key].name)
     end
     self.settings[key] = setting

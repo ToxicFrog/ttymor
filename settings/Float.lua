@@ -7,7 +7,7 @@ local Float = require('settings.Raw'):subclass {
 function Float:set(val)
   val = tonumber(val)
   if not val then return end
-  self.value = math.bound(self.min, val, self.max)
+  self.value = val:bound(self.min, self.max)
   return self.value
 end
 

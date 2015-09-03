@@ -57,7 +57,7 @@ end
 
 -- scroll up/down the given number of lines, without wrapping or changing focus
 function Tree:scroll_by(n)
-  self.scroll = math.bound(0, self.scroll+n, self.rows - self.text_h):floor()
+  self.scroll = math.bound(self.scroll+n, 0, self.rows - self.text_h):floor()
 end
 
 -- Scroll up/down one line without wrapping or changing focus.
@@ -77,7 +77,7 @@ end
 
 -- Scroll so that the focused element is in the center of the screen, or close to.
 function Tree:scroll_to_focused()
-  self.scroll = math.bound(0, self._focused - self.text_h/2, self.rows - self.text_h):floor()
+  self.scroll = math.bound(self._focused - self.text_h/2, 0, self.rows - self.text_h):floor()
 end
 
 -- Return a DFS iterator over all nodes in the tree; yields (node,depth) for
@@ -159,7 +159,7 @@ function Tree:call_handler(key)
   elseif type(self[key]) == 'function' then
     return self[key](self)
   else
-    return errorf("no handler in tree for %s -- wanted function, got %s (node) and %s (tree)",
+    return error("no handler in tree for %s -- wanted function, got %s (node) and %s (tree)",
         key, type(node[key]), type(self[key]))
   end
 end

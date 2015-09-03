@@ -97,7 +97,7 @@ function Map:render_screen(cx, cy)
     dx = ((sw - self.w)/2):floor()
   else
     rw = sw
-    ox = math.bound(0, cx - sw/2, self.w - sw):floor()
+    ox = math.bound(cx - sw/2, 0, self.w - sw):floor()
     dx = -ox
   end
 
@@ -107,7 +107,7 @@ function Map:render_screen(cx, cy)
     dy = (sh - self.h)/2
   else
     rh = sh
-    oy = math.bound(0, cy - sh/2, self.h - sh):floor()
+    oy = math.bound(cy - sh/2, 0, self.h - sh):floor()
     dy = -oy
   end
 

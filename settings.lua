@@ -48,7 +48,7 @@ end
 function settings.register(cat, key, setting)
   assert_registered(cat)
   if registered[cat].settings[key] then
-    errorf(
+    error(
       "multiple registrations of configuration key %s::%s with conflicting default values %s ~= %s",
       cat, key, registered[cat].settings[key].value, setting.value)
   else

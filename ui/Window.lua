@@ -31,7 +31,7 @@ function Window:reposition()
     self.x = ((self.parent.w - self.w)/2):floor():max(0)
     self.y = ((self.parent.h - self.h)/2):floor():max(0)
   else
-    errorf('unsupported value "%s" for position', self.position)
+    error('unsupported value "%s" for position', self.position)
   end
 end
 
@@ -79,7 +79,7 @@ function Window:detach(subwin)
       return
     end
   end
-  errorf('Attempt to remove subwindow %s from %s', subwin.name, self.name)
+  error('Attempt to remove subwindow %s from %s', subwin.name, self.name)
 end
 
 function Window:destroy()
