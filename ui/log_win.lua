@@ -3,14 +3,30 @@ local LogWin = ui.Window:subclass {
   visible = true;
 }
 
+function LogWin:__init(...)
+  ui.Window.__init(self, ...)
+  self.list = ui.List {
+    visible = true;
+    name = "loglist";
+    x = 1; y = 1;
+    w = self.w-2;
+    h = self.h-2;
+    position = "fixed";
+  }
+  self:attach(self.list)
+  self.list.w = self.w-2
+  self.list.h = self.h-2
+end
+
 function LogWin:render()
   ui.box(nil, 'Log')
-  local h = self.h
-  local log = game.getLog()
-  for i=#log,1,-1 do
-    local y = self.h - 2 - #log + i
-    if y < 1 then break end
-    tty.put(1, y, log[i]:sub(1, self.w-2))
+  local list_i = 1
+  for i,line in ipairs(game.getLog()) do
+    for _,subline in ipairs(line:wrap(self.list.w)) do
+      self.list[list_i] = { text=subline }
+      list_i = list_i + 1
+      self.list:scroll_to_index(#self.list)
+    end
   end
 end
 
