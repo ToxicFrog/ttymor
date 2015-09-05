@@ -1,5 +1,6 @@
 ui = {}
 
+ui.List = require 'ui.List'
 ui.Window = require 'ui.Window'
 ui.Tree = require 'ui.Tree'
 ui.Box = require 'ui.Box'
