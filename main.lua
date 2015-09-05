@@ -29,6 +29,11 @@ flags.register "seed" {
   default = os.time();
 }
 
+flags.register "log-in-game" {
+  help = "Display program logs as part of the in-game log.";
+  default = false;
+}
+
 local function turn()
   while true do
     local player = game.get 'player'
@@ -53,6 +58,12 @@ function love.load(argv)
     game.load(flags.parsed.load)
   else
     game.new('test')
+  end
+
+  if flags.parsed.log_in_game then
+    function log.hook(prefix, suffix)
+      game.log("%s", suffix)
+    end
   end
 
   ui.init()
