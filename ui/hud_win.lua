@@ -7,6 +7,7 @@ local HudWin = Tree:subclass {
   visible = true;
   stack = nil;
   content = nil;
+  colour = { 192, 192, 192 };
 }
 
 function HudWin:__init(...)

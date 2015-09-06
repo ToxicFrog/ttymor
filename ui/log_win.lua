@@ -1,6 +1,7 @@
 local LogWin = ui.Window:subclass {
   name = "log";
   visible = true;
+  colour = { 192, 192, 192 };
 }
 
 function LogWin:__init(...)
