@@ -6,6 +6,7 @@ Entity = require 'game.Entity'
 Ref = require 'game.Ref'
 
 game = {}
+game.log = require 'game.Log' {}
 
 local state = {}
 
@@ -17,7 +18,6 @@ function game.new(name)
   state = {
     name = name;
     entities = {};
-    log = {};
     singletons = {};
     maps = {};
     next_id = 0;
@@ -31,6 +31,8 @@ function game.new(name)
 
   player:setMap(map)
   player:moveTo((map.w/2):floor()-1, (map.h/2):floor()-4)
+
+  game.log:clear()
 
   return player
 end
@@ -79,6 +81,7 @@ function game.load(name)
   log.info("Loading game from %s/%s.sav", flags.parsed.config_dir, name)
   state = { name = name }
 
+  game.log:clear()
   table.merge(state, game.loadObject("state", true), "overwrite")
 
   for depth,map in pairs(state.maps) do
@@ -108,25 +111,13 @@ function game.getMap(n)
 end
 
 --
--- Log management
+-- Entity management
 --
-
-function game.log(line, ...)
-  table.insert(state.log, line:format(...))
-end
-
-function game.getLog()
-  return state.log
-end
 
 function game.nextID()
   state.next_id = state.next_id + 1
   return state.next_id
 end
-
---
--- Entity management
---
 
 -- Register an entity, owned by a map, in the global entity lookup table.
 -- This holds a reference to the actual entity, not a Ref to it!

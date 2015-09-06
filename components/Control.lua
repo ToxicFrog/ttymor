@@ -1,4 +1,7 @@
 -- Component for keyboard control of the containing entity.
+-- FIXME: right now the concept of keyboard control vs. turn execution is all
+-- kind of tangled up in this component. It should be separated more cleanly.
+-- Somehow.
 local Control = {}
 
 function Control:turn()
@@ -6,14 +9,19 @@ function Control:turn()
   if cmd == 'cancel' then
     ui.mainmenu()
   elseif cmd == 'up' then
+    game.log:nextTurn()
     self:move(0, -1)
   elseif cmd == 'down' then
+    game.log:nextTurn()
     self:move(0, 1)
   elseif cmd == 'left' then
+    game.log:nextTurn()
     self:move(-1, 0)
   elseif cmd == 'right' then
+    game.log:nextTurn()
     self:move(1, 0)
   elseif cmd == 'activate' then
+    game.log:nextTurn()
     -- frob surrounding objects
     local x,y = self:position()
 

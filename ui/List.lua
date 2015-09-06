@@ -40,7 +40,7 @@ function List:render()
   for y=0,self.h do
     local line = self[1+y+self.scroll] or { text='' }
     if line.colour then
-      tty.setcolour(line.colour)
+      tty.colour(unpack(line.colour))
     end
     if line.style then
       tty.style(line.style)
