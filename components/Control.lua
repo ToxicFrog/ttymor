@@ -20,6 +20,14 @@ function Control:turn()
   elseif cmd == 'right' then
     game.log:nextTurn()
     self:move(1, 0)
+  elseif cmd == 'scrollup' then
+    -- HACK HACK HACK
+    -- FIXME: during the key event handling rewrite, set up Box so that it
+    -- forwards all key events to its contents, if any, and let the log handle
+    -- its own scrolling.
+    ui.log_win.list:page_up()
+  elseif cmd == 'scrolldn' then
+    ui.log_win.list:page_down()
   elseif cmd == 'activate' then
     game.log:nextTurn()
     -- frob surrounding objects

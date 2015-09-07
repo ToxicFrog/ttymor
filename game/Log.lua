@@ -6,6 +6,7 @@ end
 
 function Log:__call(fmt, ...)
   table.insert(self._head, fmt:format(...))
+  self.dirty = true
 end
 
 function Log:clear()
@@ -28,10 +29,12 @@ end
 
 function Log:nextTurn()
   if #self._head > 0 then
+    table.insert(self._head, 'ending turn '..self._next_turn)
     self._turns[self._next_turn] = self._head
     self._turns[self._next_turn-20] = nil  -- FIXME: replace 20 with setting
     self._head = {}
     self._next_turn = self._next_turn + 1
+    self.dirty = true
   end
 end
 

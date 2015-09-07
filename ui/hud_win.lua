@@ -8,6 +8,7 @@ local HudWin = Tree:subclass {
   stack = nil;
   content = nil;
   colour = { 192, 192, 192 };
+  scrollable = false;
 }
 
 function HudWin:__init(...)
