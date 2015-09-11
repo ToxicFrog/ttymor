@@ -1,7 +1,4 @@
-local Tree = require 'ui.Tree'
-local Node = require 'ui.Node'
-
-local HudWin = Tree:subclass {
+local HudWin = ui.Box:subclass {
   position = 'fixed';
   readonly = true;
   visible = true;
@@ -12,21 +9,26 @@ local HudWin = Tree:subclass {
 }
 
 function HudWin:__init(...)
-  Tree.__init(self, ...)
+  ui.Box.__init(self, ...)
   self.stack = {}
+  self.list = ui.List {
+    visible = true;
+    name = "hudlist";
+    x = 1; y = 1;
+    position = "fixed";
+  }
+  self:attach(self.list)
+  self.list.w = self.w-2
+  self.list.h = self.h-2
 end
 
 -- Width and height of the HUD are fixed, so this is a no-op.
 function HudWin:resize() end
 
 function HudWin:setContent(data)
+  self.list.content = data
   self.content = data
   self.name = data.name
-  self.root = Node(self, nil, {
-    name = data.name;
-    unpack(data);
-  })
-  self:refresh()
 end
 
 function HudWin:pushContent()

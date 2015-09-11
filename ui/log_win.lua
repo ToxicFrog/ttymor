@@ -5,13 +5,11 @@ local LogWin = ui.Box:subclass {
 }
 
 function LogWin:__init(...)
-  ui.Window.__init(self, ...)
+  ui.Box.__init(self, ...)
   self.list = ui.List {
     visible = true;
     name = "loglist";
     x = 1; y = 1;
-    w = self.w-2;
-    h = self.h-2;
     position = "fixed";
   }
   self:attach(self.list)

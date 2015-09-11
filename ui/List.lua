@@ -38,18 +38,24 @@ function List:scroll_to_index(n)
   self.scroll = math.bound(n - self.h/2, 0, self.max_scroll):floor()
 end
 
+local function renderLabel(ent, x, y, w)
+  if type(ent) == 'string' then
+    tty.put(x, y, ent:sub(1, w))
+  elseif ent.renderLabel then
+    ent:renderLabel(x, y, w)
+  else
+    if ent.colour then tty.colour(unpack(ent.colour)) end
+    if ent.style then tty.style(ent.style) end
+    renderLabel(ent.text, x, y, w)
+  end
+end
+
 -- Render the list. Note that this does not draw a frame around it or any such
 -- decorations; if you want that wrap it in a Box.
 function List:render()
   for y=0,self.h-1 do
-    local line = self.content[1+y+self.scroll] or { text='.' }
-    if line.colour then
-      tty.colour(unpack(line.colour))
-    end
-    if line.style then
-      tty.style(line.style)
-    end
-    tty.put(0, y, line.text)
+    local line = self.content[1+y+self.scroll] or ''
+    renderLabel(line, 0, y, self.w)
   end
 end
 
