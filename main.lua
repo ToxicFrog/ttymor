@@ -11,7 +11,6 @@ if not love then
   require 'lovecompat'
 else
   error 'running under love2d is not yet supported'
-  love.readkey = function() end
 end
 
 flags.register "help" {
@@ -75,32 +74,13 @@ function love.draw()
   ui.draw()
 end
 
-local state = 0
-local keybuffer = {}
-
 function love.keypressed(key)
-  table.insert(keybuffer, key)
+  local cmd = ui.keyToCommand(key)
+  ui.screen:keyEvent(key, cmd)
 end
 
 function love.update(t)
-  local _
-  if state == 'key' then
-    -- get a key from the keybuffer, and pass it to the main thread
-    -- if the keybuffer is empty, just sleep briefly and return
-    love.readkey(keybuffer)
-    if #keybuffer > 0 then
-      state = turn(table.remove(keybuffer, 1))
-    else
-      log.debug('sleeping')
-      love.timer.sleep(0.033)
-    end
-  else
-    -- state is a delay; decrement it and then resume
-    state = state - t
-    if state <= 0 then
-      state = turn()
-    end
-  end
+  love.timer.sleep(0.033 - t)
 end
 
 function love.errhand(...)

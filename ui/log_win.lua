@@ -44,4 +44,12 @@ function LogWin:render()
   ui.Box.render(self)
 end
 
+function LogWin:cmd_scrollup()
+  self.list:page_up()
+end
+
+function LogWin:cmd_scrolldn()
+  self.list:page_down()
+end
+
 return LogWin

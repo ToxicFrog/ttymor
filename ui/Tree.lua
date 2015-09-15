@@ -101,12 +101,16 @@ function Tree:render()
   ui.box(nil, self.name)
 
   if self.scrollable then
-    -- render scrollbar
-    ui.clear({ x=self.w-1; y=1; w=1; h=self.text_h }, '┊')
+    local h = self.text_h
+    local lines = self.rows
+    local sb_height = ((h/lines) * (h-2)):floor():bound(1, self.h-4)
+    local sb_distance = (self.scroll / (lines-h)
+        * (h - 2 - sb_height)):floor():bound(0, self.h-4-sb_height)
+
+    ui.clear({ x=self.w-1; y=2; w=1; h=self.h-4 }, '┊')
     tty.put(self.w-1, 1, '┻')
-    tty.put(self.w-1, self.text_h, '┳')
-    local sb_distance = (self.scroll/(self.rows - self.text_h)*(self.text_h - 2 - self.scroll_height)):floor()
-    ui.clear({ x=self.w-1; y=2+sb_distance; w=1; h=self.scroll_height }, '▓') --█
+    tty.put(self.w-1, self.h-2, '┳')
+    ui.clear({ x=self.w-1; y=2+sb_distance; w=1; h=sb_height }, '▓') --█
   end
 
   for y=1,self.text_h:min(self.rows) do
@@ -137,55 +141,9 @@ function Tree:refresh()
   end
 end
 
--- Call an event handler appropriate for a given input event.
--- The search works thus:
--- If there is no self.bindings entry for the event, it is ignored entirely.
--- If the entry is a function, it's called and passed self.
--- If the entry is a string, and the focused node has a method with that name,
--- the method is called.
--- If it's a string and the tree has a method with that name, it's called.
--- In all of the previous three cases, if the function called returns a value,
--- that value is returned.
--- If none of the above cases apply, an error is raised.
-function Tree:call_handler(key)
-  key = self.bindings[key]
-  if not key then return end
-  local node = self:focused()
-
-  if type(key) == 'function' then
-    return key(self)
-  elseif type(node[key]) == 'function' then
-    return node[key](node)
-  elseif type(self[key]) == 'function' then
-    return self[key](self)
-  else
-    return error("no handler in tree for %s -- wanted function, got %s (node) and %s (tree)",
-        key, type(node[key]), type(self[key]))
-  end
-end
-
 -- The user has declined to choose a node at all.
 function Tree:cancel()
-  return false
-end
-
--- Run the tree UI loop. Repeatedly render the tree, get input, and call the
--- handler, if any, for that input event. As soon as a handler returns a non-
--- nil value, break out of the loop and return that value.
-function Tree:run()
-  self:refresh()
-  ui.pushHUD()
-  if not self.readonly then
-    self:set_focus(1)
-  end
-  self:show()
-  local R
-  repeat
-    R = self:call_handler(ui.readkey())
-  until R ~= nil
-  ui.popHUD()
-  self:hide()
-  return R
+  self:destroy()
 end
 
 -- Recalculate the width and height for the tree.
@@ -218,29 +176,45 @@ function Tree:reposition()
   self.text_h = self.h - 2
 end
 
--- Default command bindings for tree mode.
--- This lets you navigate with the directional keys, choose a node (exiting tree
--- mode and returning that node) with enter, and cancel (exiting tree mode and
--- returning false) with cancel.
-local bindings = {
-  up = 'focus_prev';
-  down = 'focus_next';
-  left = 'collapse';
-  right = 'expand';
-  activate = 'activate';
-  cancel = 'cancel';
-  scrollup = 'focus_page_up';
-  scrolldn = 'focus_page_down';
-}
+function Tree:cmd_up()
+  self:focus_prev()
+  return true
+end
 
-local readonly_bindings = {
-  up = 'scroll_up';
-  down = 'scroll_down';
-  activate = 'cancel';
-  cancel = 'cancel';
-  scrollup = 'page_up';
-  scrolldn = 'page_down';
-}
+function Tree:cmd_down()
+  self:focus_next()
+  return true
+end
+
+function Tree:cmd_left()
+  self:focused():collapse()
+  return true
+end
+
+function Tree:cmd_right()
+  self:focused():expand()
+  return true
+end
+
+function Tree:cmd_activate()
+  self:focused():activate()
+  return true
+end
+
+function Tree:cmd_cancel()
+  self:cancel()
+  return true
+end
+
+function Tree:cmd_scrollup()
+  self:focus_page_up()
+  return true
+end
+
+function Tree:cmd_scrolldn()
+  self:focus_page_down()
+  return true
+end
 
 function Tree:__init(data)
   Window.__init(self, data)
@@ -254,6 +228,7 @@ function Tree:__init(data)
   else
     self.bindings = setmetatable(self.bindings or {}, {__index = bindings})
   end
+  self:refresh()
 end
 
 return Tree

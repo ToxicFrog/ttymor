@@ -9,4 +9,8 @@ function MainWin:render()
   game.getMap(z):render_screen(x,y)
 end
 
+function MainWin:key_any(key, cmd)
+  return ui.Window.handleEvent(game.get('player'), key, cmd)
+end
+
 return MainWin

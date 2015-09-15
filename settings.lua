@@ -21,16 +21,11 @@ local registered = settings.categories;
 
 settings.tree = Tree {
   name = "Configuration";
-  cancel = function()
+  visible = true;
+  cancel = function(self)
     settings.load()
-    return false
+    self:detach()
   end;
-  -- empty function so that trying to reset settings that
-  -- don't support it doesn't blow up
-  reset = function() end;
-  bindings = {
-    ['key:del'] = 'reset';
-  };
 }
 
 local function assert_registered(cat, key)
@@ -116,12 +111,14 @@ function settings.show()
 end
 
 function settings.edit()
-  if not settings.tree.parent then
+  if not settings.tree.constructed then
+    -- We defer adding these nodes so that they occur at the bottom of the
+    -- settings list.
     settings.tree.root:addNode {
       name = "Save Configuration";
-      activate = function()
+      activate = function(self)
         if settings.save() then
-          return false
+          self.tree:cancel()
         end
       end;
     }
@@ -129,12 +126,8 @@ function settings.edit()
       name = "Cancel";
       activate = function(self) return self.tree:cancel() end;
     }
-    ui.main_win:attach(settings.tree)
+    settings.tree:refresh()
+    settings.tree.constructed = true
   end
-
-  assert(settings.tree.cancel ~= ui.Tree.cancel)
-
-  settings.tree:show()
-  settings.tree:run()
-  settings.tree:hide()
+  ui.main_win:attach(settings.tree)
 end

@@ -13,10 +13,12 @@ function Window:__init(...)
   self.children = {}
 end
 
--- Calculate the window's preferred size. By default this just asserts that
--- width and height are set, but subclasses may do more.
-function Window:resize()
+-- Given the width and height available for the window to use, set its preferred
+-- width and height.
+function Window:resize(w, h)
   assert(self.w and self.h, 'window created without width or height')
+  -- self.w = self.w:min(w)
+  -- self.h = self.h:min(h)
 end
 
 -- Calculate the window's (x,y) position and bounds based on the 'position'
@@ -33,6 +35,42 @@ function Window:reposition()
   else
     error('unsupported value "%s" for position', self.position)
   end
+end
+
+-- Called to handle a keystroke from the user. Key is the name of the keystroke;
+-- cmd, if set, is the name of the corresponding command based on the current
+-- bindings.
+-- First it passes the event to all of its children, in descending order; if
+-- any of them handle it, it immediately returns.
+-- Then it checks to see if it knows how to handle it, and if so, calls the
+-- handler. The handler can explicitly return false for "I did not handle this
+-- event, propagate it normally"; any other return, including nil, counts as
+-- handling it.
+-- It checks the children in descending order so that the topmost (i.e. most
+-- recently attached) window gets to see it first.
+function Window:keyEvent(key, cmd)
+  if not self.visible then return false end
+  for i=#self.children,1,-1 do
+    if self.children[i]:keyEvent(key, cmd) == true then return true end
+  end
+  return self:handleEvent(key, cmd)
+end
+
+function Window:handleEvent(key, cmd)
+  local handlers
+  if cmd then
+    handlers = { 'cmd_'..cmd, 'cmd_any', 'key_'..key, 'key_any' }
+  else
+    handlers = { 'key_'..key, 'key_any' }
+  end
+  for _,name in ipairs(handlers) do
+    if self[name] then
+      local r = self[name](self, key, cmd)
+      if r == true then return true end
+      assertf(r == false, 'event handler %s:%s must return either true or false', self, name)
+    end
+  end
+  return false
 end
 
 function Window:show()
@@ -76,6 +114,7 @@ function Window:detach(subwin)
   for i,v in ipairs(self.children) do
     if v == subwin then
       table.remove(self.children, i)
+      v.parent = nil
       return
     end
   end

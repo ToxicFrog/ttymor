@@ -1,6 +1,5 @@
 local HudWin = ui.Box:subclass {
   position = 'fixed';
-  readonly = true;
   visible = true;
   stack = nil;
   content = nil;

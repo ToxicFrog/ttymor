@@ -145,9 +145,8 @@ end
 -- returns a value.
 function ui.tree(tree)
   tree = ui.Tree(tree)
+  tree.visible = true
   ui.main_win:attach(tree)
-  tree:run()
-  tree:destroy()
 end
 
 function ui.message(title, message)

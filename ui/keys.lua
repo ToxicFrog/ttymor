@@ -1,8 +1,7 @@
 local bindings = {} -- key -> command map
 
-function ui.readkey()
-  local key = tty.readkey()
-  return bindings[key] or 'key:'..key
+function ui.keyToCommand(key)
+  return bindings[key]
 end
 
 local function set(...)
@@ -65,7 +64,6 @@ settings.Category {
     local r,e = ui.validate_bindings()
     if not r then
       e.colour = { 255, 0, 0 }
-      e.readonly = true
       table.insert(e, '')
       table.insert(e, 'Keybinds not saved.')
       ui.message('Error', e)
@@ -96,12 +94,14 @@ function KeySetting:activate()
     w = #self.name + 4;
     h = 3;
   }
-  ui.main_win:attach(box)
-  local key = tty.readkey()
-  if key ~= self.value[1] then
-    self:set { key, self.value[1] }
+  function box.key_any(box, key)
+    if key ~= self.value[1] then
+      self:set { key, self.value[1] }
+    end
+    box:destroy()
+    return true
   end
-  box:destroy()
+  ui.main_win:attach(box)
 end
 
 function KeySetting:reset()
