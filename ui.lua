@@ -1,9 +1,9 @@
 ui = {}
 
-ui.List = require 'ui.List'
 ui.Window = require 'ui.Window'
-ui.Tree = require 'ui.Tree'
 ui.Box = require 'ui.Box'
+ui.List = require 'ui.List'
+ui.Tree = require 'ui.Tree'
 
 function ui.init()
   local w,h = tty.init()
@@ -154,9 +154,25 @@ function ui.message(title, message)
     return ui.message(title, {message})
   end
 
-  message = table.copy(message)
-  message.name = title
-  ui.tree(message)
+  message.visible = true
+  message.x = 1
+  message.y = 1
+  local list = ui.List(message)
+  list:resize()
+  local box = ui.Box {
+    visible = true;
+    position = "center";
+    w = list.w + 2;
+    h = list.h + 2;
+  }
+  function box:cmd_any()
+    list:destroy()
+    self:destroy()
+    return true
+  end
+
+  box:attach(list)
+  ui.main_win:attach(box)
 end
 
 function ui.clear(view, char)

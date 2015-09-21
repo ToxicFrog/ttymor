@@ -56,6 +56,7 @@ function Map:frob(x, y, title, frobber)
   local node = { name = title, expanded = true }
   local cell = self[x][y]
   for i=#cell,1,-1 do
+    local action = cell[1]:frob(frobber)
     table.insert(node, cell[i]:frob(frobber) or nil)
   end
   if #node > 0 then

@@ -44,6 +44,11 @@ function Control:cmd_activate()
   table.insert(tree, self:map():frob(x, y+1, "South", self) or nil)
   table.insert(tree, self:map():frob(x-1, y, "West", self) or nil)
   table.insert(tree, self:map():frob(x+1, y, "East", self) or nil)
+  function tree:cmd_activate(...)
+    ui.Tree.cmd_activate(self)
+    self:destroy()
+    return true
+  end
   log.error('%s', repr(tree))
   if #tree > 0 then
     ui.tree(tree)

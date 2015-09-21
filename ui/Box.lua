@@ -4,7 +4,7 @@ local Box = Window:subclass {}
 function Box:render()
   ui.box(nil, self.name)
   -- render scrollbar, if applicable
-  if self.content and self.content.scrollable then
+  if self.content and self.content.scrollable and self.content.max_scroll > 0 then
     local h = self.content.h
     local lines = self.content.max_scroll + h
     local sb_height = ((h/lines) * (h-2)):floor():bound(1, self.h-4)

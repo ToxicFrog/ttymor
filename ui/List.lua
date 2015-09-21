@@ -78,16 +78,23 @@ function List:add(line)
   if type(line) == 'string' then
     line = { text = line }
   end
-  assertf(type(line) == 'table' and line.text,
-    "Bad content in List: element %d must be string or properly structured table, got %s",
-    #self.content+1, repr(line))
+  if not type(line) == 'table' and (line.text or line.renderLabel) then
+    error(
+      "Bad content in List: element %d must be string or properly structured table, got %s",
+      #self.content+1, repr(line))
+  end
   table.insert(self.content, line)
   self.max_scroll = (#self.content - self.h):max(0)
+end
+
+function List:len()
+  return #self.content
 end
 
 function List:__init(data)
   Window.__init(self, data)
   self:clear()
+  self.h = self.h or #self
   for i,line in ipairs(self) do
     self:add(line)
     self[i] = nil

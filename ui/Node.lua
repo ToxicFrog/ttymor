@@ -9,10 +9,11 @@ local Node = Object:subclass {
 function Node:__init(tree, parent, data)
   if type(data) == 'string' then
     data = {
-      name = data;
+      text = data;
     }
   end
   Object.__init(self, data)
+  assert(self.name, "All TreeNodes are required to have a name")
   for k,v in pairs(data) do
     assert(v == self[k])
   end
@@ -48,8 +49,8 @@ function Node:renderLabel(x, y)
   if self.focused then
     tty.style('v')
   end
-  tty.put(x, y, (' '):rep(self.tree.text_w))
-  tty.put(x+self.depth, y, self:label(self.tree.text_w - self.depth))
+  tty.put(x, y, (' '):rep(self.tree.list.w))
+  tty.put(x+self.depth, y, self:label(self.tree.list.w - self.depth))
   if self.focused then
     tty.style('V')
   end
@@ -62,7 +63,6 @@ end
 -- Note that this function is called during initialization for width calculation,
 -- at which point the current width is 0. It should handle this gracefully.
 function Node:label(width)
-  assert(self.name, "All TreeNodes are required to have names")
   if #self == 0 then
     return self.name
   elseif self.expanded then
