@@ -88,20 +88,15 @@ function KeySetting:show()
 end
 
 function KeySetting:activate()
-  local box = ui.Box {
-    name = self.name;
-    visible = true;
-    w = #self.name + 4;
-    h = 3;
-  }
-  function box.key_any(box, key)
+  local msg = ui.message(self.name, "Press any key...")
+  msg.cmd_any = nil
+  function msg.key_any(msg, key)
     if key ~= self.value[1] then
       self:set { key, self.value[1] }
     end
-    box:destroy()
+    msg:destroy()
     return true
   end
-  ui.main_win:attach(box)
 end
 
 function KeySetting:reset()

@@ -1,6 +1,11 @@
 local Window = require 'ui.Window'
 local Box = Window:subclass {}
 
+function Box:__init(...)
+  ui.Window.__init(self, ...)
+  assertf(self.content, 'Box %s created without content', self.name)
+end
+
 function Box:render()
   ui.box(nil, self.name)
   -- render scrollbar, if applicable
@@ -15,19 +20,31 @@ function Box:render()
     tty.put(self.w-1, self.h-2, '┳')
     ui.clear({ x=self.w-1; y=2+sb_distance; w=1; h=sb_height }, '▓') --█
   end
+
+  self.content:renderAll()
 end
 
 function Box:attach(child)
-  assertf(#self.children == 0, 'Boxes can only have one child.')
-  Window.attach(self, child)
-  self.content = child
+  error('Box:attach')
 end
 
 function Box:detach(child)
-  Window.detach(self, child)
   if child then
-    self.content = nil
+    error('Box:detach')
+  else
+    return ui.Window.detach(self)
   end
+end
+
+-- Boxes assume their configured size is authoritative; if they exceed container
+-- limits the caller will assert. They trim 2 cells off each dimension for their
+-- children because margins.
+function Box:resize(w, h)
+  return self.w-2,self.h-2
+end
+
+function Box:resizeChildren(w, h)
+  self.content:resize(w, h)
 end
 
 return Box

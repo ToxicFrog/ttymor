@@ -153,26 +153,30 @@ function ui.message(title, message)
   if type(message) == 'string' then
     return ui.message(title, {message})
   end
+  local w = #title + 4
+  for i,line in ipairs(message) do
+    w = w:max(#line)
+  end
 
   message.visible = true
   message.x = 1
   message.y = 1
   local list = ui.List(message)
-  list:resize()
   local box = ui.Box {
+    name = title;
     visible = true;
     position = "center";
-    w = list.w + 2;
-    h = list.h + 2;
+    w = w + 2;
+    h = #message + 2;
+    content = list;
   }
   function box:cmd_any()
-    list:destroy()
     self:destroy()
     return true
   end
 
-  box:attach(list)
   ui.main_win:attach(box)
+  return box
 end
 
 function ui.clear(view, char)

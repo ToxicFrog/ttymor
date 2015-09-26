@@ -19,48 +19,44 @@ function Tree:__init(data)
     nodes[i] = v
     data[i] = nil
   end
-  ui.Box.__init(self, data)
-  self.root = Node(self, nil, {
-    name = self.name;
-    unpack(nodes);
-  })
-  self.list = ui.List {
+  data.content = nil
+  data.root = nil
+
+  self.content = ui.List {
+    name = data.name .. '$internal_list';
     visible = true;
     x = 1; y = 1; position = 'fixed';
   }
-  self:attach(self.list)
-
-  self:refresh()
+  self.root = Node(self, nil, {
+    name = data.name .. '$root';
+    unpack(nodes);
+  })
+  ui.Window.__init(self, data)
 end
 
--- Recalculate the width and height for the tree.
--- Overrides Window:resize.
-function Tree:resize()
-  local w,h = 0,0
+-- Recalculate the width and height for the tree based on its contents.
+function Tree:resize(w, h)
+  local tree_w,tree_h = 0,0
   self.root:size()
 
+  tree_w = self.root.w
+  tree_h = self.root.h - 1  -- the root node counts itself in the size, but doesn't take up a row on screen
   if self.name then
-    w = #self.name
+    tree_w = tree_w:max(#self.name)
   end
 
-  self.list.w = w:max(self.root.w)
-  self.list.h = self.root.h - 1  -- the root node doesn't take up a row
+  self.w = w:min(tree_w+2)
+  self.h = h:min(tree_h+2)
 
-  self.w = self.list.w+2
-  self.h = self.list.h+2
+  return self.w-2,self.h-2
+end
 
+function Tree:reposition(...)
+  ui.Box.reposition(self, ...)
+  self:refresh()
   if self._focused == 0 then
     self:set_focus(1)
   end
-  self:refresh()
-end
-
--- Override for Window:reposition() so that we set text_w and text_h appropriately
--- after potentially being resized.
-function Tree:reposition()
-  ui.Window.reposition(self)
-  self.list.w = self.w - 2
-  self.list.h = self.h - 2
 end
 
 -- Focus the given node.
@@ -68,7 +64,7 @@ function Tree:set_focus(index)
   if self:focused() then
     self:focused().focused = false
   end
-  self._focused = (index-1) % self.list:len() + 1
+  self._focused = (index-1) % self.content:len() + 1
   local node = self:focused()
   node.focused = true
   if node.help then
@@ -79,9 +75,9 @@ function Tree:set_focus(index)
 end
 
 function Tree:focused()
-  assertf(self.list:len() >= self._focused, "focus %d exceeds internal node list %d",
-      self._focused, self.list:len())
-  return self.list.content[self._focused]
+  assertf(self.content:len() >= self._focused, "focus %d exceeds internal node list %d",
+      self._focused, self.content:len())
+  return self.content.content[self._focused]
 end
 
 -- Select the previous visible node.
@@ -97,18 +93,18 @@ function Tree:focus_next()
 end
 
 function Tree:focus_page_up()
-  self:set_focus(self._focused - (self.text_h:min(self.rows)/2):ceil())
+  self:set_focus(self._focused - (self.content.h/2):ceil())
   self:scroll_to_focused()
 end
 
 function Tree:focus_page_down()
-  self:set_focus(self._focused + (self.text_h:min(self.rows)/2):ceil())
+  self:set_focus(self._focused + (self.content.h/2):ceil())
   self:scroll_to_focused()
 end
 
 -- Scroll so that the focused element is in the center of the screen, or close to.
 function Tree:scroll_to_focused()
-  self.list:scroll_to_index(self._focused)
+  self.content:scroll_to_index(self._focused)
 end
 
 -- Return a DFS iterator over all nodes in the tree; yields (node,depth) for
@@ -128,10 +124,10 @@ end
 -- Build the list of displayable nodes. Called when the list changes due to nodes
 -- being expanded or collapsed.
 function Tree:refresh()
-  self.list:clear()
+  self.content:clear()
   for node in self:walk() do
-    self.list:add(node)
-    node.index = self.list:len()
+    self.content:add(node)
+    node.index = self.content:len()
     if node.focused then
       self._focused = node.index
     end

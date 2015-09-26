@@ -32,7 +32,7 @@ end
 
 -- Calculate width and height of this node.
 function Node:size()
-  self.w = #self:label(0) + self.depth
+  self.w = #self:label(0) + self.depth + 1
   self.h = 1
 
   for i,child in ipairs(self) do
@@ -49,8 +49,8 @@ function Node:renderLabel(x, y)
   if self.focused then
     tty.style('v')
   end
-  tty.put(x, y, (' '):rep(self.tree.list.w))
-  tty.put(x+self.depth, y, self:label(self.tree.list.w - self.depth))
+  tty.put(x, y, (' '):rep(self.tree.content.w))
+  tty.put(x+self.depth, y, self:label(self.tree.content.w - self.depth))
   if self.focused then
     tty.style('V')
   end

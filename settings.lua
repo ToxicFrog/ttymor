@@ -26,6 +26,12 @@ settings.tree = Tree {
     settings.load()
     self:detach()
   end;
+  key_del = function(self)
+    if self:focused().reset then
+      self:focused():reset()
+    end
+    return true
+  end;
 }
 
 local function assert_registered(cat, key)
@@ -126,7 +132,6 @@ function settings.edit()
       name = "Cancel";
       activate = function(self) return self.tree:cancel() end;
     }
-    settings.tree:refresh()
     settings.tree.constructed = true
   end
   ui.main_win:attach(settings.tree)

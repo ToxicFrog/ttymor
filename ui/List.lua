@@ -59,14 +59,12 @@ function List:render()
   end
 end
 
--- Calculate the preferred width and height of the list, based on the size of
--- its contents.
-function List:resize()
-  self.h = #self.content
-  self.w = 0
-  for _,line in ipairs(self.content) do
-    self.w = self.w:max(#line.text)
-  end
+-- Lists just blindly inherit the size of their parents.
+function List:resize(w, h)
+  self.w = w
+  self.h = h
+  self.max_scroll = (#self.content - self.h):max(0)
+  return w,h
 end
 
 function List:clear()
@@ -84,7 +82,7 @@ function List:add(line)
       #self.content+1, repr(line))
   end
   table.insert(self.content, line)
-  self.max_scroll = (#self.content - self.h):max(0)
+  -- self.max_scroll = (#self.content - self.h):max(0)
 end
 
 function List:len()
@@ -94,7 +92,6 @@ end
 function List:__init(data)
   Window.__init(self, data)
   self:clear()
-  self.h = self.h or #self
   for i,line in ipairs(self) do
     self:add(line)
     self[i] = nil

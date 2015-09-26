@@ -97,33 +97,37 @@ function dredmor.debug_rooms()
     }
     table.insert(tree, node)
     function node:activate()
-      local message = {}
+      local message = { name = self.name }
 
       local terrain = { name = "TERRAIN"; expanded = true }
       for x,y,cell in self._room:cells() do
         terrain[y] = (terrain[y] or '') .. asChar(cell)
       end
+      for y,row in ipairs(terrain) do
+        terrain[y] = { name = row }
+      end
 
       local flags = { name = "FLAGS" }
       for k,v in pairs(self._room.flags) do
-        table.insert(flags, k..': '..v)
+        table.insert(flags, { name = k..': '..v })
       end
 
       local doors = { name = "DOORS" }
       for door in self._room:doors() do
-        table.insert(doors, (repr({x=door.x;y=door.y;dir=door.dir}):gsub('%s+', ' ')))
+        table.insert(doors,
+            { name = (repr({x=door.x;y=door.y;dir=door.dir}):gsub('%s+', ' ')) })
       end
 
       local contents = { name = "CONTENTS" }
       for _,v in ipairs(self._room.contents) do
-        table.insert(contents, v._type..': '..(v.name or '???'))
+        table.insert(contents, {name = v._type..': '..(v.name or '???')})
       end
 
       table.insert(message, terrain)
       table.insert(message, flags)
       table.insert(message, doors)
       table.insert(message, contents)
-      ui.message(self.name, message)
+      ui.tree(message)
     end
   end
   table.sort(tree, function(a,b) return a.name < b.name end)

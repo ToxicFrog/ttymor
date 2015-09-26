@@ -2,36 +2,32 @@ local HudWin = ui.Box:subclass {
   position = 'fixed';
   visible = true;
   stack = nil;
-  content = nil;
+  top = nil;
   colour = { 192, 192, 192 };
   scrollable = false;
 }
 
 function HudWin:__init(...)
-  ui.Box.__init(self, ...)
+  ui.Window.__init(self, ...)
   self.stack = {}
-  self.list = ui.List {
+  self.content = ui.List {
     visible = true;
     name = "hudlist";
     x = 1; y = 1;
     position = "fixed";
+    w = self.w-2;
+    h = self.h-2;
   }
-  self:attach(self.list)
-  self.list.w = self.w-2
-  self.list.h = self.h-2
 end
 
--- Width and height of the HUD are fixed, so this is a no-op.
-function HudWin:resize() end
-
 function HudWin:setContent(data)
-  self.list.content = data
-  self.content = data
+  self.content.content = data
+  self.top = data
   self.name = data.name
 end
 
 function HudWin:pushContent()
-  table.insert(self.stack, self.content)
+  table.insert(self.stack, self.top)
 end
 
 function HudWin:popContent()

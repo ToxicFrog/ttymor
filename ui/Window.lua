@@ -14,24 +14,31 @@ function Window:__init(...)
 end
 
 -- Given the width and height available for the window to use, set its preferred
--- width and height.
+-- width and height, and then resize its children.
+-- Contract: the w and h of this window may not exceed the values passed in.
+-- If this cannot be satisfied, it must assert.
+-- Subclasses should override this to implement e.g. margins.
 function Window:resize(w, h)
-  assert(self.w and self.h, 'window created without width or height')
-  -- self.w = self.w:min(w)
-  -- self.h = self.h:min(h)
+  return self.w,self.h
+end
+
+function Window:resizeChildren(w, h)
+  for _,child in ipairs(self.children) do
+    child:resize(w, h)
+  end
 end
 
 -- Calculate the window's (x,y) position and bounds based on the 'position'
 -- property and the size of the parent.
-function Window:reposition()
-  self:resize()
+function Window:reposition(w, h)
+  self:resizeChildren(self:resize(w, h))
+  assertf(self.w and self.h, 'window %s has no width or height', self.name)
+  assert(self.w <= w and self.h <= h, 'window size exceeds container size')
   if self.position == 'fixed' then
-    assert(self.x and self.y, 'position == fixed requires x and y to be specified')
+    -- pass
   elseif self.position == 'center' then
-    self.w = self.w:min(self.parent.w)
-    self.h = self.h:min(self.parent.h)
-    self.x = ((self.parent.w - self.w)/2):floor():max(0)
-    self.y = ((self.parent.h - self.h)/2):floor():max(0)
+    self.x = ((w - self.w)/2):floor():max(0)
+    self.y = ((h - self.h)/2):floor():max(0)
   else
     error('unsupported value "%s" for position', self.position)
   end
@@ -83,7 +90,11 @@ end
 
 function Window:renderAll()
   if not self.visible then return end
-  local t = os.clock()
+  local t
+  if flags.parsed.ui_perf and self.name then
+    t = os.clock()
+    log.debug('  begin: %s', self.name)
+  end
   tty.pushwin(self)
   self:render()
   for _,win in ipairs(self.children) do
@@ -101,7 +112,7 @@ function Window:attach(subwin)
   assert(not subwin.parent, 'attempt to attach non-orphan window')
   table.insert(self.children, subwin)
   subwin.parent = self
-  subwin:reposition()
+  subwin:reposition(self:resize(self.w, self.h))
   log.debug('  child %dx%d @ (%d,%d)', subwin.w, subwin.h, subwin.x, subwin.y)
 end
 
