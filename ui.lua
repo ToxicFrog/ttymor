@@ -116,7 +116,8 @@ function ui.mainmenu()
   ui.tree {
     name = 'Main Menu';
     { name = 'Return to Game';
-      help = 'Close the menu and return to the game in progress.' };
+      help = 'Close the menu and return to the game in progress.';
+      activate = function(self) return self.tree:cancel() end; };
     { name = 'Configuration';
       activate = settings.edit;
       help = 'Change game settings and key bindings.' };
@@ -127,10 +128,10 @@ function ui.mainmenu()
       activate = dredmor.debug_rooms;
       help = 'View the raw contents of the room database.' };
     { name = 'Save Game';
-      activate = function() game.save(); return false; end;
+      activate = function(self) game.save(); return self.tree:cancel(); end;
       help = 'Save your game in progress.' };
     { name = 'Load Game';
-      activate = function() game.load(game.name()); return false; end;
+      activate = function(self) game.load(game.name()); return self.tree:cancel(); end;
       help = 'Load your last save.' };
     { name = 'Quit And Save';
       activate = function() game.save(); love.event.quit(); end;

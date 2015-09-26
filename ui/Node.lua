@@ -113,14 +113,6 @@ end
 function Node:activate()
   if #self > 0 then
     return self:toggle()
-  else
-    -- HACK HACK HACK
-    -- The old Tree/Node API assumed that returning anything from a handler
-    -- meant the tree should destroy itself. This was the default behaviour of
-    -- activate.
-    -- I'm hacking in similar behaviour here to get the menus working post-keyinput
-    -- rewrite. TODO: remove this during the Tree rewrite.
-    return self.tree:cancel()
   end
 end
 
