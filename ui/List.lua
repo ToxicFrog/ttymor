@@ -5,6 +5,7 @@ local Window = require 'ui.Window'
 
 local List = Window:subclass {
   -- Number of lines scrolled down.
+  h = 1;
   scroll = 0;
   max_scroll = 0;
   scrollable = true;
@@ -61,9 +62,10 @@ end
 
 -- Lists just blindly inherit the size of their parents.
 function List:resize(w, h)
+  self.max_scroll = (#self.content - h):max(0)
+  --self.scroll = (self.scroll + self.h - h):bound(0, self.max_scroll)
   self.w = w
   self.h = h
-  self.max_scroll = (#self.content - self.h):max(0)
   return w,h
 end
 
@@ -82,7 +84,7 @@ function List:add(line)
       #self.content+1, repr(line))
   end
   table.insert(self.content, line)
-  -- self.max_scroll = (#self.content - self.h):max(0)
+  self.max_scroll = (#self.content - self.h):max(0)
 end
 
 function List:len()

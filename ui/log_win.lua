@@ -16,6 +16,12 @@ function LogWin:__init(...)
   }
 end
 
+function LogWin:resize(w, h)
+  self.w = w
+  self.h = h
+  return w-2,h-2
+end
+
 function LogWin:render()
   if game.log.dirty then
     self.content:clear()
@@ -33,10 +39,6 @@ function LogWin:render()
         }
       end
     end
-    -- HACK HACK HACK
-    -- Oh my god, this is awful.
-    -- Maybe we can do something about it after the input handling rewrite.
-    ui.log_win.content:scroll_to_index(-1)
     game.log.dirty = false
     self.content:scroll_to_index(-1)
   end
@@ -45,10 +47,12 @@ end
 
 function LogWin:cmd_scrollup()
   self.content:page_up()
+  return true
 end
 
 function LogWin:cmd_scrolldn()
   self.content:page_down()
+  return true
 end
 
 return LogWin

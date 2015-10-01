@@ -21,19 +21,20 @@ function ui.init()
     end;
   }
 
-  -- log is upper right, 40 cols wide and half the screen high
+  -- Log fills the left side of the screen.
   ui.log_win = require 'ui.log_win' {
     position = 'fixed';
     x = 0; y = 0;
-    w = 40; h = (h/2):ceil();
+    w = 40; h = h;
   }
   ui.screen:attach(ui.log_win)
+  ui.log_win.w = 40
 
-  -- HUD is just below log, same width
+  -- HUD overlays log in the upper left.
   ui.hud_win = require 'ui.hud_win' {
     position = 'fixed';
-    x = 0; y = ui.log_win.h;
-    w = 40; h = h - ui.log_win.h;
+    x = 0; y = 0;
+    w = 40; h = 4;
   }
   ui.setHUD('HUD', 'Test HUD content')
   ui.screen:attach(ui.hud_win)
@@ -78,7 +79,7 @@ function ui.popHUD()
 end
 
 -- Draw a box with the upper left corner at (x,y)
-function ui.box(rect, title)
+function ui.box(rect, title, walls)
   if not rect then
     local w,h = tty.size()
     rect = { x = 0; y = 0; w = w; h = h }
@@ -86,11 +87,19 @@ function ui.box(rect, title)
 
   local w,h = tty.pushwin(rect)
 
-  tty.put(0, 0, "┏"..("━"):rep(w-2).."┓")
+  local default_walls = {
+    nw = "┏"; n = "━"; ne = "┓";
+    w  = "┃"; c = " "; e =  "┃";
+    sw = "┗"; s = "━"; se = "┛";
+  }
+  default_walls.__index = default_walls
+  walls = setmetatable(walls or {}, default_walls)
+
+  tty.put(0, 0, walls.nw..walls.n:rep(w-2)..walls.ne)
   for row=1,h-2 do
-    tty.put(0, row, "┃"..(" "):rep(w-2).."┃")
+    tty.put(0, row, walls.w..walls.c:rep(w-2)..walls.e)
   end
-  tty.put(0, h-1, "┗"..("━"):rep(w-2).."┛")
+  tty.put(0, h-1, walls.sw..walls.s:rep(w-2)..walls.se)
   if title then
     tty.put(1, 0, '┫'..title:sub(1, w-4)..'┣')
 --    tty.put(1, 0, '╾'..title..'╼')

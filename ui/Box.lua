@@ -7,7 +7,7 @@ function Box:__init(...)
 end
 
 function Box:render()
-  ui.box(nil, self.name)
+  ui.box(nil, self.name, self.faces)
   -- render scrollbar, if applicable
   if self.content and self.content.scrollable and self.content.max_scroll > 0 then
     local h = self.content.h
