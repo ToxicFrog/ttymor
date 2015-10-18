@@ -27,12 +27,11 @@ end
 -- Create a new entity owned by this map. It will be automatically registered
 -- in the global entity lookup table, but is available only as long as this map
 -- is loaded.
-local Entity = require 'game.Entity'
 function Map:create(type)
   return function(data)
     data.id = game.nextID()
 
-    local ent = Entity(type)(data)
+    local ent = entity.create(type)(data)
     self.entities[data.id] = ent
     game.register(ent)
     return Ref(ent)

@@ -4,6 +4,7 @@ require 'ui'
 require 'settings'
 require 'ui.keys'
 require 'game'
+require 'builtins'
 require 'dredmor'
 
 if not love then

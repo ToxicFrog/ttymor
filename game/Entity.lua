@@ -26,7 +26,7 @@ function Entity:__repr(...)
       state[k] = v
     end
   end
-  return "Entity '%s' %s" % { self._TYPE, repr(state, ...) }
+  return "Ent '%s' %s" % { self._TYPE, repr(state, ...) }
 end
 
 function Entity:frob(frobber)
@@ -53,45 +53,4 @@ function Entity:size()
   self.h = 1
 end
 
-local entity_types = require 'entities'
-
-return function(typename)
-  local def = assertf(entity_types[typename], 'no EntityType found: %s', typename)
-  return function(data)
-    -- "data" is the initializer for this specific entity
-    -- it consists of a few top-level fields like id and name, and 0 or more
-    -- component name => component setting mappings.
-
-    -- "def" is the definition for this EntityType. It has two fields, 'defaults',
-    -- the default top-level values like name, and 'components', a list of
-    -- component definitions. Each component definition has three parts:
-    --  methods, which are copied into the Entity and are not allowed to collide
-    --  meta, which are appended to the Entity's array-part
-    --  defaults, the default settings for that component in this entity type
-
-    data._TYPE = typename
-    table.merge(data, def.defaults, "ignore")
-    table.merge(data, Entity, 'ignore')
-
-    for i,component in ipairs(def.components) do
-      data[i] = component.meta
-      data[component.name] = data[component.name] or {}
-      setmetatable(data[component.name], {__index = component.defaults})
-      table.merge(data, component.methods, 'error')
-    end
-
-    for i,cmp in ipairs(data) do
-      if cmp.__init then
-        cmp.__init(data)
-      end
-    end
-
-    -- When we're done here, the entity's array part contains the list of
-    -- components, in order; each value in this list is a table of methods
-    -- exposed by that component. The table part contains the top-level fields
-    -- plus a field for each component, containing the settings for that
-    -- component, copied from the defaults and shallow-overridden by the values
-    -- in the entity constructor.
-    return setmetatable(data, Entity)
-  end
-end
+return Entity

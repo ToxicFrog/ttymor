@@ -1,8 +1,9 @@
 require "repr"
+require 'game.entity'
 local Map = require 'game.Map'
 
--- These two must be global for game loading. TODO: fix
-Entity = require 'game.Entity'
+-- These must be global for game loading. TODO: fix
+Ent = entity.create
 Ref = require 'game.Ref'
 
 game = {}
