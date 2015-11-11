@@ -29,12 +29,14 @@ function Entity:__repr(...)
   return "Ent '%s' %s" % { self._TYPE, repr(state, ...) }
 end
 
+function Entity:__index(k)
+  return Entity[k] or self._DEF.defaults[k]
+end
+
 function Entity:frob(frobber)
   local node = { name = self.name, expanded = true }
-  for i,cmp in ipairs(self) do
-    if cmp.__frob then
-      table.insert(node, cmp.__frob(self, frobber) or nil)
-    end
+  for i,fn in ipairs(self.__frob or {}) do
+    table.insert(node, fn(self, frobber) or nil)
   end
   if #node > 0 then
     return node
