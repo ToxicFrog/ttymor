@@ -44,10 +44,12 @@ local function renderLabel(ent, x, y, w)
     tty.put(x, y, ent:sub(1, w))
   elseif ent.renderLabel then
     ent:renderLabel(x, y, w)
-  else
+  elseif ent.text then
     if ent.colour then tty.colour(unpack(ent.colour)) end
     if ent.style then tty.style(ent.style) end
     renderLabel(ent.text, x, y, w)
+  else
+    error('renderLabel() called on an entity with no handler and no .text: %s', ent)
   end
 end
 
