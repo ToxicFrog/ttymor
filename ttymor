@@ -2,6 +2,7 @@
 
 cd $(dirname $0)
 >log
+export LOG_LEVEL=debug
 2>/tmp/$$ luajit main.lua \
   --config-dir=./config \
   --dredmor-dir="dredxml" \
