@@ -1,6 +1,7 @@
 local Window = Object:subclass {
   visible = false;
   position = 'center';
+  colour = { 255, 255, 255, 0, 0, 0 };
 }
 
 flags.register 'ui-perf' {
@@ -96,6 +97,9 @@ function Window:renderAll()
     log.debug('  begin: %s', self.name)
   end
   tty.pushwin(self)
+  if self.colour then
+    tty.colour(unpack(self.colour))
+  end
   self:render()
   for _,win in ipairs(self.children) do
     win:renderAll()

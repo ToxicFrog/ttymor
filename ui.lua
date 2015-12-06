@@ -121,7 +121,6 @@ function ui.vline(col)
 end
 
 function ui.mainmenu()
-  tty.colour(0, 255, 255)
   ui.tree {
     name = 'Main Menu';
     { name = 'Return to Game';
