@@ -54,6 +54,8 @@ function love.load(argv)
   settings.load()
   dredmor.loadAll()
 
+  ui.init()
+
   if flags.parsed.load then
     game.load(flags.parsed.load)
   else
@@ -65,8 +67,6 @@ function love.load(argv)
       game.log("%s", suffix)
     end
   end
-
-  ui.init()
 
   turn = coroutine.wrap(turn)
 end
