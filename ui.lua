@@ -28,7 +28,7 @@ function ui.init()
     w = 40; h = h;
   }
   ui.screen:attach(ui.log_win)
-  ui.log_win.w = 40
+  ui.log_win:reposition(40, h)
 
   -- HUD overlays log in the upper left.
   ui.hud_win = require 'ui.hud_win' {
@@ -36,7 +36,6 @@ function ui.init()
     x = 0; y = 0;
     w = 40; h = 4;
   }
-  ui.setHUD('HUD', 'Test HUD content')
   ui.screen:attach(ui.hud_win)
 
   -- main view takes up the remaining space

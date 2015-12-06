@@ -1,4 +1,5 @@
 local HudWin = ui.Box:subclass {
+  name = 'hud';
   position = 'fixed';
   visible = true;
   stack = nil;
