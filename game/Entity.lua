@@ -22,7 +22,7 @@ end
 function Entity:__repr(...)
   local state = {}
   for k,v in pairs(self) do
-    if type(k) ~= 'number' then
+    if type(k) ~= 'number' and not k:match('^_') then
       state[k] = v
     end
   end
