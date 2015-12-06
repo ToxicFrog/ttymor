@@ -15,15 +15,6 @@ function Position:move(dx, dy)
     end
   else
     self:moveTo(x + dx, y + dy)
-    local cell = self:map():cell(x+dx, y+dy)
-    local list = {}
-    for i=1,#cell do
-      list[i] = cell[#cell-i+1]
-    end
-    -- HACK HACK HACK
-    -- This means that every enemy that moves will override the HUD with the
-    -- contents of its square. TODO: move this somewhere player-specific.
-    ui.setHUD(cell.name, list)
   end
 end
 
@@ -44,6 +35,16 @@ function Position:moveTo(x, y)
   end
   self:map():placeAt(self, x, y)
   self.Position.x,self.Position.y = x,y
+  -- HACK HACK HACK
+  -- This should be moved into a Player-specific component.
+  if self._TYPE == 'Player' then
+    local cell = self:map():cell(x, y)
+    local list = {}
+    for i=1,#cell do
+      list[i] = cell[#cell-i+1]
+    end
+    ui.setHUD(cell.name, list)
+  end
 end
 
 function Position:position()
