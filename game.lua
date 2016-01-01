@@ -28,8 +28,11 @@ function game.new(name)
   local map = game.createMap(1, "level 1")
   map:generate(100, 100, "Starting Room")
 
-  local player = game.createSingleton('Player', 'player') {}
+  local tofu = map:create 'Tofu' {}
+  tofu:setMap(map)
+  tofu:moveTo((map.w/2):floor()-1, (map.h/2):floor()-3)
 
+  local player = game.createSingleton('Player', 'player') {}
   player:setMap(map)
   player:moveTo((map.w/2):floor()-1, (map.h/2):floor()-4)
 

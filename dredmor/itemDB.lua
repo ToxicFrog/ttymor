@@ -44,3 +44,54 @@ The file also contains <power> tags, which map weapon proc names and description
 to spell effects in spellDB.
 <power name="proc name" description="proc desc" spell="spell name" />
 ]]
+
+local items = {}
+
+local function itemFromXML(dom)
+  local def = {
+    name = dom.attr.name;
+    Render = { face = '⎊' };
+    Position = {};
+    Item = { categories = {} };
+  }
+  for _,component in ipairs(dom.el) do
+    def.Item.categories[component.name] = true
+  end
+  entity.register(def.name)(def)
+  return def
+end
+
+local function loadItems(path)
+  local dom = xml.load(path)
+  local count = 0
+  for itemdef in xml.walk(dom.root, 'item') do
+    if items[itemdef.attr.name] then
+      log.debug("skipping duplicate item definition %s", itemdef.attr.name)
+    else
+      count = count+1
+      local item = itemFromXML(itemdef)
+      items[item.name] = item
+    end
+  end
+  log.debug("Loaded %d items from %s", count, path)
+end
+
+function dredmor.loadItems()
+  loadItems(flags.parsed.dredmor_dir..'/game/itemDB.xml')
+  loadItems(flags.parsed.dredmor_dir..'/expansion/game/itemDB.xml')
+  loadItems(flags.parsed.dredmor_dir..'/expansion2/game/itemDB.xml')
+  loadItems(flags.parsed.dredmor_dir..'/expansion3/game/itemDB.xml')
+end
+
+function dredmor.items(filter)
+  local R = {}
+  filter = filter or f' => true'
+  for _,item in pairs(items) do
+    if filter(item) then
+      R[item.name] = item
+      table.insert(R, item)
+    end
+  end
+  log.debug("Returning filtered list of %d items", #R)
+  return R
+end

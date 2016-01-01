@@ -10,12 +10,14 @@ flags.register "dredmor-dir" {
 
 dredmor = {}
 
+require 'dredmor.itemDB'
 require 'dredmor.monDB'
 require 'dredmor.rooms'
 require 'dredmor.tweakDB'
 require 'dredmor.text'
 
 function dredmor.loadAll()
+  dredmor.loadItems()
   dredmor.loadMonsters()
   dredmor.loadRooms()
   dredmor.loadTweaks()
