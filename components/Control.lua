@@ -56,4 +56,16 @@ function Control:cmd_activate()
   return true
 end
 
+function Control:cmd_inventory()
+  game.log('Inventory!')
+  return true
+end
+
+function Control:cmd_pickup()
+  for _,item in ipairs(self:map():cell(self:position())) do
+    game.log('Pickup: %s', tostring(item))
+  end
+  return true
+end
+
 return Control

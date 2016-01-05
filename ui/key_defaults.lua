@@ -15,5 +15,8 @@ return {
     { name = 'Scroll Up';       command = 'scrollup'; keys = { 'pgup' }};
     { name = 'Scroll Down';     command = 'scrolldn'; keys = { 'pgdn' }};
   };
-
+  { name = "Gameplay";
+    { name = "Pick Up/Drop"; command = 'pickup';    keys = { ',' }};
+    { name = "Inventory";    command = 'inventory'; keys = { 'I' }};
+  };
 }
