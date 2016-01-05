@@ -8,52 +8,53 @@ entity = {}
 local entity_types = {}
 
 -- create a new instance of a named entity.
--- entity.create 'Wall' { Render = {...}; Blocker = {...} }
-function entity.create(typename)
-  local def = assertf(entity_types[typename], 'no EntityType found: %s', typename)
-  return function(init)
-    -- "init" is the initializer for this specific entity
-    -- it consists of a few top-level fields like id and name, and 0 or more
-    -- component name => component setting mappings.
+-- entity.create { type = 'Wall'; Render = {...}; Blocker = {...} }
+function entity.create(init)
+  -- "init" is the initializer for this specific entity
+  -- it consists of a few top-level fields like id and name, and 0 or more
+  -- component name => component setting mappings.
+  -- One of the top-level fields, 'type', tells us what EntityType to load.
 
-    -- "def" is the definition for this EntityType. It has two fields, "fields"
-    -- and "components".
+  -- "def" is the definition for this EntityType. It has two fields, "fields"
+  -- and "components".
+  local def = assertf(entity_types[init.type], 'no EntityType found: %s', init.type)
 
-    -- To turn init+def into an actual Entity, we need to set up two things.
-    -- For the top level fields, we assign Entity as the metatable for init,
-    -- and <FIXME somehow point init at def>, so that Entity.__index falls back
-    -- to the contents of def.
-    -- For the components, we create an empty table for each component that
-    -- isn't already listed in init, and __index it to the corresponding component
-    -- in type.
+  -- To turn init+def into an actual Entity, we need to set up two things.
+  -- For the top level fields, we assign Entity as the metatable for init,
+  -- and set _DEF to point to the def table, so that Entity:__index can fall
+  -- back to it.
+  -- For the components, we create an empty table for each component that
+  -- isn't already listed in init, and __index it to the corresponding component
+  -- in type.
 
-    -- Then we just need to run the registered component initializers and we're done!
+  -- Then we just need to run the registered component initializers and we're done!
 
-    -- Set up __index for top level & metamethods
-    init._TYPE = typename
-    init._DEF = def
-    setmetatable(init, Entity)
+  -- Set up __index for top level & metamethods
+  init._DEF = def
+  setmetatable(init, Entity)
 
-    -- Set up __index for individual components
-    for k,v in pairs(def.components) do
-      init[k] = init[k] or {}
-      setmetatable(init[k], v)
-    end
-
-    -- Run initializers
-    for _,fn in ipairs(init.__init or {}) do
-      fn(init)
-    end
-
-    -- At this point, the entity object contains all those top-level fields that
-    -- differ from the EntityType, and __index provides the missing ones, as
-    -- well as all methods and metamethods provided by the components.
-    -- Metamethods are stored in top level arrays; e.g. init.__frob is an array
-    -- of all the __frob metamethods provided by its components.
-    -- Individual component fields (e.g. init.Item) are also tables, __indexed
-    -- to the corresponding component definition in the EntityType.
-    return init
+  -- Set up __index for individual components
+  for k,v in pairs(def.components) do
+    init[k] = init[k] or {}
+    setmetatable(init[k], v)
   end
+
+  -- Run initializers
+  for _,fn in ipairs(init.__init or {}) do
+    fn(init)
+  end
+
+  -- Initialize table of children
+  init.children = init.children or {}
+
+  -- At this point, the entity object contains all those top-level fields that
+  -- differ from the EntityType, and __index provides the missing ones, as
+  -- well as all methods and metamethods provided by the components.
+  -- Metamethods are stored in top level arrays; e.g. init.__frob is an array
+  -- of all the __frob metamethods provided by its components.
+  -- Individual component fields (e.g. init.Item) are also tables, __indexed
+  -- to the corresponding component definition in the EntityType.
+  return init
 end
 
 local function loadComponent(name)
@@ -80,7 +81,7 @@ local function loadComponent(name)
   return package.loaded[fullname]
 end
 
--- Register a new entity type. It can then be instantiated with entity.create 'name' {...}
+-- Register a new entity type. It can then be instantiated with entity.create { type = 'name'; ...}
 -- Registration is a curried function taking a name and then a table of constructor data.
 -- entity.register 'Wall' {
 --   name = 'wall';

@@ -27,15 +27,13 @@ end
 -- Create a new entity owned by this map. It will be automatically registered
 -- in the global entity lookup table, but is available only as long as this map
 -- is loaded.
-function Map:create(type)
-  return function(data)
-    data.id = game.nextID()
+function Map:create(init)
+  init.id = game.nextID()
 
-    local ent = entity.create(type)(data)
-    self.entities[data.id] = ent
-    game.register(ent)
-    return Ref(ent)
-  end
+  local ent = entity.create(init)
+  self.entities[init.id] = ent
+  game.register(ent)
+  return Ref(ent)
 end
 
 -- Map generation is large enough that it gets its own library.

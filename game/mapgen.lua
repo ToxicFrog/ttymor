@@ -54,6 +54,7 @@ local function placeObject(self, obj, ox, oy)
 
   local x,y = obj.x+ox,obj.y+oy
   local ent = {
+    type = 'TestObject';
     name = obj.name or obj.type or obj._type or "???";
     Render = {
       face = (obj.type or '?'):sub(1,1);
@@ -67,7 +68,7 @@ local function placeObject(self, obj, ox, oy)
     ent.Render.colour = { 255, 0, 0 }
     ent.Render.style = 'v'
   end
-  self:placeAt(self:create('TestObject')(ent), x, y)
+  self:placeAt(self:create(ent), x, y)
 end
 
 -- Place an entire room into the map, create and place all of its objects, and
@@ -138,7 +139,8 @@ local function fillDoor(map, door)
       cell[1] = 'Wall';
       -- Temporary addition so that places where doors were filled in stand out.
       -- For debugging the map generator.
-      cell[2] = game.createSingleton('Wall', 'DoorFiller') {
+      cell[2] = game.createSingleton 'DoorFiller' {
+        type = 'Wall';
         Render = { face = '░' };
       }
     end
@@ -158,7 +160,8 @@ local function placeDoor(self, door)
     segments[3] = { x = x; y = y+1; open = '╻'; shut = '╿' }
   end
   for i,segment in ipairs(segments) do
-    local door = self:create 'Door' {
+    local door = self:create {
+      type = 'Door';
       Door = {
         face_open = segment.open;
         face_shut = segment.shut;
@@ -179,7 +182,7 @@ end
 local function createTerrain(self)
   for x,y,cell in self:cells() do
     if type(cell[1]) == 'string' then
-      cell[1] = game.createSingleton(cell[1], 'terrain:'..cell[1]) {}
+      cell[1] = game.createSingleton('terrain:'..cell[1]) { type = cell[1] }
     elseif cell[1] == false then
       cell[1] = nil
     end

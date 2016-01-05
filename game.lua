@@ -28,11 +28,11 @@ function game.new(name)
   local map = game.createMap(1, "level 1")
   map:generate(100, 100, "Starting Room")
 
-  local tofu = map:create 'Tofu' {}
+  local tofu = map:create { type = 'Tofu' }
   tofu:setMap(map)
   tofu:moveTo((map.w/2):floor()-1, (map.h/2):floor()-3)
 
-  local player = game.createSingleton('Player', 'player') {}
+  local player = game.createSingleton 'player' { type = 'Player' }
   player:setMap(map)
   player:moveTo((map.w/2):floor()-1, (map.h/2):floor()-4)
 
@@ -136,16 +136,16 @@ end
 
 -- Create a singleton with the given name and type, or return it if it already
 -- exists. Returns a Ref.
-function game.createSingleton(type, name)
+function game.createSingleton(name)
   return function(data)
     if state.singletons[name] then
-      assertf(state.singletons[name]._TYPE == type,
+      assertf(state.singletons[name].type == data.type,
           "mismatched types initializing singleton %s: %s ~= %s",
-          name, type, state.singletons[name]._TYPE)
+          name, data.type, state.singletons[name].type)
       return state.singletons[name]
     else
       -- all singletons are stored in map 0, the persistent map
-      state.singletons[name] = game.getMap(0):create(type)(data)
+      state.singletons[name] = game.getMap(0):create(data)
     end
     return state.singletons[name]
   end

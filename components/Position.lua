@@ -37,7 +37,7 @@ function Position:moveTo(x, y)
   self.Position.x,self.Position.y = x,y
   -- HACK HACK HACK
   -- This should be moved into a Player-specific component.
-  if self._TYPE == 'Player' then
+  if self.type == 'Player' then
     local cell = self:map():cell(x, y)
     local list = {}
     for i=1,#cell do

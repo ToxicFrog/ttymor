@@ -16,7 +16,7 @@ local Entity = {}
 -- ent.id is the entity ID, and ent.name the entity name
 
 function Entity:__tostring()
-  return "<%s$%d:%s>" % { self._TYPE, self.id or 0, self.name or "???" }
+  return "<%s$%d:%s>" % { self.type, self.id or 0, self.name or "???" }
 end
 
 function Entity:__repr(...)
@@ -26,7 +26,10 @@ function Entity:__repr(...)
       state[k] = v
     end
   end
-  return "Ent '%s' %s" % { self._TYPE, repr(state, ...) }
+  if not next(state.children) then
+    state.children = nil
+  end
+  return "Ent %s" % { repr(state, ...) }
 end
 
 function Entity:__index(k)

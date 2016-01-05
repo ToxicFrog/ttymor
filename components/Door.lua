@@ -31,7 +31,7 @@ function Door:blocks()
 end
 
 function Door:touchedBy(ent)
-  if ent._TYPE ~= 'Player' then return end
+  if ent.type ~= 'Player' then return end
   self:open(true)
 end
 
