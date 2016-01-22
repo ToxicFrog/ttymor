@@ -36,9 +36,6 @@ function Map:create(init)
   return Ref(ent)
 end
 
--- Map generation is large enough that it gets its own library.
-Map.generate = require 'game.mapgen'
-
 function Map:blocked(x, y, type)
   local cell = self[x][y]
   for i=#cell,1,-1 do

@@ -26,8 +26,10 @@ function game.new(name)
 
   local void = game.createMap(0, "the void")
   local map = game.createMap(1, "level 1")
-  map:generate(100, 100, "Starting Room")
+  local generator = require 'game.mapgen' ()
+  generator:generate(map, "Starting Room")
 
+  log.info("Map len: %d", #map)
   local tofu = map:create { type = 'Tofu' }
   tofu:setMap(map)
   tofu:moveTo((map.w/2):floor()-1, (map.h/2):floor()-3)
@@ -104,6 +106,8 @@ function game.createMap(depth, name)
   local map = Map {
     name = name or "Level "..depth;
     depth = depth;
+    -- TODO: wire this into settings so we can set it appropriately for NTTG.
+    w = 100; h = 100;
   }
   state.maps[depth] = map
   return map

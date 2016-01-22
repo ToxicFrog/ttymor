@@ -20,21 +20,23 @@ settings.Float {
   help = 'Minimum proportion of the map that needs to be filled.';
 };
 
-local function in_bounds(map, x, y, w, h)
-  return x >= 0 and y >= 0 and x+w < map.w and y+h < map.h
+local MapGen = {}
+
+function MapGen:inBounds(x, y, w, h)
+  return x >= 0 and y >= 0 and x+w < self.map.w and y+h < self.map.h
 end
 
 local opposite = { n='s'; s='n'; e='w'; w='e'; }
 
-local function pushDoor(self, door, x, y)
-  table.insert(self._doors, {
+function MapGen:pushDoor(door, x, y)
+  table.insert(self.doors, {
     x = x+door.x; y = y+door.y;
     dir = opposite[door.dir]
   })
 end
 
-local function pullDoor(self)
-  return table.remove(self._doors, 1)
+function MapGen:pullDoor()
+  return table.remove(self.doors, 1)
 end
 
 -- Copy a single cell into place, with checks
@@ -46,7 +48,7 @@ local function copyTerrain(cell, terrain)
 end
 
 -- Instantiate and place an object from a room's object table
-local function placeObject(self, obj, ox, oy)
+function MapGen:placeObject(obj, ox, oy)
   if not obj.x then
     log.debug("Object has no location! %s", repr(obj))
     return
@@ -68,15 +70,15 @@ local function placeObject(self, obj, ox, oy)
     ent.Render.colour = { 255, 0, 0 }
     ent.Render.style = 'v'
   end
-  self:placeAt(self:create(ent), x, y)
+  table.insert(self[x][y], self.map:create(ent))
 end
 
 -- Place an entire room into the map, create and place all of its objects, and
 -- enqueue all of its doors.
-local function placeRoom(self, room, ox, oy)
+function MapGen:placeRoom(room, ox, oy)
   log.debug("Placing %s (%dx%d) at (%d,%d)",
       room.name, room.w, room.h, ox, oy)
-  assertf(in_bounds(self, ox, oy, room.w, room.h),
+  assertf(self:inBounds(ox, oy, room.w, room.h),
     "out of bounds room placement: %s (%dx%d) at (%d,%d)",
     room.name, room.w, room.h, ox, oy)
 
@@ -107,25 +109,25 @@ local function placeRoom(self, room, ox, oy)
 
   -- Copy the objects into the map.
   for _,obj in ipairs(room.contents) do
-    placeObject(self, obj, ox, oy)
+    self:placeObject(obj, ox, oy)
   end
 
   -- Push all doors from that room into the queue.
   for door in room:doors() do
-    pushDoor(self, door, ox, oy)
+    self:pushDoor(door, ox, oy)
   end
 
   -- Strike the room from the list if it's a once-per-level room.
   if room.flags.special then
-    self._excluded[room] = true
+    self.excluded[room] = true
   end
 
   -- Update the density calculation.
-  self._density = self._density + (room.w*room.h)/(self.w*self.h)
+  self.density = self.density + (room.w*room.h)/(self.map.w*self.map.h)
 end
 
 -- Fill in a doorway with wall, since we couldn't create a room there.
-local function fillDoor(map, door)
+function MapGen:fillDoor(door)
   local x,y = door.x,door.y
   local mx,my = x,y
   if door.dir == 'n' or door.dir == 's' then
@@ -135,7 +137,7 @@ local function fillDoor(map, door)
   end
   for x=x,mx do
     for y=y,my do
-      local cell = map[x][y]
+      local cell = self[x][y]
       cell[1] = 'Wall';
       -- Temporary addition so that places where doors were filled in stand out.
       -- For debugging the map generator.
@@ -147,7 +149,8 @@ local function fillDoor(map, door)
   end
 end
 
-local function placeDoor(self, door)
+-- Lay down a doorway -- floor with three door segments on top of it.
+function MapGen:placeDoor(door)
   local segments = {}
   local x,y = door.x,door.y
   if door.dir == 'n' or door.dir == 's' then
@@ -160,14 +163,14 @@ local function placeDoor(self, door)
     segments[3] = { x = x; y = y+1; open = '╻'; shut = '╿' }
   end
   for i,segment in ipairs(segments) do
-    local door = self:create {
+    local door = self.map:create {
       type = 'Door';
       Door = {
         face_open = segment.open;
         face_shut = segment.shut;
       };
       Position = {
-        x = segment.x; y = segment.y; z = self.depth;
+        x = segment.x; y = segment.y; z = self.map.depth;
       }
     }
     self[segment.x][segment.y][1] = 'Floor'
@@ -179,20 +182,30 @@ local function placeDoor(self, door)
   end
 end
 
-local function createTerrain(self)
-  for x,y,cell in self:cells() do
-    if type(cell[1]) == 'string' then
-      cell[1] = game.createSingleton('terrain:'..cell[1]) { type = cell[1] }
-    elseif cell[1] == false then
-      cell[1] = nil
+-- The map grid is initially created using strings in place of the terrain.
+-- This function converts those strings into appropriate singleton entities.
+function MapGen:createTerrain()
+  for x=0,self.map.w-1 do
+    for y=0,self.map.h-1 do
+      local cell = self[x][y]
+      if type(cell[1]) == 'string' then
+        cell[1] = game.createSingleton('terrain:'..cell[1]) { type = cell[1] }
+      elseif cell[1] == false then
+        cell[1] = nil
+      end
     end
   end
 end
 
-local function isRoomCompatible(self, door, target)
+-- Check if the room associated with door can be placed on the map such that
+-- door and target are connected.
+-- This is true if the room doesn't go OOB and doesn't collide with any existing
+-- terrain. The terrain collision check implicitly checks that the door
+-- directions match up, since if they don't the room interiors will overlap.
+function MapGen:isRoomCompatible(door, target)
   local ox = target.x - door.x
   local oy = target.y - door.y
-  if not in_bounds(self, ox, oy, door.room.w, door.room.h) then
+  if not self:inBounds(ox, oy, door.room.w, door.room.h) then
     return false
   end
 
@@ -207,28 +220,35 @@ local function isRoomCompatible(self, door, target)
   return true
 end
 
-local function placeRoomAtDoor(self, room, door, target_door)
+-- Place a room connected to the target_door.
+function MapGen:placeRoomAtDoor(room, door, target_door)
   -- calculate offsets based on position of target_door
   local ox,oy = target_door.x - door.x, target_door.y - door.y
-  placeRoom(self, room, ox, oy)
-  placeDoor(self, target_door)
+  self:placeRoom(room, ox, oy)
+  self:placeDoor(target_door)
 end
 
-local function randomRoom(self)
-  local room = self._room_pool[math.random(1, #self._room_pool)]
-  if self._excluded[room] then
-    return randomRoom(self)
+-- Return a random non-excluded room from the room pool.
+function MapGen:randomRoom()
+  local room = self.room_pool[math.random(1, #self.room_pool)]
+  if self.excluded[room] then
+    return self:randomRoom()
   end
   return room
 end
 
-local function findCompatibleRoom(self, target)
+-- Find a room that can attach to the target door. Return the room, then the
+-- door that will attach. If multiple doors in this room can attach to the
+-- target, picks one at random.
+-- A room counts as attachable if it has a door pointing in the right direction
+-- and doesn't collide with any existing terrain or go OOB.
+function MapGen:findCompatibleRoom(target)
   local tries = 5
   for i=1,settings.map_generation.retries_per_room do
-    local room = randomRoom(self)
+    local room = self:randomRoom()
     local doors = {}
     for door in room:doors() do
-      if isRoomCompatible(self, door, target) then
+      if self:isRoomCompatible(door, target) then
         table.insert(doors, door)
       end
     end
@@ -246,20 +266,23 @@ local function filter(depth)
   end
 end
 
-local function generate(self, w, h, starting_room)
-  self.w, self.h = w,h
-  for x=0,self.w-1 do
+function MapGen:generate(map, starting_room)
+  self.map = map
+
+  local w,h = map.w,map.h
+
+  for x=0,w-1 do
     self[x] = {}
-    for y=0,self.h-1 do
+    for y=0,h-1 do
       self[x][y] = {}
     end
   end
 
-  self._density = 0.0
-  self._doors = {}
-  self._excluded = {}
+  self.density = 0.0
+  self.doors = {}
+  self.excluded = {}
   self.entities = {}
-  self._room_pool = dredmor.rooms(filter(self.depth))
+  self.room_pool = dredmor.rooms(filter(map.depth))
 
   -- place the first room in the middle of the map
   local room
@@ -268,36 +291,42 @@ local function generate(self, w, h, starting_room)
         "Couldn't find room %s to start map generation with",
         starting_room)
   else
-    room = randomRoom(self)
+    room = self:randomRoom()
   end
-  local x = (self.w/2 - room.w/2):floor()
-  local y = (self.h/2 - room.h/2):floor()
-  placeRoom(self, room, x, y)
+  local x = (w/2 - room.w/2):floor()
+  local y = (h/2 - room.h/2):floor()
+  self:placeRoom(room, x, y)
 
   local count = 1
-  for target_door in pullDoor,self do
+  for target_door in self.pullDoor,self do
     -- find a compatible random room
-    local room,door = findCompatibleRoom(self, target_door)
+    local room,door = self:findCompatibleRoom(target_door)
     if room then
       count = count + 1
-      placeRoomAtDoor(self, room, door, target_door)
+      self:placeRoomAtDoor(room, door, target_door)
     elseif not self[target_door.x][target_door.y][2] then
-      fillDoor(self, target_door)
+      self:fillDoor(target_door)
     end
   end
 
   -- Restart the whole process if we didn't hit the target density.
-  if self._density < settings.map_generation.map_density then
+  if self.density < settings.map_generation.map_density then
     log.info("Restarting map generation: density %0.2f < target %0.2f",
-        self._density, settings.map_generation.map_density)
-    return generate(self, w, h, starting_room)
+        self.density, settings.map_generation.map_density)
+    return self:generate(map, starting_room)
   else
     log.info("Generated map with %d rooms and %0.2f density",
-        count, self._density)
+        count, self.density)
   end
 
-  createTerrain(self)
-  self._doors,self._excluded,self._room_pool = nil,nil,nil
+  -- finalize
+  self:createTerrain()
+  for x,col in ipairs(self) do
+    map[x] = col
+  end
+  map.entities = self.entities
 end
 
-return generate
+return function()
+  return setmetatable({}, {__index = MapGen})
+end
