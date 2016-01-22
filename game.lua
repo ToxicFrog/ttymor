@@ -26,7 +26,7 @@ function game.new(name)
 
   local void = game.createMap(0, "the void")
   local map = game.createMap(1, "level 1")
-  local generator = require 'game.mapgen' ()
+  local generator = require 'mapgen.dredmor' ()
   generator:generate(map, "Starting Room")
 
   log.info("Map len: %d", #map)
