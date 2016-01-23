@@ -38,8 +38,8 @@ end
 function Door:__frob(frobber)
   if self:open() then
     for i,segment in ipairs(self.Door.segments) do
-      local x,y = segment:position()
-      if segment:map():blocked(x, y, 'walk') then
+      local x,y,map = segment:position()
+      if map:blocked(x, y, 'walk') then
         return nil
       end
     end

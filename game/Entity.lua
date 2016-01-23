@@ -46,6 +46,20 @@ function Entity:frob(frobber)
   end
 end
 
+function Entity:register()
+  game.register(self)
+  for _,child in pairs(self.children) do
+    child:register()
+  end
+end
+
+function Entity:unregister()
+  game.unregister(self)
+  for _,child in pairs(self.children) do
+    child:unregister()
+  end
+end
+
 -- For API compatibility with TreeNode
 function Entity:renderLabel(x, y)
   self:render(x, y)

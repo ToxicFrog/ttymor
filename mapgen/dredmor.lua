@@ -70,7 +70,7 @@ function MapGen:placeObject(obj, ox, oy)
     ent.Render.colour = { 255, 0, 0 }
     ent.Render.style = 'v'
   end
-  table.insert(self[x][y], self.map:create(ent))
+  table.insert(self[x][y], self.entity:create(ent))
 end
 
 -- Place an entire room into the map, create and place all of its objects, and
@@ -163,14 +163,14 @@ function MapGen:placeDoor(door)
     segments[3] = { x = x; y = y+1; open = '╻'; shut = '╿' }
   end
   for i,segment in ipairs(segments) do
-    local door = self.map:create {
+    local door = self.entity:create {
       type = 'Door';
       Door = {
         face_open = segment.open;
         face_shut = segment.shut;
       };
       Position = {
-        x = segment.x; y = segment.y; z = self.map.depth;
+        x = segment.x; y = segment.y; map = self.entity;
       }
     }
     self[segment.x][segment.y][1] = 'Floor'
@@ -266,10 +266,11 @@ local function filter(depth)
   end
 end
 
-function MapGen:generate(map, starting_room)
-  self.map = map
+function MapGen:generate(entity, starting_room)
+  self.entity = entity
+  self.map = entity.Map
 
-  local w,h = map.w,map.h
+  local w,h = self.map.w,self.map.h
 
   for x=0,w-1 do
     self[x] = {}
@@ -282,7 +283,7 @@ function MapGen:generate(map, starting_room)
   self.doors = {}
   self.excluded = {}
   self.entities = {}
-  self.room_pool = dredmor.rooms(filter(map.depth))
+  self.room_pool = dredmor.rooms(filter(self.map.depth))
 
   -- place the first room in the middle of the map
   local room
@@ -313,7 +314,7 @@ function MapGen:generate(map, starting_room)
   if self.density < settings.map_generation.map_density then
     log.info("Restarting map generation: density %0.2f < target %0.2f",
         self.density, settings.map_generation.map_density)
-    return self:generate(map, starting_room)
+    return self:generate(entity, starting_room)
   else
     log.info("Generated map with %d rooms and %0.2f density",
         count, self.density)
@@ -321,10 +322,10 @@ function MapGen:generate(map, starting_room)
 
   -- finalize
   self:createTerrain()
-  for x,col in ipairs(self) do
-    map[x] = col
+  for x = 0,w-1 do
+    self.map[x] = self[x]
   end
-  map.entities = self.entities
+  self.map.entities = self.entities
 end
 
 return function()

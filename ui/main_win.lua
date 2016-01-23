@@ -5,8 +5,8 @@ local MainWin = ui.Window:subclass {
 
 function MainWin:render()
   local player = game.get('player')
-  local x,y,z = player:position()
-  game.getMap(z):render_screen(x,y)
+  local x,y,map = player:position()
+  map:render_screen(x,y)
 end
 
 function MainWin:key_any(key, cmd)

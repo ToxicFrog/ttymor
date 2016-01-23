@@ -7,6 +7,11 @@ entity.register 'Player' {
   Blocker = { fly = true; walk = true; };
 }
 
+entity.register 'Map' {
+  name = 'map';
+  Map = {};
+}
+
 entity.register 'Wall' {
   name = 'wall';
   Render = { face = '▒' };

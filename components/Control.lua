@@ -39,11 +39,11 @@ function Control:cmd_activate()
   local x,y = self:position()
 
   local tree = { name = "Surroundings" }
-  table.insert(tree, self:map():frob(x, y, "At Feet", self) or nil)
-  table.insert(tree, self:map():frob(x, y-1, "North", self) or nil)
-  table.insert(tree, self:map():frob(x, y+1, "South", self) or nil)
-  table.insert(tree, self:map():frob(x-1, y, "West", self) or nil)
-  table.insert(tree, self:map():frob(x+1, y, "East", self) or nil)
+  table.insert(tree, self.Position.map:frobCell(x, y, "At Feet", self) or nil)
+  table.insert(tree, self.Position.map:frobCell(x, y-1, "North", self) or nil)
+  table.insert(tree, self.Position.map:frobCell(x, y+1, "South", self) or nil)
+  table.insert(tree, self.Position.map:frobCell(x-1, y, "West", self) or nil)
+  table.insert(tree, self.Position.map:frobCell(x+1, y, "East", self) or nil)
   function tree:cmd_activate(...)
     ui.Tree.cmd_activate(self)
     self:destroy()
@@ -62,7 +62,7 @@ function Control:cmd_inventory()
 end
 
 function Control:cmd_pickup()
-  for _,item in ipairs(self:map():cell(self:position())) do
+  for _,item in ipairs(self.Position.map:cell(self:position())) do
     game.log('Pickup: %s', tostring(item))
   end
   return true

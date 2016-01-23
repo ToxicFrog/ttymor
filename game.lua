@@ -1,6 +1,5 @@
 require "repr"
 require 'game.entity'
-local Map = require 'game.Map'
 
 -- These must be global for game loading. TODO: fix
 Ent = entity.create
@@ -24,19 +23,20 @@ function game.new(name)
     next_id = 0;
   }
 
-  local void = game.createMap(0, "the void")
-  local map = game.createMap(1, "level 1")
-  local generator = require 'mapgen.dredmor' ()
-  generator:generate(map, "Starting Room")
+  local map = game.createMap {
+    name = "Level 1";
+    depth = 1;
+    w = 100; h = 100;
+    start = "Starting Room";
+  }
 
-  log.info("Map len: %d", #map)
   local tofu = map:create { type = 'Tofu' }
   tofu:setMap(map)
-  tofu:moveTo((map.w/2):floor()-1, (map.h/2):floor()-3)
+  tofu:moveTo((map.Map.w/2):floor()-1, (map.Map.h/2):floor()-3)
 
   local player = game.createSingleton 'player' { type = 'Player' }
   player:setMap(map)
-  player:moveTo((map.w/2):floor()-1, (map.h/2):floor()-4)
+  player:moveTo((map.Map.w/2):floor()-1, (map.Map.h/2):floor()-4)
 
   game.log:clear()
 
@@ -73,11 +73,12 @@ end
 function game.save()
   log.info("Saving game to %s/%s.sav", flags.parsed.config_dir, state.name)
   os.execute("mkdir -p '%s/%s.sav'" % { flags.parsed.config_dir, state.name })
+  game.saveObject('singletons', state.singletons, true)
   for depth,map in pairs(state.maps) do
-    map:save()
+    game.saveObject('%d.map' % map.Map.depth, map, true)
   end
   local save = table.merge(
-      { maps = table.mapv(state.maps, f' => true'); entities = {} },
+      { maps = table.mapv(state.maps, f' => true'); entities = {}; singletons = {}; },
       state, 'ignore')
 
   game.saveObject("state", save, true)
@@ -89,10 +90,14 @@ function game.load(name)
 
   game.log:clear()
   table.merge(state, game.loadObject("state", true), "overwrite")
+  state.singletons = game.loadObject('singletons', true)
+  for _,entity in pairs(state.singletons) do
+    entity:register()
+  end
 
   for depth,map in pairs(state.maps) do
-    state.maps[depth] = false
-    game.createMap(depth):load()
+    state.maps[depth] = game.loadObject('%d.map' % depth, true)
+    state.maps[depth]:register()
   end
 end
 
@@ -100,23 +105,26 @@ end
 -- Map management
 --
 
-function game.createMap(depth, name)
-  assertf(not state.maps[depth], "map %d already exists", depth)
+-- Create a map with the given depth and name. Return a Ref to it.
+function game.createMap(init)
+  assertf(not state.maps[init.depth], "map %d already exists", init.depth)
 
-  local map = Map {
-    name = name or "Level "..depth;
-    depth = depth;
-    -- TODO: wire this into settings so we can set it appropriately for NTTG.
-    w = 100; h = 100;
+  local map = entity.create {
+    type = 'Map';
+    name = init.name;
+    id = game.nextID();
+    Map = init;
   }
-  state.maps[depth] = map
-  return map
+
+  local generator = require 'mapgen.dredmor' ()
+  generator:generate(map, map.Map.start)
+  map:register()
+
+  state.maps[init.depth] = map
+  return Ref(map)
 end
 
-function game.getMap(n)
-  assertf(type(n) == 'number', "bad argument to getMap: %s (%s)", n, type(n))
-  return assertf(state.maps[n], "no map at depth %d", n)
-end
+-- TODO: implement unloadMap()
 
 --
 -- Entity management
@@ -146,12 +154,12 @@ function game.createSingleton(name)
       assertf(state.singletons[name].type == data.type,
           "mismatched types initializing singleton %s: %s ~= %s",
           name, data.type, state.singletons[name].type)
-      return state.singletons[name]
     else
-      -- all singletons are stored in map 0, the persistent map
-      state.singletons[name] = game.getMap(0):create(data)
+      data.id = game.nextID()
+      state.singletons[name] = entity.create(data)
+      game.register(state.singletons[name])
     end
-    return state.singletons[name]
+    return Ref(state.singletons[name])
   end
 end
 
@@ -160,7 +168,7 @@ function game.get(id)
   if type(id) == 'number' then
     return Ref(assertf(state.entities[id], "no such entity: %d", id))
   elseif type(id) == 'string' then
-    return assertf(state.singletons[id], "no singleton named %s", id)
+    return Ref(assertf(state.singletons[id], "no singleton named %s", id))
   else
     error("Invalid argument %s to game.get", name)
   end
