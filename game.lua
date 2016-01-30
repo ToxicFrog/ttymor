@@ -24,7 +24,7 @@ function game.new(name)
   }
 
   local map = game.createMap {
-    name = "Level 1";
+    name = "DL01";
     depth = 1;
     w = 100; h = 100;
     start = "Starting Room";
@@ -74,8 +74,8 @@ function game.save()
   log.info("Saving game to %s/%s.sav", flags.parsed.config_dir, state.name)
   os.execute("mkdir -p '%s/%s.sav'" % { flags.parsed.config_dir, state.name })
   game.saveObject('singletons', state.singletons, true)
-  for depth,map in pairs(state.maps) do
-    game.saveObject('%d.map' % map.Map.depth, map, true)
+  for name,map in pairs(state.maps) do
+    game.saveObject('%s.map' % name, map, true)
   end
   local save = table.merge(
       { maps = table.mapv(state.maps, f' => true'); entities = {}; singletons = {}; },
@@ -95,9 +95,9 @@ function game.load(name)
     entity:register()
   end
 
-  for depth,map in pairs(state.maps) do
-    state.maps[depth] = game.loadObject('%d.map' % depth, true)
-    state.maps[depth]:register()
+  for name,map in pairs(state.maps) do
+    state.maps[name] = game.loadObject('%s.map' % name, true)
+    state.maps[name]:register()
   end
 end
 
@@ -107,7 +107,8 @@ end
 
 -- Create a map with the given depth and name. Return a Ref to it.
 function game.createMap(init)
-  assertf(not state.maps[init.depth], "map %d already exists", init.depth)
+  assertf(init.name, "anonymous maps are not permitted")
+  assertf(not state.maps[init.name], "map '%s' already exists", init.name)
 
   local map = entity.create {
     type = 'Map';
@@ -120,7 +121,7 @@ function game.createMap(init)
   generator:generate(map, map.Map.start)
   map:register()
 
-  state.maps[init.depth] = map
+  state.maps[init.name] = map
   return Ref(map)
 end
 
