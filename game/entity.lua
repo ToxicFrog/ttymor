@@ -46,6 +46,9 @@ function entity.create(init)
 
   -- Initialize table of children
   init.children = init.children or {}
+  for id,ent in pairs(init.children) do
+    ent._parent = Ref(init.id)
+  end
 
   -- At this point, the entity object contains all those top-level fields that
   -- differ from the EntityType, and __index provides the missing ones, as
