@@ -54,10 +54,11 @@ function Entity:register()
 end
 
 function Entity:unregister()
-  game.unregister(self)
   for _,child in pairs(self.children) do
     child:unregister()
   end
+  game.unregister(self)
+end
 end
 
 -- For API compatibility with TreeNode
