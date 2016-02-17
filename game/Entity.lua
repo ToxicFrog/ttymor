@@ -59,7 +59,6 @@ function Entity:unregister()
   end
   game.unregister(self)
 end
-end
 
 -- For API compatibility with TreeNode
 function Entity:renderLabel(x, y)
