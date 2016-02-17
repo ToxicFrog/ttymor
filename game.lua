@@ -15,6 +15,7 @@ local state = {}
 --
 
 function game.new(name)
+  require 'builtins'
   state = {
     name = name;
     entities = {};
