@@ -49,36 +49,13 @@ function entity.create(init)
 
   -- At this point, the entity object contains all those top-level fields that
   -- differ from the EntityType, and __index provides the missing ones, as
-  -- well as all methods and metamethods provided by the components.
-  -- Metamethods are stored in top level arrays; e.g. init.__frob is an array
-  -- of all the __frob metamethods provided by its components.
+  -- well as all methods provided by the components.
+  -- Message handlers are stored in top level arrays; e.g. init.__frob is an
+  -- array of all the __frob handlers provided by its components. FIXME: we
+  -- need a less ugly way of specifying message handlers.
   -- Individual component fields (e.g. init.Item) are also tables, __indexed
   -- to the corresponding component definition in the EntityType.
   return init
-end
-
-local function loadComponent(name)
-  local fullname = 'components.'..name
-  if not package.loaded[fullname] then
-    local def = require(fullname)
-    local metamethods,methods,defaults = {},{},{}
-    for k,v in pairs(def) do
-      if type(k) == 'string' and k:match('^__') then
-        metamethods[k] = v
-      elseif type(v) == 'function' then
-        methods[k] = v
-      else
-        defaults[k] = v
-      end
-    end
-    package.loaded[fullname] = {
-      defaults = defaults;
-      name = name;
-      metamethods = metamethods;
-      methods = methods;
-    }
-  end
-  return package.loaded[fullname]
 end
 
 -- Register a new entity type. It can then be instantiated with entity.create { type = 'name'; ...}
@@ -91,23 +68,40 @@ end
 -- }
 -- There is at present no support for inheriting from other entity types, a la SS2.
 function entity.register(name)
+  log.debug('Registering entity type %s', name)
   return function(init)
-    local components = {}
-    for name,cmp in pairs(init) do
-      if name:match('^[A-Z]') then
-        -- keys starting with capital letters are component initializers
-        init[name],components[name] = nil,cmp
-        local def = loadComponent(name)
-        table.merge(cmp, def.defaults, "ignore")
-        cmp.__index = cmp
-        table.merge(init, def.methods, "error")
-        for k,v in pairs(def.metamethods) do
-          init[k] = init[k] or {}
-          table.insert(init[k], v)
+    local defaults = {}   -- default top-level field values, including methods
+    local components = {} -- component-specific data
+
+    for name,component in pairs(init) do
+      if not name:match('^[A-Z]') then
+        -- field is not a component initializer
+        defaults[name] = component
+      else
+        -- field is a component initializer. Load the component definition.
+        components[name] = component
+        component.__index = component
+
+        local def = require('components.'..name)
+        for k,v in pairs(def) do
+          if type(k) == 'string' and k:match('^__') then
+            -- message handlers go into a top level collection with that name; e.g. for
+            -- the __frob message, individual handlers are in defaults.__frob
+            defaults[k] = defaults[k] or {}
+            table.insert(defaults[k], v)
+          elseif type(v) == 'function' then
+            -- functions go directly into the top level; name collisions are an error
+            assert(defaults[k] == nil)
+            defaults[k] = v
+          elseif component[k] == nil then
+            -- everything else goes in component-specific data, but only if it
+            -- hasn't been overriden.
+            component[k] = v
+          end
         end
       end
     end
 
-    entity_types[name] = { defaults = init, components = components }
+    entity_types[name] = { defaults = defaults, components = components }
   end
 end
