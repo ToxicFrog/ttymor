@@ -51,7 +51,6 @@ local function itemFromXML(dom)
   local def = {
     name = dom.attr.name;
     Render = { face = '⎊' };
-    Position = {};
     Item = { categories = {} };
   }
   for _,component in ipairs(dom.el) do

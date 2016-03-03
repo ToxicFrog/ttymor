@@ -36,14 +36,14 @@ end
 function Control:cmd_activate()
   game.log:nextTurn()
   -- frob surrounding objects
-  local x,y = self:position()
+  local x,y,map = self:position()
 
   local tree = { name = "Surroundings" }
-  table.insert(tree, self.Position.map:frobCell(x, y, "At Feet", self) or nil)
-  table.insert(tree, self.Position.map:frobCell(x, y-1, "North", self) or nil)
-  table.insert(tree, self.Position.map:frobCell(x, y+1, "South", self) or nil)
-  table.insert(tree, self.Position.map:frobCell(x-1, y, "West", self) or nil)
-  table.insert(tree, self.Position.map:frobCell(x+1, y, "East", self) or nil)
+  table.insert(tree, map:frobCell(x, y, "At Feet", self) or nil)
+  table.insert(tree, map:frobCell(x, y-1, "North", self) or nil)
+  table.insert(tree, map:frobCell(x, y+1, "South", self) or nil)
+  table.insert(tree, map:frobCell(x-1, y, "West", self) or nil)
+  table.insert(tree, map:frobCell(x+1, y, "East", self) or nil)
   function tree:cmd_activate(...)
     ui.Tree.cmd_activate(self)
     self:destroy()

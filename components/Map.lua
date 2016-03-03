@@ -3,18 +3,6 @@
 
 local Map = {}
 
--- Create a new entity owned by this map. It will be automatically registered
--- in the global entity lookup table, but is available only as long as this map
--- is loaded.
-function Map:create(init)
-  init.id = game.nextID()
-
-  local ent = entity.create(init)
-  self.children[ent.id] = ent
-  game.register(ent)
-  return Ref(ent)
-end
-
 function Map:blocked(x, y, type)
   local cell = self.Map[x][y]
   for i=#cell,1,-1 do
@@ -86,22 +74,49 @@ function Map:render_screen(cx, cy)
 
   for x,y,cell in self:cells(ox,oy,rw,rh) do
     if #cell > 0 then
+      -- log.debug('render cell: %d,%d %s', x, y, cell[#cell])
       cell[#cell]:render(x+dx, y+dy)
     end
   end
 end
 
-function Map:placeAt(object, x, y)
-  table.insert(self.Map[x][y], object)
+--
+-- Entity management
+--
+
+function Map:createAt(x, y, init)
+  init.id = game.nextID()
+
+  local ent = entity.create(init)
+  local ref = Ref(ent)
+  ent._parent = Ref(self)
+  self.children[ent.id] = ent
+  game.register(ent)
+  log.error("%s", self)
+  self:placeAt(x, y, ref)
+  return ref
 end
 
-function Map:removeFrom(object, x, y)
-  local i,objs = 1,self.Map[x][y]
-  local removals = 0
-  while i <= #objs do
-    if objs[i].id == object.id then
-      table.remove(objs, i)
-      removals = removals+1
+function Map:placeAt(x, y, entity)
+  -- remove the entity from its old cell
+  local ox,oy = self:positionOf(entity)
+  if ox then
+    self:removeFrom(ox, oy, entity)
+  end
+  --local ox,oy = unpack(self.Map.positions[entity.id] or {})
+  table.insert(self.Map[x][y], entity)
+  self.Map.positions[entity.id] = { x, y }
+end
+
+function Map:positionOf(entity)
+  return unpack(self.Map.positions[entity.id] or {})
+end
+
+function Map:removeFrom(x, y, entity)
+  local i,cell = 1,self.Map[x][y]
+  while i <= #cell do
+    if cell[i].id == entity.id then
+      table.remove(cell, i)
     else
       i = i+1
     end

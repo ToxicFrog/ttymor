@@ -70,7 +70,7 @@ function MapGen:placeObject(obj, ox, oy)
     ent.Render.colour = { 255, 0, 0 }
     ent.Render.style = 'v'
   end
-  table.insert(self[x][y], self.entity:create(ent))
+  self.entity:createAt(x, y, ent)
 end
 
 -- Place an entire room into the map, create and place all of its objects, and
@@ -163,18 +163,14 @@ function MapGen:placeDoor(door)
     segments[3] = { x = x; y = y+1; open = '╻'; shut = '╿' }
   end
   for i,segment in ipairs(segments) do
-    local door = self.entity:create {
+    self[segment.x][segment.y][1] = 'Floor'
+    local door = self.entity:createAt(segment.x, segment.y, {
       type = 'Door';
       Door = {
         face_open = segment.open;
         face_shut = segment.shut;
       };
-      Position = {
-        x = segment.x; y = segment.y; map = self.entity;
-      }
-    }
-    self[segment.x][segment.y][1] = 'Floor'
-    self[segment.x][segment.y][2] = door
+    })
     segments[i] = door
   end
   for i,door in ipairs(segments) do
@@ -274,10 +270,12 @@ function MapGen:generate(entity, starting_room)
 
   for x=0,w-1 do
     self[x] = {}
+    self.map[x] = self[x]
     for y=0,h-1 do
       self[x][y] = {}
     end
   end
+  self.map.positions = {}
 
   self.density = 0.0
   self.doors = {}
@@ -322,9 +320,6 @@ function MapGen:generate(entity, starting_room)
 
   -- finalize
   self:createTerrain()
-  for x = 0,w-1 do
-    self.map[x] = self[x]
-  end
   self.map.entities = self.entities
 end
 

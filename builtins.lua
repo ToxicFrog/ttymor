@@ -52,12 +52,10 @@ entity.register 'Floor' {
 entity.register 'TestObject' {
   name = "test object";
   Render = { face = '?' };
-  Position = {};
 }
 
 entity.register 'Door' {
   name = 'door';
-  Position = {};
   Door = {};
   Render = { face='!'; colour = {0xFF,0x99,0x33} };
 }

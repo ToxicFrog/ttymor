@@ -31,17 +31,17 @@ function game.new(name)
     start = "Starting Room";
   }
 
-  local tofu = map:create { type = 'Tofu' }
-  tofu:setMap(map)
-  tofu:moveTo((map.Map.w/2):floor()-1, (map.Map.h/2):floor()-3)
+  local cx,cy = (map.Map.w/2):floor(),(map.Map.h/2):floor()
+  map:createAt(cx-1, cy-3, { type = 'Tofu' })
+  map:createAt(cx-1, cy-4, { type = 'Tofu'; Item = { count = 3 }})
+  map:createAt(cx-2, cy-3, { type = 'Aged Cheese'; Item = { stackable = false }})
+  map:createAt(cx-2, cy-4, { type = 'Aged Cheese'; Item = { stackable = false, count = 2 }})
 
-  local player = game.createSingleton 'player' { type = 'Player' }
-  player:setMap(map)
-  player:moveTo((map.Map.w/2):floor()-1, (map.Map.h/2):floor()-4)
+  local player = map:createAt(cx-1, cy-4, { type = 'Player' })
 
   game.log:clear()
 
-  return player
+  return game.registerSingleton('player', player)
 end
 
 function game.objectPath(file, per_game)
@@ -163,6 +163,13 @@ function game.createSingleton(name)
     end
     return Ref(state.singletons[name])
   end
+end
+
+-- Register a singleton by the given name without claiming ownership of it.
+function game.registerSingleton(name, entity)
+  assertf(not state.singletons[name], "attempt to double-register singleton with name %s", name)
+  state.singletons[name] = Ref(entity)
+  return state.singletons[name]
 end
 
 -- Get an entity by numeric ID or singleton name. Returns a Ref.

@@ -1,9 +1,10 @@
 local Position = {}
 
 function Position:move(dx, dy)
-  local x,y = self.Position.x,self.Position.y
-  local blocker = self.Position.map:blocked(x+dx, y+dy, 'walk')
+  local x,y,map = self:position()
+  local blocker = map:blocked(x+dx, y+dy, 'walk')
   if blocker then
+    -- FIXME: this should be a message, not a function call
     if blocker.touchedBy then
       return blocker:touchedBy(self)
     else
@@ -14,23 +15,13 @@ function Position:move(dx, dy)
   end
 end
 
-function Position:setMap(map)
-  if self.Position.map then
-    self.Position.map:removeFrom(self, self.Position.x, self.Position.y)
-  end
-  self.Position.map = map
-end
-
 function Position:moveTo(x, y)
-  if self.Position.x and self.Position.y then
-    self.Position.map:removeFrom(self, self.Position.x, self.Position.y)
-  end
-  self.Position.map:placeAt(self, x, y)
-  self.Position.x,self.Position.y = x,y
+  local _,_,map = self:position()
+  map:placeAt(x, y, self)
   -- HACK HACK HACK
   -- This should be moved into a Player-specific component.
   if self.type == 'Player' then
-    local cell = self.Position.map:cell(x, y)
+    local cell = map:cell(x, y)
     local list = {}
     for i=1,#cell do
       list[i] = cell[#cell-i+1]
@@ -40,7 +31,9 @@ function Position:moveTo(x, y)
 end
 
 function Position:position()
-  return self.Position.x,self.Position.y,self.Position.map
+  local map = self._parent
+  local x,y = map:positionOf(self)
+  return x,y,map
 end
 
 return Position
