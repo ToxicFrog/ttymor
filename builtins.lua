@@ -5,6 +5,7 @@ entity.register 'Player' {
   Control = {};
   Position = {};
   Blocker = { fly = true; walk = true; };
+  Inventory = {};
 }
 
 entity.register 'Map' {

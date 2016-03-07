@@ -65,6 +65,36 @@ function Entity:unregister()
   game.unregister(self)
 end
 
+-- Claim the given entity (which must be a naked entity, not a Ref)
+-- as a child of this one.
+function Entity:claim(child)
+  self.children[child.id] = child
+  child._parent = Ref(self)
+  self:message("claim", child)
+  child:message("claimed_by", self)
+end
+
+-- Release the given entity from our children table. Returns the naked entity.
+-- Called with no arguments, releases self from its parent.
+function Entity:release(child)
+  if not child then
+    return self._parent:release(self)
+  end
+  local entity = assertf(self.children[child.id], "%s attempted to release %s, which is not its child", self, child)
+  self.children[child.id] = nil
+  entity._parent = nil
+  self:message("release", child)
+  child:message("released_by", self)
+  return entity
+end
+
+-- Delete the given entity. Works by unregistering it from the global entity
+-- table, then releasing it from its parent and *not* returning it.
+function Entity:delete()
+  self:release()
+  self:unregister()
+end
+
 -- For API compatibility with TreeNode
 function Entity:renderLabel(x, y)
   self:render(x, y)

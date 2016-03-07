@@ -57,14 +57,14 @@ function Control:cmd_activate()
 end
 
 function Control:cmd_inventory()
-  game.log('Inventory!')
+  game.log("-- inventory --")
+  self:listInventory()
+  game.log("-- end --")
   return true
 end
 
 function Control:cmd_pickup()
-  for _,item in ipairs(self.Position.map:cell(self:position())) do
-    game.log('Pickup: %s', tostring(item))
-  end
+  game.log("pickup: not implemented yet")
   return true
 end
 

@@ -1,9 +1,16 @@
 local Item = {
   stackable = true;
+  count = 1;
 }
 
--- TODO: dropItem/getItem not actually implemented yet!
-function Item:__frob(frobber)
+function Item:stackWith(other)
+  assert(other.type == self.type)
+  assert(self.Item.stackable and other.Item.stackable)
+
+  self.Item.count = self.Item.count + other.Item.count
+  other:delete()
+end
+
 function Item:__frob(frobber, actions)
   if self.Item.held_by then
     table.insert(actions, {
@@ -19,7 +26,6 @@ function Item:__frob(frobber, actions)
       activate = function()
         frobber:getItem(self)
         return true
-        --return frobber:getItem(self)
       end;
     })
   end

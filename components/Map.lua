@@ -84,6 +84,7 @@ end
 -- Entity management
 --
 
+-- Create a new entity in the given cell. The map has ownership.
 function Map:createAt(x, y, init)
   init.id = game.nextID()
 
@@ -97,7 +98,21 @@ function Map:createAt(x, y, init)
   return ref
 end
 
+-- Message handler for entity release. Removes the released entity from the
+-- map position table.
+function Map:__release(child)
+  local ox,oy = assert(self:positionOf(child))
+  if ox then
+    self:removeFrom(ox, oy, child)
+  end
+end
+
+-- Place an existing entity in the given cell. The map takes ownership if it
+-- doesn't already have it.
 function Map:placeAt(x, y, entity)
+  if entity._parent.id ~= self.id then
+    self:claim(entity:release())
+  end
   -- remove the entity from its old cell
   local ox,oy = self:positionOf(entity)
   if ox then
@@ -121,6 +136,7 @@ function Map:removeFrom(x, y, entity)
       i = i+1
     end
   end
+  self.Map.positions[entity.id] = nil
 end
 
 return Map
