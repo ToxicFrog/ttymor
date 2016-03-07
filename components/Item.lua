@@ -4,24 +4,24 @@ local Item = {
 
 -- TODO: dropItem/getItem not actually implemented yet!
 function Item:__frob(frobber)
+function Item:__frob(frobber, actions)
   if self.Item.held_by then
-    return {
+    table.insert(actions, {
       name = "Drop";
       activate = function()
-        game.log('Drop '..tostring(self))
+        frobber:dropItem(self)
         return true
-        --return self.Item.held_by:dropItem(self)
       end;
-    }
+    })
   else
-    return {
+    table.insert(actions, {
       name = "Pick Up";
       activate = function()
-        game.log('Pickup '..tostring(self))
+        frobber:getItem(self)
         return true
         --return frobber:getItem(self)
       end;
-    }
+    })
   end
 end
 

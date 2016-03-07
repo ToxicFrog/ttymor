@@ -38,11 +38,16 @@ end
 
 function Entity:frob(frobber)
   local node = { name = self.name, expanded = true }
-  for i,fn in ipairs(self.__frob or {}) do
-    table.insert(node, fn(self, frobber) or nil)
-  end
+  self:message("frob", frobber, node)
   if #node > 0 then
     return node
+  end
+end
+
+-- Call all registered message handlers on this entity of the given type.
+function Entity:message(type, ...)
+  for i,handler in ipairs(self["__"..type] or {}) do
+    handler(self, ...)
   end
 end
 

@@ -35,7 +35,7 @@ function Door:touchedBy(ent)
   self:open(true)
 end
 
-function Door:__frob(frobber)
+function Door:__frob(frobber, actions)
   if self:open() then
     for i,segment in ipairs(self.Door.segments) do
       local x,y,map = segment:position()
@@ -43,15 +43,15 @@ function Door:__frob(frobber)
         return nil
       end
     end
-    return {
+    table.insert(actions, {
       name = "Close Door";
       activate = function() return self:open(false) end;
-    }
+    })
   else
-    return {
+    table.insert(actions, {
       name = "Open Door";
       activate = function() return self:open(true) end;
-    }
+    })
   end
 end
 

@@ -39,16 +39,14 @@ function entity.create(init)
     setmetatable(init[k], v)
   end
 
-  -- Run initializers
-  for _,fn in ipairs(init.__init or {}) do
-    fn(init)
-  end
-
   -- Initialize table of children
   init.children = init.children or {}
   for id,ent in pairs(init.children) do
     ent._parent = Ref(init.id)
   end
+
+  -- Run initializers
+  init:message('init')
 
   -- At this point, the entity object contains all those top-level fields that
   -- differ from the EntityType, and __index provides the missing ones, as
