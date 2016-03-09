@@ -18,8 +18,9 @@ function game.new(name)
   require 'builtins'
   state = {
     name = name;
-    entities = {};
-    singletons = {};
+    entities = {};   -- master id => object lookup table
+    names = {};      -- lookup by name for name-registered entities
+    singletons = {}; -- entities owned by the game state rather than by a map. TODO: better name.
     maps = {};
     next_id = 0;
   }
@@ -41,7 +42,7 @@ function game.new(name)
 
   game.log:clear()
 
-  return game.registerSingleton('player', player)
+  return game.registerNamedUnique('player', player)
 end
 
 function game.objectPath(file, per_game)
@@ -74,24 +75,23 @@ end
 function game.save()
   log.info("Saving game to %s/%s.sav", flags.parsed.config_dir, state.name)
   os.execute("mkdir -p '%s/%s.sav'" % { flags.parsed.config_dir, state.name })
-  game.saveObject('singletons', state.singletons, true)
   for name,map in pairs(state.maps) do
     game.saveObject('%s.map' % name, map, true)
   end
   local save = table.merge(
-      { maps = table.mapv(state.maps, f' => true'); entities = {}; singletons = {}; },
+      { maps = table.mapv(state.maps, f' => true'); entities = {}; },
       state, 'ignore')
 
   game.saveObject("state", save, true)
 end
 
 function game.load(name)
+  require 'builtins'
   log.info("Loading game from %s/%s.sav", flags.parsed.config_dir, name)
   state = { name = name }
 
   game.log:clear()
   table.merge(state, game.loadObject("state", true), "overwrite")
-  state.singletons = game.loadObject('singletons', true)
   for _,entity in pairs(state.singletons) do
     entity:register()
   end
@@ -152,32 +152,33 @@ end
 -- exists. Returns a Ref.
 function game.createSingleton(name)
   return function(data)
-    if state.singletons[name] then
-      assertf(state.singletons[name].type == data.type,
+    if state.names[name] then
+      assertf(state.names[name].type == data.type,
           "mismatched types initializing singleton %s: %s ~= %s",
-          name, data.type, state.singletons[name].type)
+          name, data.type, state.names[name].type)
     else
       data.id = game.nextID()
-      state.singletons[name] = entity.create(data)
-      game.register(state.singletons[name])
+      local ent = entity.create(data)
+      state.singletons[data.id],state.names[name] = ent,ent
+      game.register(ent)
     end
-    return Ref(state.singletons[name])
+    return state.names[name]
   end
 end
 
 -- Register a singleton by the given name without claiming ownership of it.
-function game.registerSingleton(name, entity)
-  assertf(not state.singletons[name], "attempt to double-register singleton with name %s", name)
-  state.singletons[name] = Ref(entity)
-  return state.singletons[name]
+function game.registerNamedUnique(name, entity)
+  assertf(not state.names[name], "attempt to double-register unique named entity with name %s", name)
+  state.names[name] = Ref(entity)
+  return state.names[name]
 end
 
 -- Get an entity by numeric ID or singleton name. Returns a Ref.
 function game.get(id)
   if type(id) == 'number' then
-    return Ref(assertf(state.entities[id], "no such entity: %d", id))
+    return Ref(assertf(state.entities[id], "no entity with id: %d", id))
   elseif type(id) == 'string' then
-    return Ref(assertf(state.singletons[id], "no singleton named %s", id))
+    return Ref(assertf(state.names[id], "no entity named %s", id))
   else
     error("Invalid argument %s to game.get", name)
   end

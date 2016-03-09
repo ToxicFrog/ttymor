@@ -93,7 +93,6 @@ function Map:createAt(x, y, init)
   ent._parent = Ref(self)
   self.children[ent.id] = ent
   game.register(ent)
-  log.error("%s", self)
   self:placeAt(x, y, ref)
   return ref
 end
