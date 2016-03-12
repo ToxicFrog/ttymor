@@ -1,8 +1,8 @@
 local Inventory = {}
 
 function Inventory:__init()
-  self.Inventory.stacks = self.Inventory.stacks or {}
-  self.Inventory.uniques = self.Inventory.uniques or {}
+  self.Inventory.stacks = {}
+  self.Inventory.uniques = {}
 end
 
 function Inventory:getItem(item)

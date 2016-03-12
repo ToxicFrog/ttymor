@@ -9,7 +9,9 @@ local entity_types = {}
 
 -- create a new instance of a named entity.
 -- entity.create { type = 'Wall'; Render = {...}; Blocker = {...} }
-function entity.create(init)
+-- This is called by the save file loader to deserialize the entities stored in
+-- it, and is also the basis of entity.create().
+function entity.load(init)
   -- "init" is the initializer for this specific entity
   -- it consists of a few top-level fields like id and name, and 0 or more
   -- component name => component setting mappings.
@@ -45,9 +47,6 @@ function entity.create(init)
     ent._parent = Ref(init.id)
   end
 
-  -- Run initializers
-  init:message('init')
-
   -- At this point, the entity object contains all those top-level fields that
   -- differ from the EntityType, and __index provides the missing ones, as
   -- well as all methods provided by the components.
@@ -57,6 +56,13 @@ function entity.create(init)
   -- Individual component fields (e.g. init.Item) are also tables, __indexed
   -- to the corresponding component definition in the EntityType.
   return init
+end
+
+-- Create a new entity from scratch and initialize it.
+function entity.create(init)
+  local ent = entity.load(init)
+  ent:message "init"
+  return ent
 end
 
 -- Register a new entity type. It can then be instantiated with entity.create { type = 'name'; ...}

@@ -2,7 +2,7 @@ require "repr"
 require 'game.entity'
 
 -- These must be global for game loading. TODO: fix
-Ent = entity.create
+Ent = entity.load
 Ref = require 'game.Ref'
 
 game = {}
