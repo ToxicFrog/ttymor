@@ -1,6 +1,6 @@
 local Inventory = {}
 
-function Inventory:__init()
+function Inventory:msg_init()
   self.Inventory.stacks = {}
   self.Inventory.uniques = {}
 end

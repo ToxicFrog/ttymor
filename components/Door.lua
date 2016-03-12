@@ -11,7 +11,7 @@ local Door = {
   segments = {};
 }
 
-function Door:__init()
+function Door:msg_init()
   self.Render.face = self.Door[self.Door.open and 'face_open' or 'face_shut']
 end
 
@@ -35,7 +35,7 @@ function Door:touchedBy(ent)
   self:open(true)
 end
 
-function Door:__frob(frobber, actions)
+function Door:msg_frob(frobber, actions)
   if self:open() then
     for i,segment in ipairs(self.Door.segments) do
       local map = self._parent

@@ -11,7 +11,7 @@ function Item:stackWith(other)
   other:delete()
 end
 
-function Item:__frob(frobber, actions)
+function Item:msg_frob(frobber, actions)
   if self.Item.held_by then
     table.insert(actions, {
       name = "Drop";

@@ -77,7 +77,7 @@ end
 function entity.register(name)
   log.debug('Registering entity type %s', name)
   return function(init)
-    local defaults = {}   -- default top-level field values, including methods
+    local defaults = {message_handlers = {}}   -- default top-level field values, including methods
     local components = {} -- component-specific data
 
     for name,component in pairs(init) do
@@ -91,11 +91,12 @@ function entity.register(name)
 
         local def = require('components.'..name)
         for k,v in pairs(def) do
-          if type(k) == 'string' and k:match('^__') then
+          if type(k) == 'string' and k:match('^msg_') then
             -- message handlers go into a top level collection with that name; e.g. for
-            -- the __frob message, individual handlers are in defaults.__frob
-            defaults[k] = defaults[k] or {}
-            table.insert(defaults[k], v)
+            -- the <frob> message, individual handlers are in defaults.frob
+            local name = k:match("^msg_(.*)")
+            defaults.message_handlers[name] = defaults.message_handlers[name] or {}
+            table.insert(defaults.message_handlers[name], v)
           elseif type(v) == 'function' then
             -- functions go directly into the top level; name collisions are an error
             assert(defaults[k] == nil)

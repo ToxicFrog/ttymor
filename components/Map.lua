@@ -99,7 +99,7 @@ end
 
 -- Message handler for entity release. Removes the released entity from the
 -- map position table.
-function Map:__release(child)
+function Map:msg_release(child)
   local ox,oy = assert(self:positionOf(child))
   if ox then
     self:removeFrom(ox, oy, child)
