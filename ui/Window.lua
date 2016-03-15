@@ -137,7 +137,7 @@ function Window:detach(subwin)
 end
 
 function Window:destroy()
-  log.debug('destroy window', self.name)
+  log.debug('destroy window: %s', self.name)
   self:detach()
   self.renderAll = function() error 'renderAll called on destroyed window' end
 end
