@@ -32,14 +32,6 @@ function Entity:__index(k)
   return Entity[k] or self._DEF.defaults[k]
 end
 
-function Entity:frob(frobber)
-  local node = { name = self.name, expanded = true }
-  self:message("frob", frobber, node)
-  if #node > 0 then
-    return node
-  end
-end
-
 -- Call all registered message handlers on this entity of the given type.
 function Entity:message(type, ...)
   for i,handler in ipairs(self.message_handlers[type] or {}) do

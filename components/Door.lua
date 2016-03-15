@@ -35,25 +35,29 @@ function Door:touchedBy(ent)
   self:open(true)
 end
 
-function Door:msg_frob(frobber, actions)
+function Door:msg_verb_open_by(ent)
+  self:open(true)
+end
+
+function Door:msg_verb_close_by(ent)
+  self:open(false)
+end
+
+-- TODO: expose the "close" verb only for the hinges of the door, not the middle
+function Door:msg_verbs(verbs)
   if self:open() then
     for i,segment in ipairs(self.Door.segments) do
       local map = self._parent
       local x,y = map:positionOf(segment)
       if map:blocked(x, y, 'walk') then
-        return nil
+        return verbs
       end
     end
-    table.insert(actions, {
-      name = "Close Door";
-      activate = function() return self:open(false) end;
-    })
+    verbs.close = true
   else
-    table.insert(actions, {
-      name = "Open Door";
-      activate = function() return self:open(true) end;
-    })
+    verbs.open = true
   end
+  return verbs
 end
 
 return Door

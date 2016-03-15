@@ -13,14 +13,12 @@ function Map:blocked(x, y, type)
   end
 end
 
-function Map:frobCell(x, y, title, frobber)
-  local node = { name = title, expanded = true }
+function Map:contents(x, y)
   local cell = self.Map[x][y]
-  for i=#cell,1,-1 do
-    table.insert(node, cell[i]:frob(frobber) or nil)
-  end
-  if #node > 0 then
-    return node
+  local i=#cell+1
+  return function()
+    i = i - 1
+    return cell[i]
   end
 end
 

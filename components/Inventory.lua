@@ -5,14 +5,29 @@ function Inventory:msg_init()
   self.Inventory.uniques = {}
 end
 
+function Inventory:msg_verb_pickup(ent)
+  self:getItem(ent)
+end
+
+function Inventory:msg_verb_drop(ent)
+  self:dropItem(ent)
+end
+
+function Inventory:msg_verb_dropN(ent)
+  game.log("dropN: not implemented yet")
+end
+
 function Inventory:getItem(item)
   game.log("You pick up %s", item)
   local stacks,uniques = self.Inventory.stacks,self.Inventory.uniques
   self:claim(item:release())
   if item.Item.stackable then
     if stacks[item.type] then
-      -- deletes item
-      stacks[item.type]:stackWith(item)
+      -- We delete the item currently in the inventory because the item we just
+      -- picked up is about to get a pickup_by message, and if we delete *that*
+      -- we're in for a rough time.
+      item:stackWith(stacks[item.type])
+      stacks[item.type] = item
     else
       stacks[item.type] = item
     end

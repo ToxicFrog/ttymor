@@ -11,24 +11,14 @@ function Item:stackWith(other)
   other:delete()
 end
 
-function Item:msg_frob(frobber, actions)
+function Item:msg_verbs(verbs)
   if self.Item.held_by then
-    table.insert(actions, {
-      name = "Drop";
-      activate = function()
-        frobber:dropItem(self)
-        return true
-      end;
-    })
+    verbs.drop = true
+    verbs.dropN = true
   else
-    table.insert(actions, {
-      name = "Pick Up";
-      activate = function()
-        frobber:getItem(self)
-        return true
-      end;
-    })
+    verbs.pickup = true
   end
+  return verbs
 end
 
 return Item

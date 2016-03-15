@@ -33,23 +33,47 @@ function Control:cmd_right()
   return true
 end
 
+function Control:verb(verb, object)
+  self:message('verb_'..verb, object)
+  object:message('verb_'..verb..'_by', self)
+end
+
+function Control:interactWith(ent)
+  local tree = { name = ent.name }
+  local verbs = {}; ent:message('verbs', verbs)
+  for verb in pairs(verbs) do
+    table.insert(tree, {
+      name = verb;
+      activate = function(node)
+        self:verb(verb, ent)
+        return node.tree:cancel()
+      end;
+    })
+  end
+  ui.tree(tree)
+end
+
+-- When we get an "activate" command, we need to build a menu of reachable objects
+-- that can be interacted with (i.e. have a nonempty response to the <verbs> message).
 function Control:cmd_activate()
-  game.log:nextTurn()
   -- frob surrounding objects
   local x,y,map = self:position()
 
   local tree = { name = "Surroundings" }
-  table.insert(tree, map:frobCell(x, y, "At Feet", self) or nil)
-  table.insert(tree, map:frobCell(x, y-1, "North", self) or nil)
-  table.insert(tree, map:frobCell(x, y+1, "South", self) or nil)
-  table.insert(tree, map:frobCell(x-1, y, "West", self) or nil)
-  table.insert(tree, map:frobCell(x+1, y, "East", self) or nil)
-  function tree:cmd_activate(...)
-    ui.Tree.cmd_activate(self)
-    self:destroy()
-    return true
+  for _,cell in ipairs {{x,y,"⌖"}, {x,y-1,"⤊"}, {x,y+1,"⤋"}, {x-1,y,"⇚"}, {x+1,y,"⇛"}} do
+    for ent in map:contents(cell[1], cell[2]) do
+      local verbs = {}; ent:message("verbs", verbs)
+      if next(verbs) then
+        table.insert(tree, {
+          name = cell[3]..' '..ent.name;
+          activate = function(node)
+            self:interactWith(ent)
+            return node.tree:cancel()
+          end;
+        })
+      end
+    end
   end
-  log.error('%s', repr(tree))
   if #tree > 0 then
     ui.tree(tree)
   end
