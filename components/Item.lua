@@ -5,7 +5,14 @@ local Item = {
 }
 
 function Item:msg_verb_examine_by()
-  ui.message(self.name, self.Item.description)
+  local desc = {}
+  table.insert(desc, self.Item.description)
+  table.insert(desc, '')
+  table.insert(desc, '  Components:')
+  for cat in pairs(self.Item.categories) do
+    table.insert(desc, cat)
+  end
+  ui.message(self.name, desc)
 end
 
 function Item:stackWith(other)
