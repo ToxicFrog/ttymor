@@ -1,7 +1,12 @@
 local Item = {
   stackable = true;
   count = 1;
+  description = "***BUG***"
 }
+
+function Item:msg_verb_examine_by()
+  ui.message(self.name, self.Item.description)
+end
 
 function Item:stackWith(other)
   assert(other.type == self.type)
@@ -12,6 +17,7 @@ function Item:stackWith(other)
 end
 
 function Item:msg_verbs(verbs)
+  verbs.examine = true
   if self.Item.held_by then
     verbs.drop = true
     verbs.dropN = true

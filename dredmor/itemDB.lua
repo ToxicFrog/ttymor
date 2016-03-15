@@ -55,6 +55,9 @@ local function itemFromXML(dom)
   }
   for _,component in ipairs(dom.el) do
     def.Item.categories[component.name] = true
+    if component.name == "description" then
+      def.Item.description = component.attr.text
+    end
   end
   entity.register(def.name)(def)
   return def
