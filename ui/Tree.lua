@@ -136,6 +136,7 @@ end
 
 -- The user has declined to choose a node at all.
 function Tree:cancel()
+  ui.popHUD()
   self:destroy()
   return true
 end

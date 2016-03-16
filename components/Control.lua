@@ -45,8 +45,8 @@ function Control:interactWith(ent)
     table.insert(tree, {
       name = verb;
       activate = function(node)
+        node.tree:cancel()
         self:verb(verb, ent)
-        return node.tree:cancel()
       end;
     })
   end
@@ -67,8 +67,8 @@ function Control:cmd_activate()
         table.insert(tree, {
           name = cell[3]..' '..ent.name;
           activate = function(node)
+            node.tree:cancel()
             self:interactWith(ent)
-            return node.tree:cancel()
           end;
         })
       end

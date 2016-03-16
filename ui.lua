@@ -152,6 +152,7 @@ end
 -- Turn a tree into a Tree and activate it, running until one of the handlers
 -- returns a value.
 function ui.tree(tree)
+  ui.pushHUD()
   tree = ui.Tree(tree)
   tree.visible = true
   ui.main_win:attach(tree)
