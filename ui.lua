@@ -45,6 +45,8 @@ function ui.init()
     w = w - 40; h = h;
   }
   ui.screen:attach(ui.main_win)
+
+  ui.setHUD('', '')
 end
 
 function ui.draw()
