@@ -3,6 +3,7 @@
 -- kind of tangled up in this component. It should be separated more cleanly.
 -- Somehow.
 local Control = {}
+local verb_info = require 'ui.verbs'
 
 function Control:cmd_cancel()
   ui.mainmenu()
@@ -42,8 +43,10 @@ function Control:interactWith(ent)
   local tree = { name = ent.name }
   local verbs = {}; ent:message('verbs', verbs)
   for verb in pairs(verbs) do
+    assert(verb_info[verb], verb)
     table.insert(tree, {
-      name = verb;
+      name = verb_info[verb].name;
+      help = verb_info[verb].help;
       activate = function(node)
         node.tree:cancel()
         self:verb(verb, ent)

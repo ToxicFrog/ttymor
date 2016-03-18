@@ -4,6 +4,9 @@ local Item = {
   description = "***BUG***"
 }
 
+-- TODO: figure out how to let different components add things to the examination
+-- results, e.g. equipment should show stats and comparison to current gear, food
+-- should show amount healed, etc.
 function Item:msg_verb_examine_by()
   local desc = {}
   table.insert(desc, self.Item.description)
