@@ -19,6 +19,14 @@ end
 -- Contract: the w and h of this window may not exceed the values passed in.
 -- If this cannot be satisfied, it must assert.
 -- Subclasses should override this to implement e.g. margins.
+--
+-- Here's how this should work (but currently doesn't):
+-- - parent calculates available size for window
+-- - parent calls window:resize(max_w, max_h)
+-- - window trims off however much is needed for margins etc
+-- - window calls window:resizeChildren(...)
+-- - window calculates how much size it *actually* needs based on the size of
+-- - its children, sets and returns that
 function Window:resize(w, h)
   return self.w,self.h
 end
