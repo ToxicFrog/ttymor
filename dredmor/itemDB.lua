@@ -47,16 +47,19 @@ to spell effects in spellDB.
 
 local items = {}
 
+-- insert 'level' from item attr and <price amount=...>
 local function itemFromXML(dom)
   local def = {
     name = dom.attr.name;
     Render = { face = '⎊' };
-    Item = { categories = {} };
+    Item = { categories = {}; level = tonumber(dom.attr.level); special = dom.attr.special; };
   }
   for _,component in ipairs(dom.el) do
     def.Item.categories[component.name] = true
     if component.name == "description" then
       def.Item.description = component.attr.text
+    elseif component.name == "price" then
+      def.Item.price = tonumber(component.attr.amount)
     end
   end
   entity.register(def.name)(def)
