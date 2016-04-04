@@ -39,23 +39,6 @@ function Control:verb(verb, object)
   object:message('verb_'..verb..'_by', self)
 end
 
-function Control:interactWith(ent)
-  local tree = { name = ent.name }
-  local verbs = {}; ent:message('verbs', verbs)
-  for verb in pairs(verbs) do
-    assert(verb_info[verb], verb)
-    table.insert(tree, {
-      name = verb_info[verb].name;
-      help = verb_info[verb].help;
-      activate = function(node)
-        node.tree:cancel()
-        self:verb(verb, ent)
-      end;
-    })
-  end
-  ui.tree(tree)
-end
-
 -- When we get an "activate" command, we need to build a menu of reachable objects
 -- that can be interacted with (i.e. have a nonempty response to the <verbs> message).
 function Control:cmd_activate()
@@ -71,7 +54,7 @@ function Control:cmd_activate()
           name = cell[3]..' '..ent.name;
           activate = function(node)
             node.tree:cancel()
-            self:interactWith(ent)
+            ent:interactedWith()
           end;
         })
       end

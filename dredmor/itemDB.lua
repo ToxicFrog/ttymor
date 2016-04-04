@@ -52,6 +52,7 @@ local function itemFromXML(dom)
   local def = {
     name = dom.attr.name;
     Render = { face = '⎊' };
+    Interactable = {};
     Item = { categories = {}; level = tonumber(dom.attr.level); special = dom.attr.special; };
   }
   for _,component in ipairs(dom.el) do
