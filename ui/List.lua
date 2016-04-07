@@ -1,5 +1,6 @@
 --
--- Default method implementations for the tree as a whole. --
+-- A vertical list of items. Can be scrolled.
+-- Does not directly support things like subtrees or focus.
 --
 local Window = require 'ui.Window'
 
@@ -9,7 +10,18 @@ local List = Window:subclass {
   scroll = 0;
   max_scroll = 0;
   scrollable = true;
+  size = { inf, 0 };
+  position = { -1, -1 };
 }
+
+function List:getChildSize()
+  return 0,#self.content
+end
+
+function List:layout(w, h)
+  Window.layout(self, w, h)
+  self.max_scroll = (#self.content - self.h):max(0)
+end
 
 -- scroll up/down the given number of lines, without wrapping or changing focus
 function List:scroll_by(n)
@@ -60,15 +72,6 @@ function List:render()
     local line = self.content[1+y+self.scroll] or ''
     renderLabel(line, 0, y, self.w)
   end
-end
-
--- Lists just blindly inherit the size of their parents.
-function List:resize(w, h)
-  self.max_scroll = (#self.content - h):max(0)
-  --self.scroll = (self.scroll + self.h - h):bound(0, self.max_scroll)
-  self.w = w
-  self.h = h
-  return w,h
 end
 
 function List:clear()

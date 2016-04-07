@@ -11,47 +11,137 @@ flags.register 'ui-perf' {
 
 function Window:__init(...)
   Object.__init(self, ...)
-  self.children = {}
+  self._children = {}
 end
 
--- Given the width and height available for the window to use, set its preferred
--- width and height, and then resize its children.
--- Contract: the w and h of this window may not exceed the values passed in.
--- If this cannot be satisfied, it must assert.
--- Subclasses should override this to implement e.g. margins.
+function Window:children()
+  return coroutine.wrap(function()
+    for _,child in ipairs(self._children) do
+      coroutine.yield(child)
+    end
+  end)
+end
+
+-- Perform window layout/sizing.
+-- This is kind of nasty.
+-- We need to know the size of our children to determine our own size, since
+-- our size may be <the minimum needed to enclose our children>. But we need
+-- to be able to pass our bounding box on to our children, which may not be the
+-- same as the BB our parent passed us, if we have fixed/relative size axes
+-- rather than min/max ones.
+-- So we figure out the child bounding box first, pass that to all our children
+-- and tell them to :layout(). Having done that, we can figure out own own size,
+-- and once we know *that* we also know where our children need to go based on
+-- their size and positioning rules.
+function Window:layout(max_w, max_h)
+  log.debug('Layout begin: %s, BB: %dx%d', self.name, max_w, max_h)
+  -- sizing of BB available to children, taking into account our sizing rules
+  local ch_w,ch_h = self:getBounds(max_w, max_h)
+  -- margins, which affect BB usable for children
+  local up,dn,lf,rt = self:getMargins()
+  ch_w = ch_w - lf - rt
+  ch_h = ch_h - up - dn
+
+  for child in self:children() do
+    child:layout(ch_w, ch_h)
+  end
+
+  self.w,self.h = self:getSize(max_w, max_h)
+  log.debug("Size: %s: %dx%d", self.name, self.w, self.h)
+
+  for child in self:children() do
+    child.x,child.y = child:getPosition(ch_w, ch_h)
+    child.x,child.y = child.x + lf,child.y + up
+    log.debug("Position: %s: %d,%d", child.name, child.x, child.y)
+  end
+  log.debug("Layout end: %s", self.name)
+end
+
 --
--- Here's how this should work (but currently doesn't):
--- - parent calculates available size for window
--- - parent calls window:resize(max_w, max_h)
--- - window trims off however much is needed for margins etc
--- - window calls window:resizeChildren(...)
--- - window calculates how much size it *actually* needs based on the size of
--- - its children, sets and returns that
-function Window:resize(w, h)
-  return self.w,self.h
-end
+-- Support functions for layout()
+--
 
-function Window:resizeChildren(w, h)
-  for _,child in ipairs(self.children) do
-    child:resize(w, h)
+local function bound_axis(max, want)
+  if want == inf or want == 0 then
+    return max
+  elseif want > 0 then
+    assert(want <= max, "fixed-size window exceeds size of bounding box")
+    return want
+  elseif want < 0 then
+    assert(max + want > 0, "relative-size window has size ≤ 0")
+    return max + want
   end
 end
 
--- Calculate the window's (x,y) position and bounds based on the 'position'
--- property and the size of the parent.
-function Window:reposition(w, h)
-  self:resizeChildren(self:resize(w, h))
-  assertf(self.w and self.h, 'window %s has no width or height', self.name)
-  assert(self.w <= w and self.h <= h, 'window size exceeds container size')
-  if self.position == 'fixed' then
-    -- pass
-  elseif self.position == 'center' then
-    self.x = ((w - self.w)/2):floor():max(0)
-    self.y = ((h - self.h)/2):floor():max(0)
+-- Return the *actual* maximum bounding box of this window, given the BB passed
+-- down by our parents.
+function Window:getBounds(max_w, max_h)
+  return bound_axis(max_w, self.size[1]), bound_axis(max_h, self.size[2])
+end
+
+-- Return the (top,bottom,left,right) margins of the window. This is the
+-- difference between the true maximum bounding box, and the space available
+-- for children to use.
+function Window:getMargins()
+  return 0,0,0,0
+end
+
+local function size_axis(self, max, want, min, margins)
+  log.debug("size_axis: max=%d want=%f key=%s margins=%d",
+    max, want, key, margins)
+  if want == inf then
+    return max
+  elseif want > 0 then
+    return want
+  elseif want == 0 then
+    return min + margins
+  elseif want < 0 then
+    return max + want
   else
-    error('unsupported value "%s" for position', self.position)
+    error()
   end
 end
+
+function Window:getChildSize()
+  local w,h = 0,0
+  for child in self:children() do
+    w = w:max(child.w)
+    h = h:max(child.h)
+  end
+  return w,h
+end
+
+function Window:getSize(max_w, max_h)
+  local up,dn,lf,rt = self:getMargins()
+  local ch_w,ch_h = self:getChildSize()
+  return size_axis(self, max_w, self.size[1], ch_w, lf+rt),
+         size_axis(self, max_h, self.size[2], ch_h, up+dn)
+end
+
+local function position_axis(bb, grav, size)
+  if grav < 0 then
+    -- left/top gravity
+    return 0
+  elseif grav > 0 then
+    -- right/bottom gravity
+    return bb - size
+  elseif grav == 0 then
+    -- center gravity
+    return ((bb - size)/2):floor()
+  else
+    error()
+  end
+end
+
+function Window:getPosition(max_w, max_h)
+  return position_axis(max_w, self.position[1], self.w),
+         position_axis(max_h, self.position[2], self.h)
+end
+
+
+--
+-- Event handling
+--
 
 -- Called to handle a keystroke from the user. Key is the name of the keystroke;
 -- cmd, if set, is the name of the corresponding command based on the current
@@ -66,8 +156,8 @@ end
 -- recently attached) window gets to see it first.
 function Window:keyEvent(key, cmd)
   if not self.visible then return false end
-  for i=#self.children,1,-1 do
-    if self.children[i]:keyEvent(key, cmd) == true then return true end
+  for child in self:children() do
+    if child:keyEvent(key, cmd) == true then return true end
   end
   return self:handleEvent(key, cmd)
 end
@@ -109,8 +199,8 @@ function Window:renderAll()
     tty.colour(unpack(self.colour))
   end
   self:render()
-  for _,win in ipairs(self.children) do
-    win:renderAll()
+  for child in self:children() do
+    child:renderAll()
   end
   tty.popwin()
   if flags.parsed.ui_perf and self.name then
@@ -119,13 +209,16 @@ function Window:renderAll()
   end
 end
 
+-- WARNING WARNING WARNING
+-- does not call :layout() on the attached window!
+-- caller must layout at some point by hand!
+-- TODO: fix this!
+-- WARNING WARNING WARNING
 function Window:attach(subwin)
   log.debug('%s: attaching child %s', self.name, subwin.name)
   assert(not subwin.parent, 'attempt to attach non-orphan window')
-  table.insert(self.children, subwin)
+  table.insert(self._children, subwin)
   subwin.parent = self
-  subwin:reposition(self:resize(self.w, self.h))
-  log.debug('  child %dx%d @ (%d,%d)', subwin.w, subwin.h, subwin.x, subwin.y)
 end
 
 function Window:detach(subwin)
@@ -134,9 +227,9 @@ function Window:detach(subwin)
   end
   log.debug('detach %s from %s', subwin.name, self.name)
 
-  for i,v in ipairs(self.children) do
+  for i,v in ipairs(self._children) do
     if v == subwin then
-      table.remove(self.children, i)
+      table.remove(self._children, i)
       v.parent = nil
       return
     end

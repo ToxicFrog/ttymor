@@ -9,17 +9,9 @@ function LogWin:__init(...)
   self.content = ui.List {
     visible = true;
     name = "loglist";
-    x = 1; y = 1;
-    position = "fixed";
-    w = self.w-2;
-    h = self.h-2;
+    position = { -1, 1 };
   }
-end
-
-function LogWin:resize(w, h)
-  self.w = w
-  self.h = h
-  return w-2,h-2
+  self:attach(self.content)
 end
 
 function LogWin:render()
@@ -40,6 +32,7 @@ function LogWin:render()
       end
     end
     game.log.dirty = false
+    self:layout(self.w, self.h)
     self.content:scroll_to_index(-1)
   end
   ui.Box.render(self)

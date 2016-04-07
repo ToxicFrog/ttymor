@@ -6,6 +6,10 @@ function Box:__init(...)
   assertf(self.content, 'Box %s created without content', self.name)
 end
 
+function Box:getMargins()
+  return 1,1,1,1
+end
+
 function Box:render()
   ui.box(nil, self.name, self.faces)
   -- render scrollbar, if applicable
@@ -22,29 +26,6 @@ function Box:render()
   end
 
   self.content:renderAll()
-end
-
-function Box:attach(child)
-  error('Box:attach')
-end
-
-function Box:detach(child)
-  if child then
-    error('Box:detach')
-  else
-    return ui.Window.detach(self)
-  end
-end
-
--- Boxes assume their configured size is authoritative; if they exceed container
--- limits the caller will assert. They trim 2 cells off each dimension for their
--- children because margins.
-function Box:resize(w, h)
-  return self.w-2,self.h-2
-end
-
-function Box:resizeChildren(w, h)
-  self.content:resize(w, h)
 end
 
 return Box

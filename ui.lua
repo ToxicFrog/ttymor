@@ -10,9 +10,9 @@ function ui.init()
 
   ui.screen = ui.Window {
     name = "screen";
+    position = { -1, -1 };
+    size = { inf, inf };
     x = 0; y = 0;
-    w = w; h = h;
-    position = 'fixed';
     visible = true;
     render = function(self)
       tty.colour(255, 255, 255, 0, 0, 0)
@@ -23,29 +23,26 @@ function ui.init()
 
   -- Log fills the left side of the screen.
   ui.log_win = require 'ui.log_win' {
-    position = 'fixed';
-    x = 0; y = 0;
-    w = 40; h = h;
+    position = { -1, -1 };
+    size = { 40, inf };
   }
   ui.screen:attach(ui.log_win)
-  ui.log_win:reposition(40, h)
 
   -- HUD overlays log in the upper left.
   ui.hud_win = require 'ui.hud_win' {
-    position = 'fixed';
-    x = 0; y = 0;
-    w = 40; h = 4;
+    position = { -1, -1 };
+    size = { 40, 0 };
   }
   ui.screen:attach(ui.hud_win)
 
   -- main view takes up the remaining space
   ui.main_win = require 'ui.main_win' {
-    position = 'fixed';
-    x = 40; y = 0;
-    w = w - 40; h = h;
+    position = { 1, -1 };
+    size = { -40, inf };
   }
   ui.screen:attach(ui.main_win)
-
+  log.debug('Performing layout calculations')
+  ui.screen:layout(w, h)
   ui.setHUD('', '')
 end
 
