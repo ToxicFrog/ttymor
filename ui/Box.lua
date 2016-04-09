@@ -11,7 +11,7 @@ function Box:getMargins()
 end
 
 function Box:render()
-  ui.box(nil, self.name, self.faces)
+  ui.box(nil, self.title or self.name, self.faces)
   -- render scrollbar, if applicable
   if self.content and self.content.scrollable and self.content.max_scroll > 0 then
     local h = self.content.h
