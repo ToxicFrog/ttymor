@@ -22,8 +22,8 @@ function HudWin:setContent(data)
   assert(data, "attempt to call setContent() with nil data")
   self.content.content = data
   self.top = data
-  self.name = data.name
-  self:layout(self.w, self.h)
+  self.title = data.name
+  self:layout(self.parent.w, self.parent.h)
 end
 
 function HudWin:pushContent()
