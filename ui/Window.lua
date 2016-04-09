@@ -86,15 +86,15 @@ function Window:getMargins()
   return 0,0,0,0
 end
 
-local function size_axis(self, max, want, min, margins)
-  log.debug("size_axis: max=%d want=%f key=%s margins=%d",
-    max, want, key, margins)
+local function size_axis(self, max, want, min)
+  log.debug("size_axis: max=%d want=%f min=%d",
+    max, want, min)
   if want == inf then
     return max
   elseif want > 0 then
     return want
   elseif want == 0 then
-    return min + margins
+    return min
   elseif want < 0 then
     return max + want
   else
@@ -102,7 +102,10 @@ local function size_axis(self, max, want, min, margins)
   end
 end
 
-function Window:getChildSize()
+-- getChildSize doesn't do anything with the passed width and height, but they
+-- are provided for the use of subclasses, like List, which are capable of
+-- shrinking their children to fit into smaller bounding boxes.
+function Window:getChildSize(w, h)
   local w,h = 0,0
   for child in self:children() do
     w = w:max(child.w)
@@ -113,9 +116,9 @@ end
 
 function Window:getSize(max_w, max_h)
   local up,dn,lf,rt = self:getMargins()
-  local ch_w,ch_h = self:getChildSize()
-  return size_axis(self, max_w, self.size[1], ch_w, lf+rt),
-         size_axis(self, max_h, self.size[2], ch_h, up+dn)
+  local ch_w,ch_h = self:getChildSize(max_w-lf-rt, max_h-up-dn)
+  return size_axis(self, max_w, self.size[1], ch_w+lf+rt),
+         size_axis(self, max_h, self.size[2], ch_h+up+dn)
 end
 
 local function position_axis(bb, grav, size)

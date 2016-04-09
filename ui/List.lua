@@ -6,7 +6,6 @@ local Window = require 'ui.Window'
 
 local List = Window:subclass {
   -- Number of lines scrolled down.
-  h = 1;
   scroll = 0;
   max_scroll = 0;
   scrollable = true;
@@ -14,8 +13,9 @@ local List = Window:subclass {
   position = { -1, -1 };
 }
 
-function List:getChildSize()
-  return 0,#self.content
+function List:getChildSize(w, h)
+  -- FIXME: determine width as max of content
+  return w:min(0),h:min(#self.content)
 end
 
 function List:layout(w, h)
