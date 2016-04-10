@@ -56,6 +56,7 @@ function tty.pushwin(x, y, w, h)
   end
 
   -- Check that the window is fully in bounds.
+  assertf(x and y and w and y, "incomplete window in tty.pushwin()")
   assertf(in_bounds(x, y), "window position out of bounds: %d,%d", x, y)
   assertf(in_bounds(x + w, y + h), "window size out of bounds: %d,%d+%dx%d > %dx%d",
       x, y, w, h, top.w, top.h)
