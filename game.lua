@@ -40,6 +40,8 @@ function game.new(name)
 
   local player = map:createAt(cx-1, cy-4, { type = 'Player' })
 
+  -- HACK HACK HACK -- this initializes the HUD as a side effect
+  player:moveTo(player:position())
   game.log:clear()
 
   return game.registerNamedUnique('player', player)
