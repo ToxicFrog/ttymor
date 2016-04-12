@@ -159,8 +159,8 @@ end
 -- recently attached) window gets to see it first.
 function Window:keyEvent(key, cmd)
   if not self.visible then return false end
-  for child in self:children() do
-    if child:keyEvent(key, cmd) == true then return true end
+  for i=#self._children,1,-1 do
+    if self._children[i]:keyEvent(key, cmd) == true then return true end
   end
   return self:handleEvent(key, cmd)
 end
