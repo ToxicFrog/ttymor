@@ -135,4 +135,5 @@ function settings.edit()
     settings.tree.constructed = true
   end
   ui.main_win:attach(settings.tree)
+  ui.layout()
 end
