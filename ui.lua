@@ -5,8 +5,14 @@ ui.Box = require 'ui.Box'
 ui.List = require 'ui.List'
 ui.Tree = require 'ui.Tree'
 
+function ui.layout()
+  local w,h = tty.termsize()
+  log.debug('Performing layout calculations: %dx%d', w, h)
+  ui.screen:layout(w, h)
+end
+
 function ui.init()
-  local w,h = tty.init()
+  tty.init()
 
   ui.screen = ui.Window {
     name = "screen";
@@ -41,9 +47,7 @@ function ui.init()
     size = { -40, inf };
   }
   ui.screen:attach(ui.main_win)
-  log.debug('Performing layout calculations')
-  ui.screen:layout(w, h)
-  ui.setHUD('', '')
+  ui.layout()
 end
 
 function ui.draw()

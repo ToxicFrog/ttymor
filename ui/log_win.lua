@@ -32,7 +32,7 @@ function LogWin:render()
       end
     end
     game.log.dirty = false
-    self:layout(self.w, self.h)
+    ui.layout()
     self.content:scroll_to_index(-1)
   end
   ui.Box.render(self)
