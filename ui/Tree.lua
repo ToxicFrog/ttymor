@@ -9,7 +9,9 @@
 -- is its sole child and handles actually rendering the content.
 
 local Tree = ui.Box:subclass {
-  _focused = 0
+  _focused = 0;
+  size = { 0, 0 };
+  position = { 0, 0 };
 }
 local Node = require 'ui.Node'
 
@@ -25,38 +27,23 @@ function Tree:__init(data)
   self.content = ui.List {
     name = data.name .. '$internal_list';
     visible = true;
-    x = 1; y = 1; position = 'fixed';
+    size = { 0, 0 };
   }
   self.root = Node(self, nil, {
     name = data.name .. '$root';
     unpack(nodes);
   })
   ui.Window.__init(self, data)
+  self:attach(self.content)
 end
 
--- Recalculate the width and height for the tree based on its contents.
-function Tree:resize(w, h)
-  local tree_w,tree_h = 0,0
-  self.root:size()
-
-  tree_w = self.root.w
-  tree_h = self.root.h - 1  -- the root node counts itself in the size, but doesn't take up a row on screen
-  if self.name then
-    tree_w = tree_w:max(#self.name)
-  end
-
-  self.w = w:min(tree_w+2)
-  self.h = h:min(tree_h+2)
-
-  return self.w-2,self.h-2
-end
-
-function Tree:reposition(...)
-  ui.Box.reposition(self, ...)
+function Tree:layout(w, h)
   self:refresh()
-  if self._focused == 0 then
-    self:set_focus(1)
-  end
+  return ui.Window.layout(self, w, h)
+end
+
+function Tree:getMargins()
+  return 1,1,2,2
 end
 
 -- Focus the given node.

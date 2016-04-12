@@ -50,7 +50,7 @@ function Node:renderLabel(x, y)
     tty.style('v')
   end
   tty.put(x, y, (' '):rep(self.tree.content.w))
-  tty.put(x+self.depth, y, self:label(self.tree.content.w - self.depth))
+  tty.put(x+self.depth-1, y, self:label(self.tree.content.w - self.depth))
   if self.focused then
     tty.style('V')
   end
@@ -79,7 +79,7 @@ end
 function Node:expand()
   if #self == 0 then return end
   self.expanded = true
-  self.tree:refresh()
+  ui.layout()
 end
 
 -- The user has requested to collapse this node. By default, collapses the node
@@ -96,7 +96,7 @@ function Node:collapse(recursing)
     for i,node in ipairs(self) do
       node:collapse(true)
     end
-    self.tree:refresh()
+    ui.layout()
   elseif self.parent and not recursing then
     return self.parent:collapse()
   end

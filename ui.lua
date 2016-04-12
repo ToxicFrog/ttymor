@@ -159,6 +159,8 @@ function ui.tree(tree)
   tree = ui.Tree(tree)
   tree.visible = true
   ui.main_win:attach(tree)
+  ui.layout()
+  tree:set_focus(1)
 end
 
 function ui.message(title, message)

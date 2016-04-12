@@ -13,9 +13,30 @@ local List = Window:subclass {
   position = { -1, -1 };
 }
 
+-- HACK HACK HACK
+-- This is present as a shim in the current horrible world where a List can
+-- contain basically anything. It tries to figure out the size of the anything
+-- it can contain.
+-- Once a List can only contain things that are themselves valid Windows, this
+-- can go away forever.
+local function sizeLabel(line)
+  if type(line) == 'string' then
+    return #line
+  elseif line.text then
+    return #line.text
+  elseif line.label then
+    return #line:label(0)
+  else
+    return 0
+  end
+end
+
 function List:getChildSize(w, h)
-  -- FIXME: determine width as max of content
-  return w:min(0),h:min(#self.content)
+  w = 0
+  for _,line in ipairs(self.content) do
+    w = w:max(sizeLabel(line))
+  end
+  return w,h:min(#self.content)
 end
 
 function List:layout(w, h)
@@ -79,6 +100,8 @@ function List:clear()
   self.scroll,self.max_scroll = 0,0
 end
 
+-- WARNING: does not update max_scroll. You need to call ui.layout() to update
+-- that information after :adding.
 function List:add(line)
   if type(line) == 'string' then
     line = { text = line }
@@ -89,7 +112,6 @@ function List:add(line)
       #self.content+1, repr(line))
   end
   table.insert(self.content, line)
-  self.max_scroll = (#self.content - self.h):max(0)
 end
 
 function List:len()
