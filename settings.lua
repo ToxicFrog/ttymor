@@ -136,4 +136,5 @@ function settings.edit()
   end
   ui.main_win:attach(settings.tree)
   ui.layout()
+  settings.tree:set_focus(1)
 end
