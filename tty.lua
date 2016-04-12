@@ -13,15 +13,13 @@ local X,Y = 0,0
 -- Initialize the tty.
 function tty.init()
   os.execute('stty raw isig -echo')
-  local data = io.popen('stty -a'):read('*a')
-  local w = data:match('columns (%d+)'):tonumber()
-  local h = data:match('rows (%d+)'):tonumber()
+  local w,h = tty.termsize()
   stack[1] = { x=0, y=0, w=w, h=h }
   top = stack[1]
   tty.csi('h', '?', 47) -- DECSET alternate screen buffer
   tty.csi('l', '?', 25) -- DECRST cursor
   tty.flip()
-  return tty.size()
+  return w,h
 end
 
 function tty.deinit()
@@ -31,6 +29,15 @@ function tty.deinit()
   os.execute('stty cooked echo')
 end
 
+-- return size of terminal
+function tty.termsize()
+  local data = io.popen('stty -a'):read('*a')
+  local w = data:match('columns (%d+)'):tonumber()
+  local h = data:match('rows (%d+)'):tonumber()
+  return w,h
+end
+
+-- return dimensions of top of rendering stack, i.e. size of clipping region
 function tty.size()
   return top.w,top.h
 end
