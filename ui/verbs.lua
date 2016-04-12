@@ -1,7 +1,7 @@
 return {
   pickup  = { name = 'Pick Up';   keys = { ',', 'G' };
               help = 'Pick up an object.' };
-  drop    = { name = 'Drop';      keys = { 'D' };
+  drop    = { name = 'Drop';      keys = { 'c-D' };
               help = 'Drop an object or stack of objects.' };
   dropN   = { name = 'Drop Some'; keys = { 's-D' };
               help = 'Drop part of a stack.' };
