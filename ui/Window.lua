@@ -1,6 +1,7 @@
 local Window = Object:subclass {
   visible = true;
-  position = 'center';
+  position = { 0, 0 };
+  size = { 0, 0 };
   colour = { 255, 255, 255, 0, 0, 0 };
 }
 

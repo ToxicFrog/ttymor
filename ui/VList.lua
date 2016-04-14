@@ -62,16 +62,14 @@ function VList:add(child)
   if type(child) == 'string' then
     return self:add(ui.TextLine {
       content = child;
-      name = "VList$TextLine["..child.."]";
       size = {0,0};
       position = {-1,-1};
     })
   elseif child.id then
     -- assume that it's an in-game entity
     -- HACK HACK HACK, we should have an EntityListViewer or something
-    return self:add(ui.TextLine {
-      content = child.name;
-      name = "VList$EntityLine["..child.id.."]";
+    return self:add(ui.EntityLine {
+      content = child;
       size = {0,0};
       position = {-1,-1};
     })

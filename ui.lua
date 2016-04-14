@@ -6,6 +6,7 @@ ui.List = require 'ui.List'
 ui.Tree = require 'ui.Tree'
 ui.VList = require 'ui.VList'
 ui.TextLine = require 'ui.TextLine'
+ui.EntityLine = require 'ui.EntityLine'
 
 function ui.layout()
   local w,h = tty.termsize()

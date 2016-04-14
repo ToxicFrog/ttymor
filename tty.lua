@@ -93,6 +93,7 @@ function tty.csi(command, ...)
 end
 
 function tty.put(x, y, text)
+  assertf(type(text) == 'string', 'Invalid input to tty.put(): %s', text)
   tty.move(x,y)
   buf[#buf+1] = text
 end

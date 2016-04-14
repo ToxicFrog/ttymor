@@ -17,10 +17,4 @@ function TextLine:render()
   tty.put(0, 0, self.content)
 end
 
--- function TextLine:renderLabel(self, x, y, w)
---   if self.colour then tty.colour(unpack(self.colour)) end
---   if self.style then tty.style(self.style) end
---   tty.put(x, y, self.content:sub(1, w))
--- end
-
 return TextLine
