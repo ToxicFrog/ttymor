@@ -19,14 +19,17 @@ function tty.init()
   tty.csi('h', '?', 47) -- DECSET alternate screen buffer
   tty.csi('l', '?', 25) -- DECRST cursor
   tty.flip()
+  log.info('TTY initialized: %dx%d', w, h)
   return w,h
 end
 
 function tty.deinit()
+  buf = {}
   tty.csi('l', '?', 47) -- DECRST alternate screen buffer
   tty.csi('h', '?', 25) -- DECSET cursor
   tty.flip()
   os.execute('stty cooked echo')
+  log.info('TTY deinitialized')
 end
 
 -- return size of terminal
