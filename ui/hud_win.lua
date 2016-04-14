@@ -4,7 +4,7 @@ local HudWin = ui.Box:subclass {
   stack = nil;
   top = nil;
   colour = { 192, 192, 192 };
-  scrollable = false;
+  display_scrollbar = false;
   faces = { sw = '┣'; se = '┫'; }
 }
 

@@ -1,5 +1,5 @@
 local Window = Object:subclass {
-  visible = false;
+  visible = true;
   position = 'center';
   colour = { 255, 255, 255, 0, 0, 0 };
 }
@@ -103,10 +103,10 @@ local function size_axis(self, max, want, min)
 end
 
 -- getChildSize doesn't do anything with the passed width and height, but they
--- are provided for the use of subclasses, like List, which are capable of
+-- are provided for the use of subclasses, like Box, which are capable of
 -- shrinking their children to fit into smaller bounding boxes.
 function Window:getChildSize(w, h)
-  local w,h = 0,0
+  w,h = 0,0
   for child in self:children() do
     w = w:max(child.w)
     h = h:max(child.h)
@@ -192,6 +192,22 @@ end
 
 function Window:render() end
 
+-- Render a subsection of this window at (0,0).
+-- Default implementation throws, but some subclasses (notably VList) may
+-- implement this; it's called by scrollable parents (Box) to render only the
+-- part that is actually visible.
+function Window:renderSlice(x, y, w, h)
+  error("renderSlice() called on a UI element that doesn't support it.")
+end
+
+function Window:renderChildren()
+  for child in self:children() do
+    tty.pushwin(child)
+    child:renderAll()
+    tty.popwin()
+  end
+end
+
 function Window:renderAll()
   if not self.visible then return end
   local t
@@ -199,15 +215,11 @@ function Window:renderAll()
     t = os.clock()
     log.debug('  begin: %s', self.name)
   end
-  tty.pushwin(self)
   if self.colour then
     tty.colour(unpack(self.colour))
   end
   self:render()
-  for child in self:children() do
-    child:renderAll()
-  end
-  tty.popwin()
+  self:renderChildren()
   if flags.parsed.ui_perf and self.name then
     t = os.clock() - t
     log.debug('ui-perf: %s: %3f', self.name, t)

@@ -5,13 +5,12 @@ local LogWin = ui.Box:subclass {
 }
 
 function LogWin:__init(...)
-  ui.Window.__init(self, ...)
-  self.content = ui.List {
+  self.content = ui.VList {
     visible = true;
     name = "loglist";
     position = { -1, 1 };
   }
-  self:attach(self.content)
+  ui.Box.__init(self, ...)
 end
 
 function LogWin:render()
@@ -26,25 +25,26 @@ function LogWin:render()
     end
     for _,line in ipairs(game.log:currentTurn()) do
       for _,subline in ipairs(line:wrap(self.content.w)) do
-        self.content:add {
-          text = subline; colour = { 255, 255, 255 };
-        }
+        self.content:add(subline)
+        -- self.content:add {
+        --   text = subline; colour = { 255, 255, 255 };
+        -- }
       end
     end
     game.log.dirty = false
     ui.layout()
-    self.content:scroll_to_index(-1)
+    self:scroll_to_line(-1)
   end
   ui.Box.render(self)
 end
 
 function LogWin:cmd_scrollup()
-  self.content:page_up()
+  self:page_up()
   return true
 end
 
 function LogWin:cmd_scrolldn()
-  self.content:page_down()
+  self:page_down()
   return true
 end
 
