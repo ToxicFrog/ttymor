@@ -4,6 +4,7 @@ local Box = Window:subclass {}
 function Box:__init(...)
   ui.Window.__init(self, ...)
   assertf(self.content, 'Box %s created without content', self.name)
+  self:attach(self.content)
 end
 
 function Box:getMargins()
@@ -24,8 +25,6 @@ function Box:render()
     tty.put(self.w-1, self.h-2, '┳')
     ui.clear({ x=self.w-1; y=2+sb_distance; w=1; h=sb_height }, '▓') --█
   end
-
-  self.content:renderAll()
 end
 
 return Box

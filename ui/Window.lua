@@ -190,6 +190,8 @@ function Window:hide()
   self.visible = false
 end
 
+function Window:render() end
+
 function Window:renderAll()
   if not self.visible then return end
   local t

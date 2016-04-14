@@ -4,6 +4,8 @@ ui.Window = require 'ui.Window'
 ui.Box = require 'ui.Box'
 ui.List = require 'ui.List'
 ui.Tree = require 'ui.Tree'
+ui.VList = require 'ui.VList'
+ui.TextLine = require 'ui.TextLine'
 
 function ui.layout()
   local w,h = tty.termsize()

@@ -9,21 +9,24 @@ local HudWin = ui.Box:subclass {
 }
 
 function HudWin:__init(...)
-  ui.Window.__init(self, ...)
   self.stack = {}
-  self.content = ui.List {
+  self.content = ui.VList {
     visible = true;
     name = "hudlist";
   }
-  self:attach(self.content)
+  ui.Box.__init(self, ...)
 end
 
 function HudWin:setContent(data)
   assert(data, "attempt to call setContent() with nil data")
-  self.content.content = data
+  self.content:clear()
+  for _,item in ipairs(data) do
+    self.content:add(item)
+  end
   self.top = data
   self.title = data.name
-  self:layout(self.parent.w, self.parent.h)
+  ui.layout()
+  --self:layout(self.parent.w, self.parent.h)
 end
 
 function HudWin:pushContent()
