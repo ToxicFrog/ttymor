@@ -1,6 +1,6 @@
 local Window = Object:subclass {
   visible = true;
-  position = { 0, 0 };
+  position = { -1, -1 };
   size = { 0, 0 };
   colour = { 255, 255, 255, 0, 0, 0 };
 }
@@ -35,6 +35,8 @@ end
 -- and once we know *that* we also know where our children need to go based on
 -- their size and positioning rules.
 function Window:layout(max_w, max_h)
+  max_w = max_w or self.parent.w
+  max_h = max_h or self.parent.h
   log.debug('Layout begin: %s, BB: %dx%d', self.name, max_w, max_h)
   -- sizing of BB available to children, taking into account our sizing rules
   local ch_w,ch_h = self:getBounds(max_w, max_h)

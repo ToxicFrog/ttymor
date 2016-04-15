@@ -9,6 +9,7 @@ function LogWin:__init(...)
     visible = true;
     name = "loglist";
     position = { -1, 1 };
+    size = { inf, 0 };
   }
   ui.Box.__init(self, ...)
 end
@@ -32,7 +33,7 @@ function LogWin:render()
       end
     end
     game.log.dirty = false
-    ui.layout()
+    self:layout()
     self:scroll_to_line(-1)
   end
   ui.Box.render(self)

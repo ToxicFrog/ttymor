@@ -4,7 +4,7 @@
 local Window = require 'ui.Window'
 
 local VList = Window:subclass {
-  size = { inf, 0 };
+  size = { 0, 0 };
   position = { -1, -1 };
 }
 
