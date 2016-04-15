@@ -78,4 +78,8 @@ function Control:cmd_pickup()
   return true
 end
 
+function Control:cmd_exit_game()
+  love.event.quit()
+end
+
 return Control

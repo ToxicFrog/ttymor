@@ -27,6 +27,7 @@ return {
     { name = 'Scroll Up';       command = 'scrollup';   keys = { 'pgup' }};
     { name = 'Scroll Down';     command = 'scrolldn';   keys = { 'pgdn' }};
     { name = 'Inventory';       command = 'inventory';  keys = { 'I' }};
+    { name = 'Exit';            command = 'exit_game';  keys = { 'm-X' }};
   };
   interaction;
 }
