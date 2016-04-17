@@ -7,18 +7,18 @@ local EntityLine = Window:subclass {
 
 function EntityLine:__init(...)
   ui.Window.__init(self, ...)
-  assertf(self.content, 'EntityLine created without content')
+  assertf(self.entity, 'EntityLine created without content')
 end
 
 function EntityLine:getSize()
-  return #self.content.name+2,1
+  return #self.entity.name+2,1
 end
 
 function EntityLine:render()
-  self.content:render(0, 0)
+  self.entity:render(0, 0)
   if self.colour then tty.colour(unpack(self.colour)) end
   if self.style then tty.style(self.style) end
-  tty.put(2, 0, self.content.name)
+  tty.put(2, 0, self.entity.name)
 end
 
 return EntityLine

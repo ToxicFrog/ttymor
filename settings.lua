@@ -20,7 +20,7 @@ setmetatable(settings, { __index = settings.categories })
 local registered = settings.categories;
 
 settings.tree = Tree {
-  name = "Configuration";
+  title = "Configuration";
   visible = true;
   cancel = function(self)
     settings.load()

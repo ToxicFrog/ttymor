@@ -9,116 +9,86 @@
 -- is its sole child and handles actually rendering the content.
 
 local Tree = ui.Box:subclass {
-  _focused = 0;
+  _focus = 1;
+  _focus_list = {};
   size = { 0, 0 };
   position = { 0, 0 };
 }
 local Node = require 'ui.Node'
 
-function Tree:__init(data)
-  local nodes = {}
-  for i,v in ipairs(data) do
-    nodes[i] = v
-    data[i] = nil
-  end
-  data.content = nil
-  data.root = nil
-
-  self.content = ui.List {
-    name = data.name .. '$internal_list';
-    visible = true;
-    size = { 0, 0 };
+function Tree:__init(init)
+  init.content = ui.VList {
+    name = init.title .. '$internal_list';
   }
-  self.root = Node(self, nil, {
-    name = data.name .. '$root';
-    unpack(nodes);
-  })
-  ui.Window.__init(self, data)
-  self:attach(self.content)
-end
+  ui.Box.__init(self, init)
 
-function Tree:layout(w, h)
-  self:refresh()
-  return ui.Window.layout(self, w, h)
+  for i,v in ipairs(self) do
+    if type(v) == 'string' then
+      self.content:attach(ui.TextLine { text = v })
+    elseif #v > 0 then
+      -- FIXME: attach expander
+      self.content:attach(ui.TextLine(v))
+    else
+      self.content:attach(ui.TextLine(v))
+    end
+    self[i] = nil
+  end
 end
 
 function Tree:getMargins()
   return 1,1,2,2
 end
 
--- Focus the given node.
-function Tree:set_focus(index)
-  if self:focused() then
-    self:focused().focused = false
+function Tree:layout(w, h)
+  ui.Window.layout(self, w, h)
+  self:buildFocusList()
+end
+
+function Tree:buildFocusList()
+  local function aux(win, list)
+    if not win.visible then return list end
+    if win.activate then table.insert(list, win) end
+    if win.focused then self._focus = #list end
+    for child in win:children() do aux(child, list) end
+    return list
   end
-  self._focused = (index-1) % self.content:len() + 1
-  local node = self:focused()
-  node.focused = true
-  if node.help then
-    ui.setHUD(node.name, node.help)
-  else
-    ui.setHUD(nil)
-  end
+  self._focus_list = aux(self.content, {})
+end
+
+function Tree:setFocus(index)
+  self:focused().focused = false
+  self._focus = (index-1) % #self._focus_list + 1
+  self:focused().focused = true
 end
 
 function Tree:focused()
-  assertf(self.content:len() >= self._focused, "focus %d exceeds internal node list %d",
-      self._focused, self.content:len())
-  return self.content.content[self._focused]
+  return self._focus_list[self._focus]
 end
 
 -- Select the previous visible node.
-function Tree:focus_prev()
-  self:set_focus(self._focused - 1)
-  self:scroll_to_focused()
+function Tree:cmd_up()
+  self:setFocus(self._focus - 1)
+  self:scroll_to_line(self._focus)
+  return true
 end
 
 -- Select the next visible node.
-function Tree:focus_next()
-  self:set_focus(self._focused + 1)
-  self:scroll_to_focused()
+function Tree:cmd_down()
+  self:setFocus(self._focus + 1)
+  self:scroll_to_line(self._focus)
+  return true
 end
 
-function Tree:focus_page_up()
-  self:set_focus(self._focused - (self.content.h/2):ceil())
-  self:scroll_to_focused()
+function Tree:cmd_scrollup()
+  self:setFocus((#self._focus_list):min(self._focus - (self.h/2):ceil()))
+  self:scroll_to_line(self._focus)
+  return true
 end
 
-function Tree:focus_page_down()
-  self:set_focus(self._focused + (self.content.h/2):ceil())
-  self:scroll_to_focused()
-end
-
--- Scroll so that the focused element is in the center of the screen, or close to.
-function Tree:scroll_to_focused()
-  self.content:scroll_to_index(self._focused)
-end
-
--- Return a DFS iterator over all nodes in the tree; yields (node,depth) for
--- each node. The top level has depth 0, not 1.
-function Tree:walk(include_collapsed)
-  local function dfs_walk(tree, depth)
-    for _,subtree in ipairs(tree) do
-      coroutine.yield(subtree, depth)
-      if subtree.expanded or include_collapsed then
-        dfs_walk(subtree, depth+1)
-      end
-    end
-  end
-  return coroutine.wrap(dfs_walk),self.root,0
-end
-
--- Build the list of displayable nodes. Called when the list changes due to nodes
--- being expanded or collapsed.
-function Tree:refresh()
-  self.content:clear()
-  for node in self:walk() do
-    self.content:add(node)
-    node.index = self.content:len()
-    if node.focused then
-      self._focused = node.index
-    end
-  end
+function Tree:cmd_scrolldown()
+  self:set_focus((0):max(self._focus + (self.h/2):ceil()))
+  self:scroll_to_line(self._focus)
+  return true
 end
 
 -- The user has declined to choose a node at all.
@@ -128,43 +98,13 @@ function Tree:cancel()
   return true
 end
 
-function Tree:cmd_up()
-  self:focus_prev()
-  return true
-end
-
-function Tree:cmd_down()
-  self:focus_next()
-  return true
-end
-
-function Tree:cmd_left()
-  self:focused():collapse()
-  return true
-end
-
-function Tree:cmd_right()
-  self:focused():expand()
-  return true
-end
-
 function Tree:cmd_activate()
-  self:focused():activate()
+  self:focused():activate(self)
   return true
 end
 
 function Tree:cmd_cancel()
   self:cancel()
-  return true
-end
-
-function Tree:cmd_scrollup()
-  self:focus_page_up()
-  return true
-end
-
-function Tree:cmd_scrolldn()
-  self:focus_page_down()
   return true
 end
 

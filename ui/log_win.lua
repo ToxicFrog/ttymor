@@ -20,16 +20,13 @@ function LogWin:render()
     for turn in game.log:turns() do
       for _,line in ipairs(turn) do
         for _,subline in ipairs(line:wrap(self.content.w)) do
-          self.content:add(subline)
+          self.content:attach(ui.TextLine { text = subline })
         end
       end
     end
     for _,line in ipairs(game.log:currentTurn()) do
       for _,subline in ipairs(line:wrap(self.content.w)) do
-        self.content:add(subline)
-        -- self.content:add {
-        --   text = subline; colour = { 255, 255, 255 };
-        -- }
+        self.content:attach(ui.TextLine { text = subline })
       end
     end
     game.log.dirty = false

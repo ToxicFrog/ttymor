@@ -127,29 +127,29 @@ end
 
 function ui.mainmenu()
   ui.tree {
-    name = 'Main Menu';
-    { name = 'Return to Game';
+    title = 'Main Menu';
+    { text = 'Return to Game';
       help = 'Close the menu and return to the game in progress.';
-      activate = function(self) return self.tree:cancel() end; };
-    { name = 'Configuration';
+      activate = function(self, tree) return tree:cancel() end; };
+    { text = 'Configuration';
       activate = settings.edit;
       help = 'Change game settings and key bindings.' };
-    { name = 'Config Debug';
+    { text = 'Config Debug';
       activate = settings.show;
       help = 'View the raw contents of the settings subsystem, including hidden settings.' };
-    { name = 'Room Debug';
+    { text = 'Room Debug';
       activate = dredmor.debug_rooms;
       help = 'View the raw contents of the room database.' };
-    { name = 'Save Game';
-      activate = function(self) game.save(); return self.tree:cancel(); end;
+    { text = 'Save Game';
+      activate = function(self, tree) game.save(); return tree:cancel(); end;
       help = 'Save your game in progress.' };
-    { name = 'Load Game';
-      activate = function(self) game.load(game.name()); return self.tree:cancel(); end;
+    { text = 'Load Game';
+      activate = function(self, tree) game.load(game.name()); return tree:cancel(); end;
       help = 'Load your last save.' };
-    { name = 'Quit And Save';
+    { text = 'Quit And Save';
       activate = function() game.save(); love.event.quit(); end;
       help = 'Save your game and then quit TTYmor.' };
-    { name = 'Quit Without Saving';
+    { text = 'Quit Without Saving';
       activate = love.event.quit;
       help = 'Immediately quit the same without saving.' };
   }
@@ -162,8 +162,8 @@ function ui.tree(tree)
   tree = ui.Tree(tree)
   tree.visible = true
   ui.main_win:attach(tree)
-  ui.layout()
-  tree:set_focus(1)
+  ui.main_win:layout()
+  tree:setFocus(1)
 end
 
 function ui.message(title, message)

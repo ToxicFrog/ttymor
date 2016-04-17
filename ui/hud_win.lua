@@ -22,12 +22,11 @@ function HudWin:setContent(data)
   assert(data, "attempt to call setContent() with nil data")
   self.content:clear()
   for _,item in ipairs(data) do
-    self.content:add(item)
+    self.content:attach(ui.EntityLine { entity = item })
   end
   self.top = data
   self.title = data.name
-  ui.layout()
-  --self:layout(self.parent.w, self.parent.h)
+  self:layout()
 end
 
 function HudWin:pushContent()

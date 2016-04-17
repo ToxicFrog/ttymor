@@ -35,6 +35,7 @@ function VList:layout(w, h)
   for child in self:children() do
     child.y = y
     y = y + child.h
+    log.debug("VList:reposition: %s: %d,%d", child.name, child.x, child.y)
   end
 end
 
@@ -54,27 +55,6 @@ end
 
 function VList:clear()
   self._children = {}
-end
-
--- WARNING: does not update sizing information (or scroll information for its
--- container, if applicable). Call ui.layout() after adding items.
-function VList:add(child)
-  if type(child) == 'string' then
-    return self:add(ui.TextLine {
-      content = child;
-      size = {0,0};
-      position = {-1,-1};
-    })
-  elseif child.id then
-    -- assume that it's an in-game entity
-    -- HACK HACK HACK, we should have an EntityListViewer or something
-    return self:add(ui.EntityLine {
-      content = child;
-      size = {0,0};
-      position = {-1,-1};
-    })
-  end
-  self:attach(child)
 end
 
 return VList

@@ -4,17 +4,19 @@ local TextLine = Window:subclass {}
 
 function TextLine:__init(...)
   ui.Window.__init(self, ...)
-  assertf(self.content, 'TextLine created without content')
+  assertf(self.text, 'TextLine created without text')
 end
 
 function TextLine:getSize()
-  return #self.content,1
+  return #self.text,1
 end
 
 function TextLine:render()
+  tty.style('o')
   if self.colour then tty.colour(unpack(self.colour)) end
   if self.style then tty.style(self.style) end
-  tty.put(0, 0, self.content)
+  if self.focused == true then tty.style('v') end
+  tty.put(0, 0, self.text)
 end
 
 return TextLine
