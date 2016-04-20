@@ -123,7 +123,7 @@ end
 
 function Tree:cmd_scrolldown()
   if self._focus then
-    self:set_focus((0):max(self._focus + (self.h/2):ceil()))
+    self:setFocus((0):max(self._focus + (self.h/2):ceil()))
     self:scroll_to_line(self._focus)
   else
     self:page_down()

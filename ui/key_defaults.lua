@@ -25,7 +25,7 @@ return {
     { name = 'Select/Activate'; command = 'activate';   keys = { 'enter' }};
     { name = 'Cancel';          command = 'cancel';     keys = { 'esc', '`' }};
     { name = 'Scroll Up';       command = 'scrollup';   keys = { 'pgup' }};
-    { name = 'Scroll Down';     command = 'scrolldn';   keys = { 'pgdn' }};
+    { name = 'Scroll Down';     command = 'scrolldown'; keys = { 'pgdn' }};
     { name = 'Inventory';       command = 'inventory';  keys = { 'I' }};
     { name = 'Exit';            command = 'exit_game';  keys = { 'm-X' }};
   };

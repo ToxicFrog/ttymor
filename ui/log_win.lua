@@ -41,7 +41,7 @@ function LogWin:cmd_scrollup()
   return true
 end
 
-function LogWin:cmd_scrolldn()
+function LogWin:cmd_scrolldown()
   self:page_down()
   return true
 end
