@@ -14,7 +14,28 @@ local Tree = ui.Box:subclass {
   size = { 0, 0 };
   position = { 0, 0 };
 }
-local Node = require 'ui.Node'
+
+local function makeNode(data)
+  log.debug('makeNode: type=%s #=%d render=%s %s', type(data), #data, data.render, data)
+  if type(data) == 'string' then
+    return ui.TextLine { text = data }
+  elseif #data > 0 then
+    local list = ui.VList {}
+    for i,v in ipairs(data) do
+      list:attach(makeNode(v))
+      data[i] = nil
+    end
+    return ui.Expander {
+      text = data.text;
+      content = list;
+    }
+  elseif data.render then
+    -- We make the possibly unwarranted assumption here that data is a subclass of Window
+    return data
+  else
+    return ui.TextLine(data)
+  end
+end
 
 function Tree:__init(init)
   init.content = ui.VList {
@@ -23,15 +44,12 @@ function Tree:__init(init)
   ui.Box.__init(self, init)
 
   for i,v in ipairs(self) do
-    if type(v) == 'string' then
-      self.content:attach(ui.TextLine { text = v })
-    elseif #v > 0 then
-      -- FIXME: attach expander
-      self.content:attach(ui.TextLine(v))
-    else
-      self.content:attach(ui.TextLine(v))
-    end
+    self.content:attach(makeNode(v))
     self[i] = nil
+  end
+  self:buildFocusList()
+  if self._focus then
+    self:setFocus(self._focus)
   end
 end
 
@@ -53,9 +71,13 @@ function Tree:buildFocusList()
     return list
   end
   self._focus_list = aux(self.content, {})
+  if #self._focus_list == 0 then
+    self._focus = nil
+  end
 end
 
 function Tree:setFocus(index)
+  if not self._focus then return end
   self:focused().focused = false
   self._focus = (index-1) % #self._focus_list + 1
   self:focused().focused = true
@@ -67,27 +89,43 @@ end
 
 -- Select the previous visible node.
 function Tree:cmd_up()
-  self:setFocus(self._focus - 1)
-  self:scroll_to_line(self._focus)
+  if self._focus then
+    self:setFocus(self._focus - 1)
+    self:scroll_to_line(self._focus)
+  else
+    self:scroll_up()
+  end
   return true
 end
 
 -- Select the next visible node.
 function Tree:cmd_down()
-  self:setFocus(self._focus + 1)
-  self:scroll_to_line(self._focus)
+  if self._focus then
+    self:setFocus(self._focus + 1)
+    self:scroll_to_line(self._focus)
+  else
+    self:scroll_down()
+  end
   return true
 end
 
 function Tree:cmd_scrollup()
-  self:setFocus((#self._focus_list):min(self._focus - (self.h/2):ceil()))
-  self:scroll_to_line(self._focus)
+  if self._focus then
+    self:setFocus((#self._focus_list):min(self._focus - (self.h/2):ceil()))
+    self:scroll_to_line(self._focus)
+  else
+    self:page_up()
+  end
   return true
 end
 
 function Tree:cmd_scrolldown()
-  self:set_focus((0):max(self._focus + (self.h/2):ceil()))
-  self:scroll_to_line(self._focus)
+  if self._focus then
+    self:set_focus((0):max(self._focus + (self.h/2):ceil()))
+    self:scroll_to_line(self._focus)
+  else
+    self:page_down()
+  end
   return true
 end
 
