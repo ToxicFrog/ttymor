@@ -40,6 +40,8 @@ end
 function Tree:__init(init)
   init.content = ui.VList {
     name = init.title .. '$internal_list';
+    position = { -1, -1 };
+    size = { 0, 0 };
   }
   ui.Box.__init(self, init)
 
@@ -58,7 +60,7 @@ function Tree:getMargins()
 end
 
 function Tree:layout(w, h)
-  ui.Window.layout(self, w, h)
+  ui.Box.layout(self, w, h)
   self:buildFocusList()
 end
 
