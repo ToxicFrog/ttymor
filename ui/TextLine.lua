@@ -7,6 +7,10 @@ function TextLine:__init(...)
   assertf(self.text, 'TextLine created without text')
 end
 
+function TextLine:__tostring()
+  return 'TextLine[%s]' % self.text
+end
+
 function TextLine:getSize()
   return #self.text,1
 end

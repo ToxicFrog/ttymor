@@ -15,6 +15,10 @@ function Window:__init(...)
   self._children = {}
 end
 
+function Window:__tostring()
+  return 'Window[%s]' % self.name
+end
+
 function Window:children()
   return coroutine.wrap(function()
     for _,child in ipairs(self._children) do
@@ -43,7 +47,7 @@ function Window:layout(max_w, max_h)
 
   max_w = max_w or self.parent.w
   max_h = max_h or self.parent.h
-  log.debug('Layout begin: %s, BB: %dx%d', self.name, max_w, max_h)
+  log.debug('Layout begin: %s, BB: %dx%d', self, max_w, max_h)
   -- sizing of BB available to children, taking into account our sizing rules
   local ch_w,ch_h = self:getBounds(max_w, max_h)
   -- margins, which affect BB usable for children
@@ -56,14 +60,14 @@ function Window:layout(max_w, max_h)
   end
 
   self.w,self.h = self:getSize(max_w, max_h)
-  log.debug("Size: %s: %dx%d", self.name, self.w, self.h)
+  log.debug("Size: %s: %dx%d", self, self.w, self.h)
 
   for child in self:children() do
     child.x,child.y = child:getPosition(ch_w, ch_h)
     child.x,child.y = child.x + lf,child.y + up
     log.debug("Position: %s: %d,%d", child.name, child.x, child.y)
   end
-  log.debug("Layout end: %s", self.name)
+  log.debug("Layout end: %s", self)
 end
 
 --
@@ -241,7 +245,7 @@ end
 -- TODO: fix this!
 -- WARNING WARNING WARNING
 function Window:attach(subwin)
-  log.debug('%s: attaching child %s', self.name, subwin.name)
+  log.debug('%s: attaching child %s', self, subwin)
   assert(not subwin.parent, 'attempt to attach non-orphan window')
   table.insert(self._children, subwin)
   subwin.parent = self
@@ -251,7 +255,7 @@ function Window:detach(subwin)
   if not subwin then
     return self.parent:detach(self)
   end
-  log.debug('detach %s from %s', subwin.name, self.name)
+  log.debug('%s: detach child %s', self, subwin)
 
   for i,v in ipairs(self._children) do
     if v == subwin then

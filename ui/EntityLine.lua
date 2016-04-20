@@ -10,6 +10,10 @@ function EntityLine:__init(...)
   assertf(self.entity, 'EntityLine created without content')
 end
 
+function EntityLine:__tostring()
+  return 'EntityLine[%s]' % tostring(self.entity)
+end
+
 function EntityLine:getSize()
   return #self.entity.name+2,1
 end

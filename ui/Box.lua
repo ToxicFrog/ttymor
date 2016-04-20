@@ -19,6 +19,10 @@ function Box:__init(...)
   self:attach(self.content)
 end
 
+function Box:__tostring()
+  return 'Box[%s]' % self.title
+end
+
 function Box:getMargins()
   return 1,1,1,1
 end
