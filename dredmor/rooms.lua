@@ -89,7 +89,7 @@ local function asChar(tile)
 end
 
 function dredmor.debug_rooms()
-  local tree = { name = 'Room List' }
+  local tree = { title = 'Room List' }
   for name,room in pairs(rooms) do
     local node = {
       name = room.name;
