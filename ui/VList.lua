@@ -51,6 +51,7 @@ function VList:renderSlice(x, y, w, h)
   local real_y = 0
   for child in self:children() do
     -- render child only if it is entirely inside the slice
+    -- FIXME: call renderSlice() on child for children that are partially inside
     if child.x >= x and child.x + child.w <= x + w
       and child.y >= y and child.y + child.h <= y + h
     then

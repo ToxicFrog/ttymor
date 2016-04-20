@@ -15,7 +15,8 @@ function Expander:__init(...)
   self._header = TextLine { text = self.text }
   function self._header.activate(header, tree)
     self:expand(not self.expanded)
-    tree.parent:layout()
+    ui.layout()
+--    tree.parent:layout()
   end
   self:attach(self._header)
   self:attach(self.content)

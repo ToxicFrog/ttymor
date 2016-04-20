@@ -92,35 +92,35 @@ function dredmor.debug_rooms()
   local tree = { title = 'Room List' }
   for name,room in pairs(rooms) do
     local node = {
-      name = room.name;
+      text = room.name;
       _room = room;
     }
     table.insert(tree, node)
-    function node:activate()
-      local message = { name = self.name }
+    function node:activate(tree)
+      local message = { title = self.text }
 
-      local terrain = { name = "TERRAIN"; expanded = true }
+      local terrain = { text = "TERRAIN"; expanded = true }
       for x,y,cell in self._room:cells() do
         terrain[y] = (terrain[y] or '') .. asChar(cell)
       end
       for y,row in ipairs(terrain) do
-        terrain[y] = { name = row }
+        terrain[y] = { text = row }
       end
 
-      local flags = { name = "FLAGS" }
+      local flags = { text = "FLAGS" }
       for k,v in pairs(self._room.flags) do
-        table.insert(flags, { name = k..': '..v })
+        table.insert(flags, { text = k..': '..v })
       end
 
-      local doors = { name = "DOORS" }
+      local doors = { text = "DOORS" }
       for door in self._room:doors() do
         table.insert(doors,
-            { name = (repr({x=door.x;y=door.y;dir=door.dir}):gsub('%s+', ' ')) })
+            { text = (repr({x=door.x;y=door.y;dir=door.dir}):gsub('%s+', ' ')) })
       end
 
-      local contents = { name = "CONTENTS" }
+      local contents = { text = "CONTENTS" }
       for _,v in ipairs(self._room.contents) do
-        table.insert(contents, {name = v._type..': '..(v.name or '???')})
+        table.insert(contents, {text = v._type..': '..(v.name or '???')})
       end
 
       table.insert(message, terrain)
@@ -130,7 +130,7 @@ function dredmor.debug_rooms()
       ui.tree(message)
     end
   end
-  table.sort(tree, function(a,b) return a.name < b.name end)
+  table.sort(tree, function(a,b) return a.text < b.text end)
   ui.tree(tree)
 end
 

@@ -65,8 +65,6 @@ end
 
 function Box:renderChildren()
   if self.max_scroll > 0 then
-    -- FIXME: this is where the magic needs to happen that takes the scroll amount
-    -- into effect when rendering the children
     for child in self:children() do
       tty.pushwin { x=1; y=1; w=self.w-2; h=self.h-2; }
       child:renderSlice(0, self.scroll, self.w, self.h-2)
