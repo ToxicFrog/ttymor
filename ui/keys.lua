@@ -53,7 +53,7 @@ end
 -- key remapping UI elements from ui.key_defaults
 --
 local keybind_tree = require 'ui.key_defaults'
-keybind_tree.name = 'Keybinds'
+keybind_tree.text = 'Keybinds'
 
 settings.Category {
   name = 'Keybinds';
@@ -80,10 +80,9 @@ settings.Category {
 
 local KeySetting = settings.Raw:subclass {}
 
-function KeySetting:show()
-  return '[%6s][%6s]' % {
-    self.value[1] or '------',
-    self.value[2] or '------',
+function KeySetting:label()
+  return '%s%s[%6s][%6s]' % {
+    self.name, ' ', self.value[1] or '------', self.value[2] or '------'
   }
 end
 

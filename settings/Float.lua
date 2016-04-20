@@ -11,8 +11,8 @@ function Float:set(val)
   return self.value
 end
 
-function Float:show()
-  return '[%.2f]' % tostring(self.value)
+function Float:label()
+  return '%s%s[%.2f]' % { name, ' ', self.value }
 end
 
 return Float

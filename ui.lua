@@ -7,6 +7,7 @@ ui.Tree = require 'ui.Tree'
 ui.VList = require 'ui.VList'
 ui.TextLine = require 'ui.TextLine'
 ui.EntityLine = require 'ui.EntityLine'
+ui.Expander = require 'ui.Expander'
 
 function ui.layout()
   local w,h = tty.termsize()
@@ -163,7 +164,6 @@ function ui.tree(tree)
   tree.visible = true
   ui.main_win:attach(tree)
   ui.main_win:layout()
-  tree:setFocus(1)
 end
 
 function ui.message(title, message)

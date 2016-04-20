@@ -35,6 +35,12 @@ end
 -- and once we know *that* we also know where our children need to go based on
 -- their size and positioning rules.
 function Window:layout(max_w, max_h)
+  if not self.visible then
+    -- Invisible windows take up no space and don't participate in layout.
+    self.w,self.h = 0,0
+    return
+  end
+
   max_w = max_w or self.parent.w
   max_h = max_h or self.parent.h
   log.debug('Layout begin: %s, BB: %dx%d', self.name, max_w, max_h)

@@ -11,10 +11,11 @@ local VList = Window:subclass {
 function VList:__init(data)
   Window.__init(self, data)
   self:clear()
-  for i,line in ipairs(self) do
-    self:add(line)
-    self[i] = nil
-  end
+end
+
+function VList:__tostring()
+  return 'VList'
+--  return 'VList[%s|%d]' % { self, #self._children }
 end
 
 function VList:getChildSize()
@@ -27,15 +28,22 @@ function VList:getChildSize()
   return w,h
 end
 
+-- FIXME: if we're not visible, this ends extremely poorly; Window.layout returns
+-- without doing anything, and then we try to arrange our children, which haven't
+-- been laid out at all, and everything goes horribly wrong
 function VList:layout(w, h)
   Window.layout(self, w, h)
+  if not self.visible then return end
   -- Override the default child positioning loop to lay them out top to bottom
   -- rather than back to front.
   local y = 0
   for child in self:children() do
-    child.y = y
-    y = y + child.h
-    log.debug("VList:reposition: %s: %d,%d", child.name, child.x, child.y)
+    if child.visible then
+      log.debug("VList:reposition: %s (%s)", child, child.layout)
+      child.y = y
+      y = y + child.h
+      log.debug("VList:reposition: %s: %d,%d", child.name, child.x, child.y)
+    end
   end
 end
 

@@ -1,4 +1,5 @@
 require 'util'
+require 'repr'
 require 'Object'
 require 'ui'
 require 'settings'
