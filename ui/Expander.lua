@@ -18,6 +18,9 @@ function Expander:__init(...)
     ui.layout()
 --    tree.parent:layout()
   end
+  function self.content.getMargins()
+    return 0,0,1,0
+  end
   self:attach(self._header)
   self:attach(self.content)
   self:expand(self.expanded)
