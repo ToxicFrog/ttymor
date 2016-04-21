@@ -112,7 +112,9 @@ end
 function settings.edit()
   local tree = { title = "Configuration" }
   for _,cat in ipairs(registered) do
-    table.insert(tree, cat)
+    if not cat.hidden then
+      table.insert(tree, cat)
+    end
   end
   table.insert(tree, ui.TextLine {
     text = "Save Configuration";
