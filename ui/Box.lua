@@ -56,11 +56,11 @@ function Box:render()
     local sb_offset = (self.scroll/self.max_scroll * sb_max_offset):floor()
 
     -- draw gutter
-    ui.clear({ x=self.w-1; y=2; w=1; h=self.h-4 }, '┊')
+    ui.fill({ x=self.w-1; y=2; w=1; h=self.h-4 }, '┊')
     tty.put(self.w-1, 1, '┻')
     tty.put(self.w-1, self.h-2, '┳')
     -- draw scrollbar
-    ui.clear({ x=self.w-1; y=2+sb_offset; w=1; h=sb_height }, '▓') --█
+    ui.fill({ x=self.w-1; y=2+sb_offset; w=1; h=sb_height }, '▓') --█
   end
 end
 

@@ -196,15 +196,11 @@ function ui.message(title, message)
   return box
 end
 
-function ui.clear(view, char)
+function ui.fill(rect, char)
   char = char or ' '
-  if not view then
-    local w,h = tty.size()
-    view = { x = 0; y = 0; w = w; h = h }
-  end
-  tty.pushwin(view)
-  for y=0,view.h-1 do
-    tty.put(0, y, char:rep(view.w))
+  tty.pushwin(rect)
+  for y=0,rect.h-1 do
+    tty.put(0, y, char:rep(rect.w))
   end
   tty.popwin()
 end
