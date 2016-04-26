@@ -45,15 +45,15 @@ function Control:cmd_activate()
   -- frob surrounding objects
   local x,y,map = self:position()
 
-  local tree = { name = "Surroundings" }
+  local tree = { title = "Surroundings" }
   for _,cell in ipairs {{x,y,"⌖"}, {x,y-1,"⤊"}, {x,y+1,"⤋"}, {x-1,y,"⇚"}, {x+1,y,"⇛"}} do
     for ent in map:contents(cell[1], cell[2]) do
       local verbs = {}; ent:message("verbs", verbs)
       if next(verbs) then
         table.insert(tree, {
-          name = cell[3]..' '..ent.name;
-          activate = function(node)
-            node.tree:cancel()
+          text = cell[3]..' '..ent.name;
+          activate = function(node, tree)
+            tree:cancel()
             ent:interactedWith()
           end;
         })

@@ -59,4 +59,5 @@ entity.register 'Door' {
   name = 'door';
   Door = {};
   Render = { face='!'; colour = {0xFF,0x99,0x33} };
+  Interactable = {};
 }
