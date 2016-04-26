@@ -14,7 +14,12 @@ local X,Y = 0,0
 function tty.init()
   os.execute('stty raw isig -echo')
   local w,h = tty.termsize()
-  stack[1] = { x=0, y=0, w=w, h=h }
+  stack[1] = {
+    x = 0, y = 0;   -- Offset of the drawing region. All drawing commands are relative to this.
+    w = w, h = h;   -- Width and height of the drawing region.
+    cx = 0, cy = 0; -- Offset of the clipping rectangle.
+    cw = w, ch = h; -- Width and height of the clipping rectangle.
+  }
   top = stack[1]
   tty.csi('h', '?', 47) -- DECSET alternate screen buffer
   tty.csi('l', '?', 25) -- DECRST cursor
@@ -42,7 +47,7 @@ end
 
 -- return dimensions of top of rendering stack, i.e. size of clipping region
 function tty.size()
-  return top.w,top.h
+  return top.cw,top.ch
 end
 
 function tty.bounds()
@@ -54,25 +59,35 @@ function tty.flip()
   buf = {}
 end
 
+-- Check if the given (absolute) coordinates are inside the current clipping region.
 local function in_bounds(x, y)
-  return 0 <= x and x <= top.w
-    and 0 <= y and y <= top.h
+  return top.cx <= x and x < (top.cx + top.cw)
+     and top.cy <= y and y < (top.cy + top.ch)
+end
+
+local function absolute(x, y)
+  return x + top.x, y + top.y
 end
 
 -- Push a new drawing region onto the stack.
-function tty.pushwin(x, y, w, h)
-  if type(x) == 'table' then
-    return tty.pushwin(x.x, x.y, x.w, x.h)
-  end
-
-  -- Check that the window is fully in bounds.
-  assertf(x and y and w and y, "incomplete window in tty.pushwin()")
-  assertf(in_bounds(x, y), "window position out of bounds: %d,%d", x, y)
-  assertf(in_bounds(x + w, y + h), "window size out of bounds: %d,%d+%dx%d > %dx%d",
-      x, y, w, h, top.w, top.h)
-  x = x + top.x
-  y = y + top.y
-  table.insert(stack, { x = x, y = y; w = w, h = h; })
+-- We first translate the window into absolute coordinates; then we compute the
+-- new clipping region by intersecting the new window with the old clipping
+-- region, and store that as part of the pushed window.
+function tty.pushwin(win)
+  -- Check that the window is fully defined.
+  assertf(win.x and win.y and win.w and win.y, "incomplete window in tty.pushwin()")
+  -- Create the new window with x,y translated into absolute coordinates.
+  local new_top = {
+    name = tostring(win);
+    w = win.w, h = win.h;
+  }
+  new_top.x,new_top.y = absolute(win.x, win.y)
+  -- Calculate the new clipping region.
+  new_top.cx = new_top.x:bound(top.cx, top.cx + top.cw)
+  new_top.cy = new_top.y:bound(top.cy, top.cy + top.ch) -- 34
+  new_top.cw = (new_top.x + new_top.w):bound(top.cx, top.cx + top.cw) - new_top.cx
+  new_top.ch = (new_top.y + new_top.h):bound(top.cy, top.cy + top.ch) - new_top.cy
+  table.insert(stack, new_top)
   top = stack[#stack]
   return tty.size()
 end
@@ -93,20 +108,28 @@ function tty.csi(command, ...)
 end
 
 function tty.put(x, y, text)
+  -- Convert to absolute coordinates.
+  x,y = absolute(x,y)
+  -- Silently drop draws outside the clipping region.
+  if not in_bounds(x, y) then return end
   assertf(type(text) == 'string', 'Invalid input to tty.put(): %s', text)
   tty.move(x,y)
   buf[#buf+1] = text
 end
 
+-- Position the cursor at the given ABSOLUTE coordinates.
+-- Takes (0,0) coordinates, converts to screen (1,1).
 function tty.move(x, y)
-  if x == X and y == Y then return end
-  -- Check that the new cursor position is within the bounds of the current drawing
-  -- window. A check in tty.pushwin() ensures that the window itself is valid.
+  -- Check that the new cursor position is within the bounds of the current
+  -- clipping region. tty.put() should ensure that this check is never violated.
   assertf(in_bounds(x, y), "out of bounds draw: %d,%d", x, y)
-  -- This is where the transformation from logical to screen coordinates happens.
-  -- The TTY uses a (1,1) origin, so we add 1 to both values after applying the
-  -- CTM, and the H command is in (row,column) order, so we flip the arguments.
-  X,Y = x+top.x+1,y+top.y+1
+  -- We add 1 to each since the TTY wants (1,1) based coordinates.
+  x,y = x+1,y+1
+  -- Skip if this is where the cursor is already, so we don't emit lots of
+  -- duplicate drawing commands.
+  if x == X and y == Y then return end
+  X,Y = x,y
+  -- And since the TTY wants (row,col) rather than (x,y), we flip the arguments.
   tty.csi('H', Y, X)
 end
 
