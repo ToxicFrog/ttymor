@@ -67,7 +67,7 @@ end
 function Tree:buildFocusList()
   local function aux(win, list)
     if not win.visible then return list end
-    if win.activate then table.insert(list, win) end
+    table.insert(list, win)
     if win.focused then self._focus = #list end
     for child in win:children() do aux(child, list) end
     return list
@@ -139,7 +139,10 @@ function Tree:cancel()
 end
 
 function Tree:cmd_activate()
-  self:focused():activate(self)
+  local line = self:focused()
+  if line.activate then
+    line:activate(self)
+  end
   return true
 end
 
