@@ -205,14 +205,6 @@ end
 
 function Window:render() end
 
--- Render a subsection of this window at (0,0).
--- Default implementation throws, but some subclasses (notably VList) may
--- implement this; it's called by scrollable parents (Box) to render only the
--- part that is actually visible.
-function Window:renderSlice(x, y, w, h)
-  error("renderSlice() called on a UI element that doesn't support it.")
-end
-
 function Window:renderChildren()
   for child in self:children() do
     tty.pushwin(child)

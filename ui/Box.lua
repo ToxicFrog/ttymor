@@ -30,6 +30,7 @@ end
 function Box:layout(w, h)
   ui.Window.layout(self, w, h)
   self.max_scroll = self.content.h - (self.h - 2)
+  self.content_y = self.content.y
   self:scroll_by(0)
 end
 
@@ -63,21 +64,10 @@ function Box:render()
   end
 end
 
-function Box:renderChildren()
-  if self.max_scroll > 0 then
-    for child in self:children() do
-      tty.pushwin { x=1; y=1; w=self.w-2; h=self.h-2; }
-      child:renderSlice(0, self.scroll, self.w, self.h-2)
-      tty.popwin()
-    end
-  else
-    ui.Window.renderChildren(self)
-  end
-end
-
 -- scroll up/down the given number of lines, without wrapping or changing focus
 function Box:scroll_by(n)
   self.scroll = math.bound(self.scroll+n, 0, self.max_scroll):floor()
+  self.content.y = self.content_y - self.scroll
 end
 
 -- Scroll up/down one line without wrapping or changing focus.
@@ -101,6 +91,7 @@ function Box:scroll_to_line(n)
     n = n % self.content.h
   end
   self.scroll = math.bound(n - self.h/2, 0, self.max_scroll):floor()
+  return self:scroll_by(0)
 end
 
 

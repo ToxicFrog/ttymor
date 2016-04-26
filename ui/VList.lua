@@ -47,21 +47,6 @@ function VList:layout(w, h)
   end
 end
 
-function VList:renderSlice(x, y, w, h)
-  local real_y = 0
-  for child in self:children() do
-    -- render child only if it is entirely inside the slice
-    -- FIXME: call renderSlice() on child for children that are partially inside
-    if child.x >= x and child.x + child.w <= x + w
-      and child.y >= y and child.y + child.h <= y + h
-    then
-      tty.pushwin { x=child.x-x, y=child.y-y, w=child.w, h=child.h }
-      child:renderAll()
-      tty.popwin()
-    end
-  end
-end
-
 function VList:clear()
   self._children = {}
 end
