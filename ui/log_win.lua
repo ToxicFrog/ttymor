@@ -8,7 +8,7 @@ function LogWin:__init(...)
   self.content = ui.VList {
     visible = true;
     name = "loglist";
-    position = { -1, 1 };
+    position = { 0, 1 };
     size = { inf, 0 };
   }
   ui.Box.__init(self, ...)

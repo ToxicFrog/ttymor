@@ -3,10 +3,7 @@
 --
 local Window = require 'ui.Window'
 
-local VList = Window:subclass {
-  size = { 0, 0 };
-  position = { -1, -1 };
-}
+local VList = Window:subclass {}
 
 function VList:__init(data)
   Window.__init(self, data)

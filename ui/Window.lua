@@ -1,6 +1,6 @@
 local Window = Object:subclass {
   visible = true;
-  position = { -1, -1 };
+  position = { 0, 0 };
   size = { 0, 0 };
   colour = { 255, 255, 255, 0, 0, 0 };
 }
@@ -135,18 +135,7 @@ function Window:getSize(max_w, max_h)
 end
 
 local function position_axis(bb, grav, size)
-  if grav < 0 then
-    -- left/top gravity
-    return 0
-  elseif grav > 0 then
-    -- right/bottom gravity
-    return bb - size
-  elseif grav == 0 then
-    -- center gravity
-    return ((bb - size)/2):floor()
-  else
-    error()
-  end
+  return ((bb - size) * grav):floor()
 end
 
 function Window:getPosition(max_w, max_h)

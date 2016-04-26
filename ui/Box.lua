@@ -10,7 +10,7 @@ local Box = Window:subclass {
   -- It's also automatically hidden if max_scroll <= 0.
   display_scrollbar = true;
   size = { 0, 0 };
-  position = { 0, 0 };
+  position = { 0.5, 0.5 };
 }
 
 function Box:__init(...)

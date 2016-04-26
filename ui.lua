@@ -19,7 +19,7 @@ function ui.init()
 
   ui.screen = ui.Window {
     name = "screen";
-    position = { -1, -1 };
+    position = { 0, 0 };
     size = { inf, inf };
     x = 0; y = 0;
     visible = true;
@@ -32,21 +32,21 @@ function ui.init()
 
   -- Log fills the left side of the screen.
   ui.log_win = require 'ui.log_win' {
-    position = { -1, -1 };
+    position = { 0, 0 };
     size = { 40, inf };
   }
   ui.screen:attach(ui.log_win)
 
   -- HUD overlays log in the upper left.
   ui.hud_win = require 'ui.hud_win' {
-    position = { -1, -1 };
+    position = { 0, 0 };
     size = { 40, 0 };
   }
   ui.screen:attach(ui.hud_win)
 
   -- main view takes up the remaining space
   ui.main_win = require 'ui.main_win' {
-    position = { 1, -1 };
+    position = { 1, 0 };
     size = { -40, inf };
   }
   ui.screen:attach(ui.main_win)
@@ -176,7 +176,7 @@ function ui.message(title, message)
   local box = ui.Box {
     title = title;
     content = ui.VList(message);
-    position = { 0, 0 };
+    position = { 0.5, 0.5 };
   }
   function box:cmd_any()
     self:destroy()

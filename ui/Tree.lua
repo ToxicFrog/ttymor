@@ -11,8 +11,6 @@
 local Tree = ui.Box:subclass {
   _focus = 1;
   _focus_list = {};
-  size = { 0, 0 };
-  position = { 0, 0 };
 }
 
 local function makeNode(data)
@@ -40,8 +38,6 @@ end
 function Tree:__init(init)
   init.content = ui.VList {
     name = init.title .. '$internal_list';
-    position = { -1, -1 };
-    size = { 0, 0 };
   }
   ui.Box.__init(self, init)
 
