@@ -11,6 +11,10 @@ local VList = Window:subclass {
 function VList:__init(data)
   Window.__init(self, data)
   self:clear()
+  for i,child in ipairs(self) do
+    self:attach(child)
+    self[i] = nil
+  end
 end
 
 function VList:__tostring()

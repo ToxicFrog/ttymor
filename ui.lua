@@ -2,7 +2,6 @@ ui = {}
 
 ui.Window = require 'ui.Window'
 ui.Box = require 'ui.Box'
-ui.List = require 'ui.List'
 ui.Tree = require 'ui.Tree'
 ui.VList = require 'ui.VList'
 ui.TextLine = require 'ui.TextLine'
@@ -170,22 +169,14 @@ function ui.message(title, message)
   if type(message) == 'string' then
     return ui.message(title, {message})
   end
-  local w = #title + 4
   for i,line in ipairs(message) do
-    w = w:max(#line)
+    message[i] = ui.TextLine { text = line }
   end
 
-  message.visible = true
-  message.x = 1
-  message.y = 1
-  local list = ui.List(message)
   local box = ui.Box {
-    name = title;
-    visible = true;
-    position = "center";
-    w = w + 2;
-    h = #message + 2;
-    content = list;
+    title = title;
+    content = ui.VList(message);
+    position = { 0, 0 };
   }
   function box:cmd_any()
     self:destroy()
@@ -193,6 +184,7 @@ function ui.message(title, message)
   end
 
   ui.main_win:attach(box)
+  ui.main_win:layout()
   return box
 end
 
