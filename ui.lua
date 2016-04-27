@@ -106,8 +106,8 @@ function ui.box(rect, title, walls)
   end
   tty.put(0, h-1, walls.sw..walls.s:rep(w-2)..walls.se)
   if title then
-    tty.put(1, 0, '┫'..title:sub(1, w-4)..'┣')
---    tty.put(1, 0, '╾'..title..'╼')
+--    tty.put(1, 0, '┫'..title:sub(1, w-4)..'┣')
+    tty.put(1, 0, '╾'..title..'╼')
   end
 
   tty.popwin()
