@@ -1,6 +1,8 @@
 -- A UI widget for a single line of (possibly styled) text.
 local Window = require 'ui.Window'
-local TextLine = Window:subclass {}
+local TextLine = Window:subclass {
+  can_focus = true;
+}
 
 function TextLine:__init(...)
   ui.Window.__init(self, ...)

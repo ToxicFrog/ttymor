@@ -63,7 +63,7 @@ end
 function Tree:buildFocusList()
   local function aux(win, list)
     if not win.visible then return list end
-    table.insert(list, win)
+    if win.can_focus then table.insert(list, win) end
     if win.focused then self._focus = #list end
     for child in win:children() do aux(child, list) end
     return list

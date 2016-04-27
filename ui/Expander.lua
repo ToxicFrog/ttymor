@@ -12,7 +12,7 @@ local Expander = VList:subclass {
 function Expander:__init(...)
   VList.__init(self, ...)
   assert(self.content, "an Expander requires both .text and .content")
-  self._header = TextLine { text = self.text }
+  self._header = TextLine { text = self.text; can_focus = true; }
   function self._header.activate(header, tree)
     self:expand(not self.expanded)
     ui.layout()

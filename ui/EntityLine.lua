@@ -3,6 +3,7 @@ local Window = require 'ui.Window'
 local EntityLine = Window:subclass {
   colour = { 255, 255, 255 };
   style = 'o';
+  can_focus = true;
 }
 
 function EntityLine:__init(...)
