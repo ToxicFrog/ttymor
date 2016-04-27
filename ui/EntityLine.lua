@@ -1,8 +1,6 @@
 -- Like a TextLine, but displays an in-game entity tile and name.
 local Window = require 'ui.Window'
 local EntityLine = Window:subclass {
-  colour = { 255, 255, 255 };
-  style = 'o';
   can_focus = true;
 }
 
@@ -20,9 +18,10 @@ function EntityLine:getSize()
 end
 
 function EntityLine:render()
+  tty.push { x = 0; y = 0; w = 1; h = 1; }
   self.entity:render(0, 0)
-  if self.colour then tty.colour(unpack(self.colour)) end
-  if self.style then tty.style(self.style) end
+  tty.pop()
+  tty.style(self.focused and 'v' or 'V')
   tty.put(2, 0, self.entity.name)
 end
 

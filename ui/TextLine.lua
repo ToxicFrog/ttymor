@@ -18,10 +18,7 @@ function TextLine:getSize()
 end
 
 function TextLine:render()
-  tty.style('o')
-  if self.colour then tty.colour(unpack(self.colour)) end
-  if self.style then tty.style(self.style) end
-  if self.focused == true then tty.style('v') end
+  tty.style(self.focused and 'v' or 'V')
   tty.put(0, 0, self.text)
 end
 

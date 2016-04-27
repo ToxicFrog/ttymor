@@ -90,7 +90,7 @@ function ui.box(rect, title, walls)
     rect = { x = 0; y = 0; w = w; h = h }
   end
 
-  local w,h = tty.pushwin(rect)
+  local w,h = tty.push(rect)
 
   local default_walls = {
     nw = "┏"; n = "━"; ne = "┓";
@@ -110,7 +110,7 @@ function ui.box(rect, title, walls)
     tty.put(1, 0, '╾'..title..'╼')
   end
 
-  tty.popwin()
+  tty.pop()
 end
 
 function ui.hline(row)
@@ -190,9 +190,9 @@ end
 
 function ui.fill(rect, char)
   char = char or ' '
-  tty.pushwin(rect)
+  tty.push(rect)
   for y=0,rect.h-1 do
     tty.put(0, y, char:rep(rect.w))
   end
-  tty.popwin()
+  tty.pop()
 end

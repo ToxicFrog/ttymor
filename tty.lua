@@ -19,7 +19,10 @@ function tty.init()
     w = w, h = h;   -- Width and height of the drawing region.
     cx = 0, cy = 0; -- Offset of the clipping rectangle.
     cw = w, ch = h; -- Width and height of the clipping rectangle.
+    colour = { 255, 255, 255 };
+    style = 'o';
   }
+  stack[1].__index = stack[1]
   top = stack[1]
   tty.csi('h', '?', 47) -- DECSET alternate screen buffer
   tty.csi('l', '?', 25) -- DECRST cursor
@@ -73,29 +76,43 @@ end
 -- We first translate the window into absolute coordinates; then we compute the
 -- new clipping region by intersecting the new window with the old clipping
 -- region, and store that as part of the pushed window.
-function tty.pushwin(win)
-  -- Check that the window is fully defined.
-  assertf(win.x and win.y and win.w and win.y, "incomplete window in tty.pushwin()")
+-- The drawing region can also contain colour and style keys, which will be
+-- applied when it is pushed and restored to the old values when it is popped.
+-- Any parameters not specified will be inherited from the top.
+function tty.push(win)
   -- Create the new window with x,y translated into absolute coordinates.
-  local new_top = {
+  local new_top = setmetatable({
     name = tostring(win);
+    x = win.x + top.x; y = win.y + top.y;
     w = win.w, h = win.h;
-  }
-  new_top.x,new_top.y = absolute(win.x, win.y)
+    colour = win.colour;
+    style = win.style;
+  }, top)
+  new_top.__index = new_top
+
   -- Calculate the new clipping region.
   new_top.cx = new_top.x:bound(top.cx, top.cx + top.cw)
   new_top.cy = new_top.y:bound(top.cy, top.cy + top.ch) -- 34
   new_top.cw = (new_top.x + new_top.w):bound(top.cx, top.cx + top.cw) - new_top.cx
   new_top.ch = (new_top.y + new_top.h):bound(top.cy, top.cy + top.ch) - new_top.cy
+
+  -- Apply new colour/style settings.
+  tty.colour(unpack(new_top.colour))
+  tty.style(new_top.style)
+
   table.insert(stack, new_top)
   top = stack[#stack]
   return tty.size()
 end
 
-function tty.popwin()
+function tty.pop()
   assert(#stack > 1, "tty window stack underflow")
   local win = table.remove(stack)
-  top = stack[#stack]
+  local new_top = stack[#stack]
+  tty.colour(unpack(new_top.colour))
+  tty.style(new_top.style)
+
+  top = new_top
   return tty.size()
 end
 
@@ -158,10 +175,9 @@ local styles = {
   o = 0; b = 1;  i = 3;  u = 4;  v = 7;  s = 9;
   O = 0; B = 22; I = 23; U = 24; V = 27; S = 29;
 }
-local STYLE = {}
+local STYLE = nil
 
 function tty.style(chars)
-  if STYLE == chars then return end
   chars = chars or ''
   local codes = {}
   for char in chars:gmatch('.') do
@@ -172,8 +188,10 @@ function tty.style(chars)
       FG,BG = nil,nil
     end
   end
-  if #codes > 0 then
-    tty.csi('m', unpack(codes))
+  local style = table.concat(codes, ';')
+  if style ~= STYLE then
+    tty.csi('m', style)
+    STYLE = style
   end
 end
 

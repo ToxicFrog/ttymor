@@ -2,7 +2,6 @@ local Window = Object:subclass {
   visible = true;
   position = { 0, 0 };
   size = { 0, 0 };
-  colour = { 255, 255, 255, 0, 0, 0 };
 }
 
 flags.register 'ui-perf' {
@@ -196,9 +195,9 @@ function Window:render() end
 
 function Window:renderChildren()
   for child in self:children() do
-    tty.pushwin(child)
+    tty.push(child)
     child:renderAll()
-    tty.popwin()
+    tty.pop()
   end
 end
 
@@ -208,9 +207,6 @@ function Window:renderAll()
   if flags.parsed.ui_perf and self.name then
     t = os.clock()
     log.debug('  begin: %s', self.name)
-  end
-  if self.colour then
-    tty.colour(unpack(self.colour))
   end
   self:render()
   self:renderChildren()
