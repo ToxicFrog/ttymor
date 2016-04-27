@@ -29,9 +29,6 @@ function VList:getChildSize()
   return w,h
 end
 
--- FIXME: if we're not visible, this ends extremely poorly; Window.layout returns
--- without doing anything, and then we try to arrange our children, which haven't
--- been laid out at all, and everything goes horribly wrong
 function VList:layout(w, h)
   Window.layout(self, w, h)
   if not self.visible then return end
