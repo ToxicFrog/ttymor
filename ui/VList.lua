@@ -37,10 +37,8 @@ function VList:layout(w, h)
   local y = 0
   for child in self:children() do
     if child.visible then
-      log.debug("VList:reposition: %s (%s)", child, child.layout)
       child.y = y
       y = y + child.h
-      log.debug("VList:reposition: %s: %d,%d", child.name, child.x, child.y)
     end
   end
 end
