@@ -63,10 +63,9 @@ settings.Category {
   save = function(self)
     local r,e = ui.validate_bindings()
     if not r then
-      e.colour = { 255, 0, 0 }
       table.insert(e, '')
       table.insert(e, 'Keybinds not saved.')
-      ui.message('Error', e)
+      ui.message('Error', e).colour = { 255, 0, 0 }
       return false
     end
     ui.update_bindings()
