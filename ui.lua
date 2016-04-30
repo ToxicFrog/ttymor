@@ -7,6 +7,7 @@ ui.VList = require 'ui.VList'
 ui.TextLine = require 'ui.TextLine'
 ui.EntityLine = require 'ui.EntityLine'
 ui.Expander = require 'ui.Expander'
+ui.Stack = require 'ui.Stack'
 
 function ui.layout()
   local w,h = tty.termsize()
@@ -45,10 +46,14 @@ function ui.init()
   ui.screen:attach(ui.hud_win)
 
   -- main view takes up the remaining space
-  ui.main_win = require 'ui.main_win' {
+  ui.main_win = ui.Stack {
     position = { 1, 0 };
     size = { -40, inf };
   }
+  ui.main_win:attach(require 'ui.main_win' {
+    position = { 0, 0 };
+    size = { inf, inf };
+  })
   ui.screen:attach(ui.main_win)
   ui.layout()
 end
