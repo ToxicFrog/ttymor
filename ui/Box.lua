@@ -38,11 +38,11 @@ function Box:getChildSize(w, h)
   local ch_w,ch_h = ui.Window.getChildSize(self, w, h)
   -- We lie about our child size because if it's larger than we are, we only
   -- display a slice of it and enable scrolling.
-  return ch_w,ch_h:min(h)
+  return ch_w:max(self.title and #self.title or 0),ch_h:min(h)
 end
 
 function Box:render()
-  ui.box(nil, self.title or self.name, self.faces)
+  ui.box(nil, self.title, self.faces)
   -- render scrollbar, if applicable
   if self.display_scrollbar and self.max_scroll > 0 then
     -- if we're half as tall as our content, the scrollbar takes up half the
