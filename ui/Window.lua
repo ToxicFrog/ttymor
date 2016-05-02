@@ -2,6 +2,7 @@ local Window = Object:subclass {
   visible = true;
   position = { 0, 0 };
   size = { 0, 0 };
+  margins = { up=0, dn=0, lf=0, rt=0 };
 }
 
 flags.register 'ui-perf' {
@@ -37,83 +38,67 @@ end
 -- and tell them to :layout(). Having done that, we can figure out own own size,
 -- and once we know *that* we also know where our children need to go based on
 -- their size and positioning rules.
-function Window:layout(max_w, max_h)
+function Window:layout(bb)
   if not self.visible then
     -- Invisible windows take up no space and don't participate in layout.
     self.w,self.h = 0,0
     return
   end
 
-  max_w = max_w or self.parent.w
-  max_h = max_h or self.parent.h
-  -- sizing of BB available to children, taking into account our sizing rules
-  local ch_w,ch_h = self:getBounds(max_w, max_h)
-  -- margins, which affect BB usable for children
-  local up,dn,lf,rt = self:getMargins()
-  ch_w = ch_w - lf - rt
-  ch_h = ch_h - up - dn
+  bb = bb or { x=0; y=0; w=self.parent.w; h=self.parent.h; }
+
+  -- Get our provisional size.
+  self:requestSize(bb)
+  -- Get the bounding box for our children.
+  local ch_bb = self:getChildBB()
 
   for child in self:children() do
-    child:layout(ch_w, ch_h)
+    local _ = self:getChildBB()
+    child:layout(ch_bb)
   end
 
-  self.w,self.h = self:getSize(max_w, max_h)
+  self:finalizeSize(bb)
 
   for child in self:children() do
-    child.x,child.y = child:getPosition(ch_w, ch_h)
-    child.x,child.y = child.x + lf,child.y + up
+    child:finalizePosition(ch_bb)
   end
+end
+
+function Window:getChildBB()
+  local bb ={
+    name = "childBB[%s]" % {self};
+    x = self.margins.lf;
+    y = self.margins.up;
+    w = self.w - self.margins.lf - self.margins.rt;
+    h = self.h - self.margins.up - self.margins.dn;
+  }
+  return bb
 end
 
 --
 -- Support functions for layout()
 --
 
-local function bound_axis(max, want)
-  if want == inf or want == 0 then
-    return max
-  elseif want > 0 then
-    assert(want <= max, "fixed-size window exceeds size of bounding box")
-    return want
-  elseif want < 0 then
-    assert(max + want > 0, "relative-size window has size ≤ 0")
-    return max + want
+-- Calculate the window's maximum request size. This is the most size the window
+-- could possibly request of its parent; for this reason, 0-size windows will
+-- request max, since they don't yet know how big their children are.
+function Window:requestSize(bb)
+  local function axis(want, max)
+    if want == inf or want == 0 then
+      return max
+    elseif want > 0 then
+      assertf(want <= max, "window %s with fixed axis %d exceeds size of bounding box %d (%dx%d)", self, want, max, bb.w, bb.h)
+      return want
+    elseif want < 0 then
+      assert(max + want > 0, "relative-size window has size ≤ 0")
+      return max + want
+    end
   end
+  self.w = axis(self.size[1], bb.w)
+  self.h = axis(self.size[2], bb.h)
 end
 
--- Return the *actual* maximum bounding box of this window, given the BB passed
--- down by our parents.
-function Window:getBounds(max_w, max_h)
-  return bound_axis(max_w, self.size[1]), bound_axis(max_h, self.size[2])
-end
-
--- Return the (top,bottom,left,right) margins of the window. This is the
--- difference between the true maximum bounding box, and the space available
--- for children to use.
-function Window:getMargins()
-  return 0,0,0,0
-end
-
-local function size_axis(self, max, want, min)
-  log.debug("size_axis: max=%d want=%f min=%d",
-    max, want, min)
-  if want == inf then
-    return max
-  elseif want > 0 then
-    return want
-  elseif want == 0 then
-    return min
-  elseif want < 0 then
-    return max + want
-  else
-    error()
-  end
-end
-
--- getChildSize doesn't do anything with the passed width and height, but they
--- are provided for the use of subclasses, like Box, which are capable of
--- shrinking their children to fit into smaller bounding boxes.
-function Window:getChildSize(w, h)
+function Window:getChildSize()
   w,h = 0,0
   for child in self:children() do
     w = w:max(child.w)
@@ -122,20 +107,28 @@ function Window:getChildSize(w, h)
   return w,h
 end
 
-function Window:getSize(max_w, max_h)
-  local up,dn,lf,rt = self:getMargins()
-  local ch_w,ch_h = self:getChildSize(max_w-lf-rt, max_h-up-dn)
-  return size_axis(self, max_w, self.size[1], ch_w+lf+rt),
-         size_axis(self, max_h, self.size[2], ch_h+up+dn)
+-- Set the final size of a window, based on its sizing rules. This is called
+-- only after the size of all the children is known.
+function Window:finalizeSize(bb)
+  local function axis(want, min, max)
+    -- Only elements with a size of 0 need to be resized here; everything else
+    -- retains the size it originally requested.
+    if want == 0 then
+      return min
+    else
+      return max
+    end
+  end
+  local ch_w,ch_h = self:getChildSize()
+  self.w = axis(self.size[1], ch_w + self.margins.lf + self.margins.rt, self.w)
+  self.h = axis(self.size[2], ch_h + self.margins.up + self.margins.up, self.h)
 end
 
-local function position_axis(bb, grav, size)
-  return ((bb - size) * grav):floor()
-end
-
-function Window:getPosition(max_w, max_h)
-  return position_axis(max_w, self.position[1], self.w),
-         position_axis(max_h, self.position[2], self.h)
+-- Set the final position of a window, based on its positioning rules. This is
+-- called only after the sizes of both this window and its parent are finalized.
+function Window:finalizePosition(bb)
+  self.x = ((bb.w - self.w) * self.position[1]):floor():max(0)
+  self.y = ((bb.h - self.h) * self.position[2]):floor():max(0)
 end
 
 
@@ -190,11 +183,13 @@ end
 function Window:render() end
 
 function Window:renderChildren()
+  tty.push(self:getChildBB())
   for child in self:children() do
     tty.push(child)
     child:renderAll()
     tty.pop()
   end
+  tty.pop()
 end
 
 function Window:renderAll()

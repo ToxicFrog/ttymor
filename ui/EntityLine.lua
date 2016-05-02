@@ -13,9 +13,11 @@ function EntityLine:__tostring()
   return 'EntityLine[%s]' % tostring(self.entity)
 end
 
-function EntityLine:getSize()
-  return #self.entity.name+2,1
+function EntityLine:requestSize()
+  self.w,self.h = #self.entity.name+2,1
 end
+
+function EntityLine:finalizeSize() end
 
 function EntityLine:render()
   tty.push { x = 0; y = 0; w = 1; h = 1; }

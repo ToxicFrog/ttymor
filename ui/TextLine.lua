@@ -13,9 +13,11 @@ function TextLine:__tostring()
   return 'TextLine[%s]' % self.text
 end
 
-function TextLine:getSize()
-  return #self.text,1
+function TextLine:requestSize()
+  self.w,self.h = #self.text,1
 end
+
+function TextLine:finalizeSize() end
 
 function TextLine:render()
   tty.style(self.focused and 'v' or 'V')

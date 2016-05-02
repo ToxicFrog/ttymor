@@ -11,6 +11,7 @@
 local Tree = ui.Box:subclass {
   _focus = 1;
   _focus_list = {};
+  margins = { up=1, dn=1, lf=2, rt=2 };
 }
 
 local function makeNode(data)
@@ -51,12 +52,8 @@ function Tree:__init(init)
   end
 end
 
-function Tree:getMargins()
-  return 1,1,2,2
-end
-
-function Tree:layout(w, h)
-  ui.Box.layout(self, w, h)
+function Tree:layout(...)
+  ui.Box.layout(self, ...)
   self:buildFocusList()
 end
 

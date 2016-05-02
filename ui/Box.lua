@@ -11,6 +11,7 @@ local Box = Window:subclass {
   display_scrollbar = true;
   size = { 0, 0 };
   position = { 0.5, 0.5 };
+  margins = { up=1, dn=1, lf=1, rt=1 };
 }
 
 function Box:__init(...)
@@ -23,22 +24,19 @@ function Box:__tostring()
   return 'Box[%s]' % (self.title or self.name)
 end
 
-function Box:getMargins()
-  return 1,1,1,1
-end
-
-function Box:layout(w, h)
-  ui.Window.layout(self, w, h)
+function Box:layout(...)
+  ui.Window.layout(self, ...)
   self.max_scroll = self.content.h - (self.h - 2)
   self.content_y = self.content.y
   self:scroll_by(0)
 end
 
-function Box:getChildSize(w, h)
-  local ch_w,ch_h = ui.Window.getChildSize(self, w, h)
+function Box:getChildSize()
+  local ch_w,ch_h = ui.Window.getChildSize(self)
+  local ch_bb = self:getChildBB()
   -- We lie about our child size because if it's larger than we are, we only
   -- display a slice of it and enable scrolling.
-  return ch_w:max(self.title and #self.title or 0),ch_h:min(h)
+  return ch_w:max(self.title and #self.title or 0),ch_h:min(ch_bb.h)
 end
 
 function Box:render()

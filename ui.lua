@@ -12,7 +12,7 @@ ui.Stack = require 'ui.Stack'
 function ui.layout()
   local w,h = tty.termsize()
   log.debug('Performing layout calculations: %dx%d', w, h)
-  ui.screen:layout(w, h)
+  ui.screen:layout { w=w, h=h }
 end
 
 function ui.init()
