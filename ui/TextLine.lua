@@ -28,7 +28,10 @@ function TextLine:finalizePosition(...)
 end
 
 function TextLine:render()
-  tty.style(self.focused and 'v' or 'V')
+  if self.focused then
+    tty.style 'v'
+    tty.put(0, 0, (' '):rep(self.w))
+  end
   tty.put(0, 0, self.text)
 end
 
