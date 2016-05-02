@@ -146,6 +146,8 @@ function tty.put(x, y, text)
   assertf(type(text) == 'string', 'Invalid input to tty.put(): %s', text)
   tty.move(x,y)
   buf[#buf+1] = text
+  -- invalidate the cursor position
+  X,Y = nil,nil
 end
 
 -- Position the cursor at the given ABSOLUTE coordinates.
