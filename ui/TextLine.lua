@@ -19,6 +19,14 @@ end
 
 function TextLine:finalizeSize() end
 
+-- HACK HACK HACK
+-- This gets called only after the parent's size is finalized, which means we
+-- now know what size to expand to.
+function TextLine:finalizePosition(...)
+  ui.Window.finalizePosition(self, ...)
+  self.w = self.parent:getChildBB().w
+end
+
 function TextLine:render()
   tty.style(self.focused and 'v' or 'V')
   tty.put(0, 0, self.text)

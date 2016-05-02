@@ -16,9 +16,8 @@ function Expander:__init(...)
   function self._header.activate(header, tree)
     self:expand(not self.expanded)
     ui.layout()
---    tree.parent:layout()
   end
-  self.content.margins = { up = 0; dn = 0; lf = 0; rt = 0 };
+  self.content.margins = { up = 0; dn = 0; lf = 1; rt = 0 };
   self:attach(self._header)
   self:attach(self.content)
   self:expand(self.expanded)

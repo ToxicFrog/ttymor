@@ -77,33 +77,9 @@ settings.Category {
   end;
 }
 
-local KeySetting = settings.Raw:subclass {}
-
-function KeySetting:label()
-  return '%s%s[%6s][%6s]' % {
-    self.name, ' ', self.value[1] or '------', self.value[2] or '------'
-  }
-end
-
-function KeySetting:activate()
-  local msg = ui.message(self.name, "Press any key...")
-  msg.cmd_any = nil
-  function msg.key_any(msg, key)
-    if key ~= self.value[1] then
-      self:set { key, self.value[1] }
-    end
-    msg:destroy()
-    return true
-  end
-end
-
-function KeySetting:reset()
-  self:set {}
-end
-
 for _,category in ipairs(keybind_tree) do
   for i,command in ipairs(category) do
-    category[i] = KeySetting {
+    settings.Key {
       category = 'Keybinds';
       name = command.name;
       command = command.command;

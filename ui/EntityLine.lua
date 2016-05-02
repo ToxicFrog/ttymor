@@ -19,6 +19,14 @@ end
 
 function EntityLine:finalizeSize() end
 
+-- HACK HACK HACK
+-- This gets called only after the parent's size is finalized, which means we
+-- now know what size to expand to.
+function EntityLine:finalizePosition(...)
+  ui.Window.finalizePosition(self, ...)
+  self.w = self.parent:getChildBB().w
+end
+
 function EntityLine:render()
   tty.push { x = 0; y = 0; w = 1; h = 1; }
   self.entity:render(0, 0)

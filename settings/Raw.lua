@@ -3,18 +3,32 @@
 
 -- It is also a valid TreeNode, implementing the :activate and :label methods.
 local Raw = ui.TextLine:subclass {
-  text = 'placeholder';
+  text = '';
+  w = 0;
 }
 
 function Raw:__init(data)
   local category = settings.categories[data.category]
   ui.TextLine.__init(self, data)
-  self.text = self:label()
+  self:updateText()
   settings.register(self.category, self)
 end
 
-function Raw:label(width)
-  return '%s%s[%s]' % { self.name, ' ', tostring(self.value) }
+function Raw:display()
+  return '[%s]' % self.value
+end
+
+function Raw:updateText()
+  local value = tostring(self:display())
+  local padding = self.w - #self.name - #value + 1
+  self.text = '%s%s%s' % {
+    self.name, (' '):rep(padding), value
+  }
+end
+
+function Raw:finalizePosition(...)
+  ui.TextLine.finalizePosition(self, ...)
+  self:updateText()
 end
 
 function Raw:activate(tree)
@@ -23,7 +37,7 @@ end
 
 function Raw:set(val)
   self.value = val
-  self.text = self:label()
+  self:updateText()
   return val
 end
 
