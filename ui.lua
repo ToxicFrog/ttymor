@@ -47,6 +47,7 @@ function ui.init()
 
   -- main view takes up the remaining space
   ui.main_win = ui.Stack {
+    name = 'main stack';
     position = { 1, 0 };
     size = { -40, inf };
   }
@@ -92,7 +93,7 @@ end
 function ui.box(rect, title, walls)
   if not rect then
     local w,h = tty.size()
-    rect = { x = 0; y = 0; w = w; h = h }
+    rect = { x = 0; y = 0; w = w; h = h; name = "anonymous box"; }
   end
 
   local w,h = tty.push(rect)

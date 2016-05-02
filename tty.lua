@@ -1,5 +1,9 @@
 tty = {}
 
+flags.register "debug-rendering-stack" {
+  help = "Log each window as it's pushed or popped";
+}
+
 -- Stack of rendering states.
 local stack = {}
 local top = nil
@@ -82,13 +86,18 @@ end
 function tty.push(win)
   -- Create the new window with x,y translated into absolute coordinates.
   local new_top = setmetatable({
-    name = tostring(win);
+    name = getmetafield(win, '__tostring') and tostring(win) or win.name or tostring(win);
     x = win.x + top.x; y = win.y + top.y;
     w = win.w, h = win.h;
     colour = win.colour;
     style = win.style;
   }, top)
   new_top.__index = new_top
+
+  if flags.parsed.debug_rendering_stack then
+    indent = (" "):rep(#stack-1)
+    log.debug("tty.push:%s%s (%d,%d) %dx%d", indent, new_top.name, new_top.x, new_top.y, new_top.w, new_top.h)
+  end
 
   -- Calculate the new clipping region.
   new_top.cx = new_top.x:bound(top.cx, top.cx + top.cw)
@@ -111,6 +120,11 @@ function tty.pop()
   local new_top = stack[#stack]
   tty.colour(unpack(new_top.colour))
   tty.style(new_top.style)
+
+  if flags.parsed.debug_rendering_stack then
+    indent = (" "):rep(#stack-1)
+    log.debug("tty.pop:%s%s", indent, top.name)
+  end
 
   top = new_top
   return tty.size()

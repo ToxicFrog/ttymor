@@ -20,7 +20,7 @@ function Box:__init(...)
 end
 
 function Box:__tostring()
-  return 'Box[%s]' % self.title
+  return 'Box[%s]' % (self.title or self.name)
 end
 
 function Box:getMargins()
