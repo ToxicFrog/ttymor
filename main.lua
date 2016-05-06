@@ -72,6 +72,7 @@ function love.load(argv)
 end
 
 function love.draw()
+  ui.screen:keyEvent('none', 'update_hud')
   ui.draw()
 end
 

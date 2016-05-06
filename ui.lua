@@ -71,22 +71,11 @@ function ui.draw()
 end
 
 function ui.setHUD(title, content)
-  if content == nil then
-    content = { name = title }
-  elseif type(content) == 'string' then
-    content = content:wrap(ui.hud_win.w - 4)
+  if type(content) == 'string' then
+    content = table.mapv(content:wrap(ui.hud_win.content.w), f't => ui.TextLine { text = v }')
   end
   assert(type(content) == 'table', 'invalid argument passed to setHUD')
-  content.name = title
-  ui.hud_win:setContent(content)
-end
-
-function ui.pushHUD()
-  ui.hud_win:pushContent()
-end
-
-function ui.popHUD()
-  ui.hud_win:popContent()
+  ui.hud_win:setContent(title, content)
 end
 
 -- Draw a box with the upper left corner at (x,y)
@@ -164,7 +153,6 @@ end
 -- Turn a tree into a Tree and activate it, running until one of the handlers
 -- returns a value.
 function ui.tree(tree)
-  ui.pushHUD()
   tree = ui.Tree(tree)
   tree.visible = true
   ui.main_win:attach(tree)

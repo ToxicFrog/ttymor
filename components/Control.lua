@@ -82,4 +82,23 @@ function Control:cmd_exit_game()
   love.event.quit()
 end
 
+function Control:cmd_update_hud()
+  local x,y,map = self:position()
+  local cell = map:cell(x, y)
+  local list = {}
+  for i=1,#cell do
+    local entity = cell[#cell-i+1]
+    if entity.name ~= 'floor' and entity.name ~= 'player' then
+      table.insert(list, ui.EntityLine { entity = entity })
+    end
+  end
+  ui.log_win.title = cell.name
+  if #list > 0 then
+    ui.setHUD(cell.name, list)
+    return true
+  else
+    return false
+  end
+end
+
 return Control

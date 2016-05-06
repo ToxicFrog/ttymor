@@ -147,6 +147,8 @@ end
 -- handling it.
 -- It checks the children in descending order so that the topmost (i.e. most
 -- recently attached) window gets to see it first.
+-- FIXME: this is an awful name since this is the only way to handle *all* events,
+-- not just key events (and not all events are key events anymore).
 function Window:keyEvent(key, cmd)
   if not self.visible then return false end
   for i=#self._children,1,-1 do

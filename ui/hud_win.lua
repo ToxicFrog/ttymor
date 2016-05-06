@@ -1,15 +1,12 @@
 local HudWin = ui.Box:subclass {
   name = 'hud';
   visible = true;
-  stack = nil;
-  top = nil;
   colour = { 192, 192, 192 };
   display_scrollbar = false;
   faces = { sw = '┣'; se = '┫'; }
 }
 
 function HudWin:__init(...)
-  self.stack = {}
   self.content = ui.VList {
     visible = true;
     name = "hudlist";
@@ -18,23 +15,20 @@ function HudWin:__init(...)
   ui.Box.__init(self, ...)
 end
 
-function HudWin:setContent(data)
-  assert(data, "attempt to call setContent() with nil data")
+function HudWin:setContent(title, content)
+  self.visible = true
+  self.title = title
   self.content:clear()
-  for _,item in ipairs(data) do
-    self.content:attach(ui.EntityLine { entity = item })
+  for _,item in ipairs(content) do
+    self.content:attach(item)
   end
-  self.top = data
-  self.title = data.name
   self:layout()
 end
 
-function HudWin:pushContent()
-  table.insert(self.stack, self.top)
-end
-
-function HudWin:popContent()
-  self:setContent(table.remove(self.stack))
+function HudWin:cmd_update_hud()
+  self.content:clear()
+  self.visible = false
+  return true
 end
 
 return HudWin

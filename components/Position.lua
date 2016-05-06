@@ -18,16 +18,6 @@ end
 function Position:moveTo(x, y)
   local _,_,map = self:position()
   map:placeAt(x, y, self)
-  -- HACK HACK HACK
-  -- This should be moved into a Player-specific component.
-  if self.type == 'Player' then
-    local cell = map:cell(x, y)
-    local list = {}
-    for i=1,#cell do
-      list[i] = cell[#cell-i+1]
-    end
-    ui.setHUD(cell.name, list)
-  end
 end
 
 function Position:position()
