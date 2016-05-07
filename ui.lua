@@ -72,9 +72,9 @@ end
 
 function ui.setHUD(title, content)
   if type(content) == 'string' then
-    content = table.mapv(content:wrap(ui.hud_win.content.w), f't => ui.TextLine { text = v }')
+    content = table.mapv(content:wrap(ui.hud_win.content.w), f't => ui.TextLine { text = t }')
   end
-  assert(type(content) == 'table', 'invalid argument passed to setHUD')
+  assert(type(content) == 'table', 'invalid argument passed to setHUD: '..repr(content))
   ui.hud_win:setContent(title, content)
 end
 
