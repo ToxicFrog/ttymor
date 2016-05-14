@@ -47,11 +47,8 @@ local function makeCellTree(filter, x, y, map)
     filter = filter;
   }
 
-  -- if the tree is nonempty, attach it
-    tree.visible = true
-    ui.main_win:attach(tree)
-    ui.main_win:layout()
-  -- FIXME
+  ui.main_win:attach(tree)
+  ui.main_win:layout()
 end
 
 -- When we get an "activate" command, we need to build a menu of reachable objects

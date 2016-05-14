@@ -26,6 +26,7 @@ function CellTree:refreshCellContents()
     for ent in self.map:contents(cell[1], cell[2]) do
       if self.filter(ent) then
         self.content:attach(ui.EntityLine { entity = ent })
+        self.empty = false
       end
     end
   end
@@ -38,6 +39,9 @@ end
 
 function CellTree:cmd_update()
   self:refreshCellContents()
+  if self.empty then
+    self:destroy()
+  end
   return false
 end
 
