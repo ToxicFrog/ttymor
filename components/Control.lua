@@ -39,33 +39,43 @@ function Control:verb(verb, object)
   object:message('verb_'..verb..'_by', self)
 end
 
+local function makeCellTree(filter, x, y, map)
+  local tree = ui.CellTree {
+    title = 'Surroundings';
+    cells = {{x,y},{x+1,y},{x-1,y},{x,y+1},{x,y-1}};
+    map = map;
+    filter = filter;
+  }
+
+  -- if the tree is nonempty, attach it
+    tree.visible = true
+    ui.main_win:attach(tree)
+    ui.main_win:layout()
+  -- FIXME
+end
+
 -- When we get an "activate" command, we need to build a menu of reachable objects
 -- that can be interacted with (i.e. have a nonempty response to the <verbs> message).
 function Control:cmd_activate()
-  -- frob surrounding objects
-  local x,y,map = self:position()
+  local function filter(ent)
+    local verbs = {}; ent:message('verbs', verbs)
+    return next(verbs)
+  end
 
-  local tree = { title = "Surroundings" }
-  for _,cell in ipairs {{x,y,"⌖"}, {x,y-1,"⤊"}, {x,y+1,"⤋"}, {x-1,y,"⇚"}, {x+1,y,"⇛"}} do
-    for ent in map:contents(cell[1], cell[2]) do
-      local verbs = {}; ent:message("verbs", verbs)
-      if next(verbs) then
-        table.insert(tree, {
-          text = cell[3]..' '..ent.name;
-          cmd_activate = function()
-            -- send a "cancel" event to kill the enclosing tree, then open the
-            -- interact menu for the entity.
-            ui.sendEvent(nil, 'cancel')
-            ent:interactedWith()
-            return true
-          end;
-        })
-      end
-    end
+  makeCellTree(filter, self:position())
+  return true
+end
+
+function Control:cmd_any(_, cmd)
+  local verb = cmd:match('verb_(.*)')
+  if not verb then return false end
+
+  local function filter(ent)
+    local verbs = {}; ent:message('verbs', verbs)
+    return verbs[verb]
   end
-  if #tree > 0 then
-    ui.tree(tree)
-  end
+
+  makeCellTree(filter, self:position())
   return true
 end
 
@@ -73,11 +83,6 @@ function Control:cmd_inventory()
   game.log("-- inventory --")
   self:listInventory()
   game.log("-- end --")
-  return true
-end
-
-function Control:cmd_pickup()
-  game.log("pickup: not implemented yet")
   return true
 end
 

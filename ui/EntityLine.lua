@@ -35,4 +35,8 @@ function EntityLine:render()
   tty.put(2, 0, self.entity.name)
 end
 
+function EntityLine:cmd_any(key, cmd)
+  return ui.Window.handleEvent(self.entity, key, cmd)
+end
+
 return EntityLine

@@ -8,6 +8,7 @@ ui.TextLine = require 'ui.TextLine'
 ui.EntityLine = require 'ui.EntityLine'
 ui.Expander = require 'ui.Expander'
 ui.Stack = require 'ui.Stack'
+ui.CellTree = require 'ui.CellTree'
 
 function ui.layout()
   local w,h = tty.termsize()
@@ -23,7 +24,6 @@ function ui.init()
     position = { 0, 0 };
     size = { inf, inf };
     x = 0; y = 0;
-    visible = true;
     render = function(self)
       tty.colour(255, 255, 255, 0, 0, 0)
       tty.style('o')
@@ -154,7 +154,6 @@ end
 -- returns a value.
 function ui.tree(tree)
   tree = ui.Tree(tree)
-  tree.visible = true
   ui.main_win:attach(tree)
   ui.main_win:layout()
 end

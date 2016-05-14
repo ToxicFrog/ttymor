@@ -40,7 +40,7 @@ function Box:getChildSize()
 end
 
 function Box:render()
-  ui.box(nil, self.title, self.faces)
+  ui.box({x=0,y=0,w=self.w,h=self.h}, self.title, self.faces)
   -- render scrollbar, if applicable
   if self.display_scrollbar and self.max_scroll > 0 then
     -- if we're half as tall as our content, the scrollbar takes up half the

@@ -47,9 +47,6 @@ function Tree:__init(init)
     self[i] = nil
   end
   self:buildFocusList()
-  if self._focus then
-    self:setFocus(self._focus)
-  end
 end
 
 function Tree:layout(...)
@@ -68,6 +65,11 @@ function Tree:buildFocusList()
   self._focus_list = aux(self.content, {})
   if #self._focus_list == 0 then
     self._focus = nil
+  else
+    self._focus = math.bound(self._focus or 1, 1, #self._focus_list)
+  end
+  if self._focus then
+    self:setFocus(self._focus)
   end
 end
 

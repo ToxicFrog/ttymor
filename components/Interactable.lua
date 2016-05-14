@@ -20,4 +20,9 @@ function Interactable:interactedWith()
   ui.tree(tree)
 end
 
+function Interactable:cmd_activate()
+  self:interactedWith()
+  return true
+end
+
 return Interactable
