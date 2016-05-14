@@ -130,14 +130,6 @@ function Tree:cancel()
   return true
 end
 
-function Tree:cmd_activate()
-  local line = self:focused()
-  if line.activate then
-    line:activate(self)
-  end
-  return true
-end
-
 function Tree:cmd_cancel()
   self:cancel()
   return true

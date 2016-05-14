@@ -1,7 +1,10 @@
 -- A "raw" setting. This is used for settings that have their own editing interface,
 -- like the keybinds. It has a no-args constructor and no validation of any kind.
+--
+-- Other settings inherit from this, and this is itself a subclass of TextLine;
+-- it not only stores the setting data, but is used to display it as part of the
+-- setting editing interface.
 
--- It is also a valid TreeNode, implementing the :activate and :label methods.
 local Raw = ui.TextLine:subclass {
   text = '';
   w = 0;
@@ -31,8 +34,9 @@ function Raw:finalizePosition(...)
   self:updateText()
 end
 
-function Raw:activate(tree)
+function Raw:cmd_activate(tree)
   self:set(ui.ask(self.name, tostring(self.value)) or self.value)
+  return true
 end
 
 function Raw:set(val)

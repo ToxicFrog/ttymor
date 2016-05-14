@@ -10,9 +10,10 @@ function Interactable:interactedWith()
     table.insert(tree, {
       text = verb_info[verb].name;
       help = verb_info[verb].help;
-      activate = function(node, tree)
-        tree:cancel()
+      cmd_activate = function()
+        ui.sendEvent(nil, 'cancel')
         game.get('player'):verb(verb, self)
+        return true
       end;
     })
   end

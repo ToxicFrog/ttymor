@@ -20,20 +20,6 @@ settings = {
 setmetatable(settings, { __index = settings.categories })
 local registered = settings.categories;
 
-settings.tree = {
-  title = "Configuration";
-  cancel = function(self)
-    settings.load()
-    self:detach()
-  end;
-  key_del = function(self)
-    if self:focused().reset then
-      self:focused():reset()
-    end
-    return true
-  end;
-}
-
 local function assert_registered(cat, key)
   assertf(registered[cat],
     "attempt to access unregistered configuration category %s", cat)
@@ -119,15 +105,28 @@ function settings.edit()
   end
   table.insert(tree, ui.TextLine {
     text = "Save Configuration";
-    activate = function(self, tree)
+    cmd_activate = function()
+      log.debug('confirming settings')
       if settings.save() then
-        tree:cancel()
+        ui.sendEvent(nil, 'cancel')
       end
+      return true
     end;
   })
   table.insert(tree, ui.TextLine {
     text = "Cancel";
-    activate = function(self, tree) tree:cancel() end;
+    cmd_activate = function()
+      log.debug('attempting to cancel settings')
+      -- revert to old settings
+      settings.load()
+      ui.sendEvent(nil, 'cancel')
+      return true
+    end;
   })
+  function tree:cmd_cancel()
+    -- revert to old settings
+    settings.load()
+    return ui.Tree.cmd_cancel(self)
+  end
   ui.tree(tree)
 end

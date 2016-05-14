@@ -151,6 +151,7 @@ end
 -- not just key events (and not all events are key events anymore).
 function Window:keyEvent(key, cmd)
   if not self.visible then return false end
+  if self.can_focus and not self.focused then return false end
   for i=#self._children,1,-1 do
     if self._children[i]:keyEvent(key, cmd) == true then return true end
   end
@@ -158,10 +159,13 @@ function Window:keyEvent(key, cmd)
 end
 
 function Window:handleEvent(key, cmd)
+  assert(key or cmd, 'at least one of key or cmd must be set when calling handleEvent')
   local handlers
-  if cmd then
+  if cmd and key then
     handlers = { 'cmd_'..cmd, 'cmd_any', 'key_'..key, 'key_any' }
-  else
+  elseif cmd then
+    handlers = { 'cmd_'..cmd, 'cmd_any' }
+  elseif key then
     handlers = { 'key_'..key, 'key_any' }
   end
   for _,name in ipairs(handlers) do
@@ -238,7 +242,7 @@ function Window:detach(subwin)
 end
 
 function Window:destroy()
-  log.debug('destroy window: %s', self.name)
+  log.debug('destroy window: %s', self)
   self:detach()
   self.renderAll = function() error 'renderAll called on destroyed window' end
 end

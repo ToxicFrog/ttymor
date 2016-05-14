@@ -6,9 +6,8 @@ function Key:display()
   }
 end
 
-function Key:activate()
+function Key:cmd_activate()
   local msg = ui.message(self.name, "Press any key...")
-  msg.cmd_any = nil
   function msg.key_any(msg, key)
     if key ~= self.value[1] then
       self:set { key, self.value[1] }
@@ -16,10 +15,12 @@ function Key:activate()
     msg:destroy()
     return true
   end
+  return true
 end
 
-function Key:reset()
+function Key:key_del()
   self:set {}
+  return true
 end
 
 return Key

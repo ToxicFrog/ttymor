@@ -72,13 +72,12 @@ function love.load(argv)
 end
 
 function love.draw()
-  ui.screen:keyEvent('none', 'update_hud')
+  ui.sendEvent(nil, 'update_hud')
   ui.draw()
 end
 
 function love.keypressed(key)
-  local cmd = ui.keyToCommand(key)
-  ui.screen:keyEvent(key, cmd)
+  ui.sendEvent(key, ui.keyToCommand(key))
 end
 
 function love.update(t)

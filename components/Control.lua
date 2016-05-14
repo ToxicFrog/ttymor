@@ -52,9 +52,12 @@ function Control:cmd_activate()
       if next(verbs) then
         table.insert(tree, {
           text = cell[3]..' '..ent.name;
-          activate = function(node, tree)
-            tree:cancel()
+          cmd_activate = function()
+            -- send a "cancel" event to kill the enclosing tree, then open the
+            -- interact menu for the entity.
+            ui.sendEvent(nil, 'cancel')
             ent:interactedWith()
+            return true
           end;
         })
       end

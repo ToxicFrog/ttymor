@@ -13,9 +13,10 @@ function Expander:__init(...)
   VList.__init(self, ...)
   assert(self.content, "an Expander requires both .text and .content")
   self._header = TextLine { text = self.text; can_focus = true; }
-  function self._header.activate(header, tree)
+  function self._header.cmd_activate()
     self:expand(not self.expanded)
     ui.layout()
+    return true
   end
   self.content.margins = { up = 0; dn = 0; lf = 1; rt = 0 };
   self:attach(self._header)

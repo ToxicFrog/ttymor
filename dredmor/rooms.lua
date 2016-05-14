@@ -96,7 +96,7 @@ function dredmor.debug_rooms()
       _room = room;
     }
     table.insert(tree, node)
-    function node:activate()
+    function node:cmd_activate()
       local message = { title = self.text }
 
       local terrain = { text = "TERRAIN"; expanded = true }
@@ -128,6 +128,7 @@ function dredmor.debug_rooms()
       table.insert(message, doors)
       table.insert(message, contents)
       ui.tree(message)
+      return true
     end
   end
   table.sort(tree, function(a,b) return a.text < b.text end)

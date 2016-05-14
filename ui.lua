@@ -125,27 +125,27 @@ function ui.mainmenu()
     title = 'Main Menu';
     { text = 'Return to Game';
       help = 'Close the menu and return to the game in progress.';
-      activate = function(self, tree) return tree:cancel() end; };
+      cmd_activate = function() ui.sendEvent(nil, 'cancel'); return true; end; };
     { text = 'Configuration';
-      activate = settings.edit;
+      cmd_activate = function() settings.edit(); return true; end;
       help = 'Change game settings and key bindings.' };
     { text = 'Config Debug';
-      activate = settings.show;
+      cmd_activate = function() settings.show(); return true; end;
       help = 'View the raw contents of the settings subsystem, including hidden settings.' };
     { text = 'Room Debug';
-      activate = dredmor.debug_rooms;
+      cmd_activate = function() dredmor.debug_rooms(); return true; end;
       help = 'View the raw contents of the room database.' };
     { text = 'Save Game';
-      activate = function(self, tree) game.save(); return tree:cancel(); end;
+      cmd_activate = function() game.save(); ui.sendEvent(nil, 'cancel'); return true; end;
       help = 'Save your game in progress.' };
     { text = 'Load Game';
-      activate = function(self, tree) game.load(game.name()); return tree:cancel(); end;
+      cmd_activate = function() game.load(game.name()); ui.sendEvent(nil, 'cancel'); return true; end;
       help = 'Load your last save.' };
     { text = 'Quit And Save';
-      activate = function() game.save(); love.event.quit(); end;
+      cmd_activate = function() game.save(); love.event.quit(); end;
       help = 'Save your game and then quit TTYmor.' };
     { text = 'Quit Without Saving';
-      activate = love.event.quit;
+      cmd_activate = love.event.quit;
       help = 'Immediately quit the same without saving.' };
   }
 end
@@ -172,7 +172,7 @@ function ui.message(title, message)
     content = ui.VList(message);
     position = { 0.5, 0.5 };
   }
-  function box:cmd_any()
+  function box:key_any()
     self:destroy()
     return true
   end
@@ -189,4 +189,8 @@ function ui.fill(rect, char)
     tty.put(0, y, char:rep(rect.w))
   end
   tty.pop()
+end
+
+function ui.sendEvent(key, evt)
+  ui.screen:keyEvent(key, evt)
 end
