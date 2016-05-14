@@ -201,15 +201,15 @@ end
 function Window:renderAll()
   if not self.visible then return end
   local t
-  if flags.parsed.ui_perf and self.name then
+  if flags.parsed.ui_perf then
     t = os.clock()
-    log.debug('  begin: %s', self.name)
+    log.debug('  begin: %s', self)
   end
   self:render()
   self:renderChildren()
-  if flags.parsed.ui_perf and self.name then
+  if flags.parsed.ui_perf then
     t = os.clock() - t
-    log.debug('ui-perf: %s: %3f', self.name, t)
+    log.debug('ui-perf: %s: %3f', self, t)
   end
 end
 
