@@ -96,7 +96,7 @@ function dredmor.debug_rooms()
       _room = room;
     }
     table.insert(tree, node)
-    function node:activate(tree)
+    function node:activate()
       local message = { title = self.text }
 
       local terrain = { text = "TERRAIN"; expanded = true }
