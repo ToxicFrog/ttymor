@@ -223,7 +223,8 @@ local keynames = {
   ['\x1B[6~'] = 'pgdn';
   ['\x1B\x1B'] = 'esc';
   ['\x1B[2~'] = 'ins';
-  ['\x7F'] = 'del';
+  ['\x1B[3~'] = 'del';
+  ['\x7F'] = 'backspace';
 }
 
 for char in ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'):gmatch('.') do
