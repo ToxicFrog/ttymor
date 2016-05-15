@@ -3,6 +3,16 @@
 
 local Map = {}
 
+function Map:msg_init()
+  self.Map.positions = {}
+  for x=0,self.Map.w-1 do
+    self.Map[x] = {}
+    for y=0,self.Map.h-1 do
+      self.Map[x][y] = {}
+    end
+  end
+end
+
 function Map:blocked(x, y, type)
   local cell = self.Map[x][y]
   for i=#cell,1,-1 do
@@ -84,7 +94,7 @@ end
 
 -- Create a new entity in the given cell. The map has ownership.
 function Map:createAt(x, y, init)
-  init.id = game.nextID()
+  init.id = init.id or game.nextID()
 
   local ent = entity.create(init)
   local ref = Ref(ent)

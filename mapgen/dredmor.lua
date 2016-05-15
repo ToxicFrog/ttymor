@@ -268,14 +268,10 @@ function MapGen:generate(entity, starting_room)
 
   local w,h = self.map.w,self.map.h
 
+  self.entity:message('init')
   for x=0,w-1 do
-    self[x] = {}
-    self.map[x] = self[x]
-    for y=0,h-1 do
-      self[x][y] = {}
-    end
+    self[x] = self.map[x]
   end
-  self.map.positions = {}
 
   self.density = 0.0
   self.doors = {}
