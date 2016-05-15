@@ -72,6 +72,7 @@ function love.load(argv)
 end
 
 function love.draw()
+  ui.sendEvent(nil, 'update_hud')
   ui.draw()
 end
 
@@ -82,7 +83,6 @@ end
 function love.update(t)
   love.timer.sleep(0.033 - t)
   ui.sendEvent(nil, 'update')
-  ui.sendEvent(nil, 'update_hud')
 end
 
 function love.errhand(...)
