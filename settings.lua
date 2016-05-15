@@ -106,7 +106,6 @@ function settings.edit()
   table.insert(tree, ui.TextLine {
     text = "Save Configuration";
     cmd_activate = function()
-      log.debug('confirming settings')
       if settings.save() then
         ui.sendEvent(nil, 'cancel')
       end
@@ -116,9 +115,6 @@ function settings.edit()
   table.insert(tree, ui.TextLine {
     text = "Cancel";
     cmd_activate = function()
-      log.debug('attempting to cancel settings')
-      -- revert to old settings
-      settings.load()
       ui.sendEvent(nil, 'cancel')
       return true
     end;
@@ -126,6 +122,9 @@ function settings.edit()
   function tree:cmd_cancel()
     -- revert to old settings
     settings.load()
+    for _,cat in ipairs(registered) do
+      if not cat.hidden then cat:detach() end
+    end
     return ui.Tree.cmd_cancel(self)
   end
   ui.tree(tree)

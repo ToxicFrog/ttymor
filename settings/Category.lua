@@ -10,6 +10,10 @@ local Category = ui.Expander:subclass {
   _settings = {};
 }
 
+function Category:__tostring()
+  return 'Category[%s]' % self.name
+end
+
 function Category:__index(k)
   if Category[k] ~= nil then
     return Category[k]

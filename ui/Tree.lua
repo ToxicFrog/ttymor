@@ -18,6 +18,9 @@ local function makeNode(data)
   log.debug('makeNode: type=%s #=%d render=%s %s', type(data), #data, data.render, data)
   if type(data) == 'string' then
     return ui.TextLine { text = data }
+  elseif data.render then
+    -- We make the possibly unwarranted assumption here that data is a subclass of Window
+    return data
   elseif #data > 0 then
     local list = ui.VList {}
     for i,v in ipairs(data) do
@@ -28,9 +31,6 @@ local function makeNode(data)
       text = data.text;
       content = list;
     }
-  elseif data.render then
-    -- We make the possibly unwarranted assumption here that data is a subclass of Window
-    return data
   else
     return ui.TextLine(data)
   end
