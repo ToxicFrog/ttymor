@@ -11,6 +11,7 @@ function Interactable:interactedWith()
       text = verb_info[verb].name;
       help = verb_info[verb].help;
       cmd_activate = function()
+        ui.sendEvent(nil, 'cancel')
         game.get('player'):verb(verb, self)
         return true
       end;

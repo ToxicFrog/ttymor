@@ -8,7 +8,6 @@ ui.TextLine = require 'ui.TextLine'
 ui.EntityLine = require 'ui.EntityLine'
 ui.Expander = require 'ui.Expander'
 ui.Stack = require 'ui.Stack'
-ui.CellTree = require 'ui.CellTree'
 
 function ui.layout()
   local w,h = tty.termsize()

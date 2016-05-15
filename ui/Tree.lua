@@ -137,6 +137,10 @@ function Tree:cmd_cancel()
   return true
 end
 
+function Tree:cmd_update()
+  return false
+end
+
 function Tree:cmd_update_hud()
   local focused = self:focused()
   if focused and focused.help then

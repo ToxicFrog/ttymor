@@ -2,6 +2,8 @@
 local Window = require 'ui.Window'
 local EntityLine = Window:subclass {
   can_focus = true;
+  -- cmd_activate will emit this verb if set
+  default_verb = nil;
 }
 
 function EntityLine:__init(...)
@@ -40,6 +42,16 @@ function EntityLine:cmd_any(key, cmd)
   if not verb then return false end
 
   game.get('player'):verb(verb, self.entity)
+  return true
+end
+
+function EntityLine:cmd_activate(key, cmd)
+  if not self.default_verb then
+    log.debug('passing activate to %s', self.entity)
+    return ui.Window.handleEvent(self.entity, key, cmd)
+  end
+  log.debug('passing verb %s to %s', self.default_verb, self.entity)
+  game.get('player'):verb(self.default_verb, self.entity)
   return true
 end
 
