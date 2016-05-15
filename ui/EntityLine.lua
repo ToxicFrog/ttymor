@@ -47,10 +47,8 @@ end
 
 function EntityLine:cmd_activate(key, cmd)
   if not self.default_verb then
-    log.debug('passing activate to %s', self.entity)
     return ui.Window.handleEvent(self.entity, key, cmd)
   end
-  log.debug('passing verb %s to %s', self.default_verb, self.entity)
   game.get('player'):verb(self.default_verb, self.entity)
   return true
 end
