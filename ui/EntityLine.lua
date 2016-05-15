@@ -36,7 +36,11 @@ function EntityLine:render()
 end
 
 function EntityLine:cmd_any(key, cmd)
-  return ui.Window.handleEvent(self.entity, key, cmd)
+  local verb = cmd:match('verb_(.*)')
+  if not verb then return false end
+
+  game.get('player'):verb(verb, self.entity)
+  return true
 end
 
 return EntityLine

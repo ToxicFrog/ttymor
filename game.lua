@@ -53,7 +53,6 @@ function game.objectPath(file, per_game)
   return '%s/%s' % { flags.parsed.config_dir, file }
 end
 
-
 function game.saveObject(file, object, per_game)
   return io.writefile(game.objectPath(file, per_game), 'return '..repr(object))
 end
