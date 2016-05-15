@@ -50,7 +50,7 @@ end
 -- Instantiate and place an object from a room's object table
 function MapGen:placeObject(obj, ox, oy)
   if not obj.x then
-    log.debug("Object has no location! %s", repr(obj))
+    --log.debug("Object has no location! %s", repr(obj))
     return
   end
 

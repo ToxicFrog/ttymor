@@ -75,7 +75,7 @@ end
 -- }
 -- There is at present no support for inheriting from other entity types, a la SS2.
 function entity.register(name)
-  log.debug('Registering entity type %s', name)
+  --log.debug('Registering entity type %s', name)
   return function(init)
     local defaults = {message_handlers = {}}   -- default top-level field values, including methods
     local components = {} -- component-specific data
