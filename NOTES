@@ -1,0 +1,144 @@
+Generated a sample map and it has density 0.64 and 55 rooms.
+
+Need more testing! At least it should be possible to test things like entity creation and (de)serialization without too much madness. LuaUnit (git@github.com:bluebird75/luaunit.git) is probably the thing to use here.
+
+## Bugs
+
+- opening/closing an expander doesn't prperly update scrolling, resulting in a
+  'jump' on the next scroll.
+
+- TODO: make the log its own in-game object
+
+- The API for calling and returning from component methods still needs some thought. Right now the method is just called with self and has to access its data as self.<component name>.foo. Do we want to pass in the component as the first argument after self?
+
+## Roadmap
+
+- Inventory
+  - Basic inventory screen
+  - Command to populate inventory with random items
+    - Random item generator
+  - Sorted inventory
+  - Tabbed, categorized inventory
+    - requires TabView
+
+- Line of sight
+- Stats
+- Equipment
+- Combat
+
+## Message and event handling
+
+Each key pressed is turned (via love.keypressed()) into a (key,command) pair via the key map; the command may be nil. This is then sent to the windowing system via the :keyEvent method. The event 'bubbles up' from the bottom (childmost) windowing elements to the topmost (ui.screen); each element checks its children in front-to-back Z order, then checks itself. Windows that aren't .visible, or which .can_focus but are not currently .focused, are skipped.
+
+Given an event of ('f', 'foo'), the event handling system will look for `cmd_foo`, `cmd_any`, `key_f`, and `key_any` in that order. If it finds one, it calls it. If it returns `true`, event propagation stops immediately -- not just for that element, but completely; the event stops here. If the handler returns `false`, event propagation continues. Returning any other value is an error.
+
+In the gamestate, message handling works somewhat differently. There are two ways to interact with an entity: you can call a method or you can send a message. If you call a method on an entity, it must be defined in exactly one component; if it's not defined, that's a call-time error, and if it's multiply defined, that's an error at entity creation time. The method will be called and may return values.
+
+If you send a message, it is received by every component on the entity. It does not automatically propagate to child entities, but individual components may cause this to happen. Each component that defines a handler for that message (named `msg_foo`) will have that handler called, with any message payload as arguments. The payload may be mutable but any return values are ignored. (TODO: do we want to change this? Say, return a {component name => return value}) map?) Messages are sent using the :message(`name`, ...) API.
+
+Verbs are a special case of messages, used for entity interactions with each other (right now this means player interactions with the world, via the Control component, but at some point it will need to be able to handle e.g. traps and summoned monsters interacting with enemies). They are sent using the Control:verb() method, which emits two messages: `verb_foo(object)` (note that the handler is named `msg_verb_foo`) is sent to the subject, and `verb_foo_by(subject)` is sent to the subject.
+
+There are two points where these systems (UI events and entity messages) intersect. The map view propagates all events it receives to the player, where they are (possibly) received by various components -- mostly Control, but components such as Inventory may have UI message handlers as well. The other is the EntityLine; any verb command received by an EntityLine results in the player's :verb method being called, with the EntityLine's contained entity as the object.
+
+## Timing
+
+Things that take a turn -- opening or closing a door; taking a step; eating or drinking; using an ability; attacking an enemy; picking up or dropping an item using drag-and-drop.
+Things that don't take a turn -- equipping or removing items; changing the contents of the hotbar; picking up an item using autopickup; dropping an item using shift-click.
+Open questions: gating to/from the pocket dimension; buying/selling items; fisking; sacrificing fisk; using an anvil; communing with inconsequentia; canceling buffs
+
+## IRC discussion about message handling
+
+<ToxicFrog> Ok, monologue time.
+<ToxicFrog> Right now, in ttymor, there are two ways of interacting with an entity: call a method on it, or send it a message.
+<ToxicFrog> Method calls go to either the entity or exactly one of its components; it is a load-time error for multiple components in the same entity to declare a method with the same name, and a runtime error to call a method on an entity that doesn't define it.
+<ToxicFrog> Methods can return values.
+<ToxicFrog> Messages are received by zero or more components in the entity, in unspecified order. They cannot return values but can take arguments, including mutable arguments.
+<ToxicFrog> *player* interaction with entities, meanwhile, is a complete dog's breakfast.
+<ToxicFrog> There's a bunch of keybindings for things the avatar can do, like moving around or taking inventory, and then one binding for "frob"
+<ToxicFrog> This sends a <frob> message to every entity within reach of the player, with an argument consisting of an empty mutable list; <frob> handlers then populate that list with (action name, action handler) tuples.
+<ToxicFrog> It's then up to the caller to display this list to the player in a way that lets them choose a thing to do.
+<ToxicFrog> Among other things this means that there's no good way to bind keys to actions, and no good way to test if an entity supports a given action.
+<ToxicFrog> The solution I'm toying with is this.
+* catadroid has a sudden urge to go swimming
+<ToxicFrog> Hee
+<ToxicFrog> Define some set of verbs. A verb has a name, subject and object handler names, a description, and zero or more keybinds.
+--> gizmore|2 (kvirc@Nightstar-5o5rtj.dip0.t-ipconnect.de) has joined #code
+<ToxicFrog> E.g. ("Drop", :drop, :dropped-by, "Drop an object", #{\d})
+<-- gizmore (kvirc@Nightstar-5o5rtj.dip0.t-ipconnect.de) has quit (Operation timed out)
+<ToxicFrog> <frob> is replaced by <verbs>, which populates a set of which verbs are supported by the object. Unlike <frob> there is no need to specify handlers or menu entry information, since that's all in the information associated with the verb itself.
+<ToxicFrog> Testing whether an object supports a verb can be done by sending a <verbs> message and then testing set membership.
+<ToxicFrog> This makes the UI side of things a lot less horrible.
+<ToxicFrog> Press the generic "frob" button and it sends <verbs> to all reachable objects and displays a list of all objects for which that returned a nonempty set.
+<ToxicFrog> Select one of those objects to bring up a menu of the verbs it supports, or press the keybinding for a verb to do that immediately.
+<ToxicFrog> That can, in fact, be how the inventory UI works, and any "list of objects" UI in general.
+<ToxicFrog> Pressing a verb-keybind while on the map screen sends <verbs> to your surroundings and then shows only the objects that support that verb.
+<ToxicFrog> So e.g. pressing \g shows all gettables, \e shows all equippables. I can even have this show things from both the inventory and your surroundings.
+<ToxicFrog> (picking things up is a free action in Dredmor, so there are no unfortunate timing implications in equipping or eating stuff off the ground)
+<ToxicFrog> In general, I think I should be using methods less and messages more, especially since questions like "how much damage does this entity do" may involve interrogating multiple components
+<ToxicFrog> But in order to do that I think I need to come up with a good way for messages to return values.
+<Vornicus> no five-second rule?
+<ToxicFrog> I mean, they can always send replies, but that gets really ugly, really fast.
+<-- gizmore|2 (kvirc@Nightstar-5o5rtj.dip0.t-ipconnect.de) has quit (Operation timed out)
+<ToxicFrog> The current idea I'm toying with is that each message handler is passed whatever the previous one returned, and whatever the last one returns is what's returned from the send()
+<ToxicFrog> This does mean that whatever they do to the initial value to build up the return value has to be commutative, though
+<ToxicFrog> Since there are no guarantees as to the order in which message handlers are invoked.
+<ToxicFrog> That said, everything I can think of offhand that I'd want to do with message return values involves either boolean or, set union, or vector addition
+<ToxicFrog> So maybe it's ok?
+<ToxicFrog> I don't thiiiink Dredmor has any multiplicative effects.
+<ToxicFrog> (multiplication is commutative, but a mix of multiplication and addition is not)
+--- Kindamoody is now known as Kindamoody[zZz]
+<ToxicFrog> There are some calculations that involve multiplication somewhere -- e.g. most spells have a cost of max(mincost, basecost - savvy*bonus) and a damage of (basedamage + spellpower*bonus)
+<ToxicFrog> But in those cases you send a <stats>(savvy, spellpower) message and it adds up all the various things that make up those stats, and then you multiply.
+<Vornicus> TF: apropos of little, factorio came out on steam -- and took the top spot for "percentage of reviews that are positive"
+<Vornicus> Also: perhaps you can assign priorities to message handlers.
+<ToxicFrog> I saw!
+<ToxicFrog> And then evaluate them in priority order?
+<ToxicFrog> -=============+
+<ToxicFrog> []q1ZAAAAAAAAAAAAAA
+<Vornicus> Yeah.  This is how Wordpress does it
+<ToxicFrog> Possible. But if I can design things so that evaluation order doesn't matter, I will.
+<-- VirusJTG (VirusJTG@Nightstar-6i5vf7.sta.comporium.net) has quit (Connection closed)
+--> VirusJTG (VirusJTG@Nightstar-6i5vf7.sta.comporium.net) has joined #code
+<Vornicus> or you can, uh - present a structure that names the component that responded to the message and its response
+<Vornicus> but that would require that you suss out the actual result from a bunch of component responses that honestly you shouldn't care about
+<ToxicFrog> Yeah
+
+## Forum post about balance/mechanics changes
+
+[b]How would I fix Dredmor?[/b]
+
+What follows is a shitload of :words: that have been kicking around in my head about what I would change in DredmorRL in an alternate universe where I have enough time to write it. Mostly these deal with crafting and inventory. There are a lot of people here who play or design roguelikes and are better at game design than I am, so I'm hoping that by kicking these ideas around in the thread something better will emerge.
+
+[b]Inventory.[/b] Dredmor is a lootsplosion game with infinite inventory, but the way you actually access most of that inventory is by going to the pocket dimension and vomiting items all over the floor. Idea: give it a Qud-style inventory screen with no weight or slot limits. You still have the "way too much loot" problem, but at least the UI isn't fighting you as well. Further idea: move crafting materials and consumables into their own screens.
+
+[b]The pocket dimension.[/b] With inventory fixed it loses a lot of its value, although it can still be useful as a place to go outside of time when you're in trouble. I like the idea of making it possible to upgrade the pocket dimension, e.g. with shrines that give buffs, at the cost of increasing the timeout before you can use it again -- make it more like Nethack's prayer, as something you can use infrequently to get out of a bad situation, and less like a really shitty backpack UI.
+
+[b]Crafting.[/b] This is mostly going to focus on Smithing, because I haven't used Alchemy or Wandcrafting enough to have any idea what I'm talking about. Crafting in Dredmor has (at least) two big problems: blueprints and materials.
+
+[b]Crafting blueprints.[/b] To craft something, you need the materials [i]and[/i] the requisite skill level [i]and[/i] the blueprint. Blueprints are random drops from bookcases. It's entirely possible to finish the game without ever finding a high-level blueprint for a crafting skill you actually have that produces equipment you can use. Idea: remove blueprints as a [i]prerequisite[/i] entirely. If you have Smithing 7, you can smith anything of tier 7 or below. Instead, each blueprint lowers the requirement for crafting that item by 1 level -- so someone who hasn't taken crafting skills can still get a bit of an edge using low-level blueprints, and someone who has gains access to a few high-level recipes a bit earlier.
+
+[b]Crafting materials.[/b] For dedicated materials -- ingots, ores, powders, and the like -- the problem is just that they take up inventory space. Make them weightless, sizeless, and move them into their own screen a la Qud and there's that problem sorted.
+
+However, crafting in Dredmor [i]also[/i] uses other equipment as inputs. So you are strongly encouraged to hoover up absolutely everything in the dungeon just in case it's an input to a useful recipe. Fixing the inventory UI goes a long way to ameliorating this, but it's still kind of rubbish.
+
+One idea I had is just to streamline the shit out of the crafting recipes. Make every recipe "<piece of equipment> + <crafting items and consumables> = <higher tier equipment>". Make it unprofitable as well -- maybe crafted items can't be sold, maybe crafting them costs (sell cost of output - sell cost of all inputs) -- and you no longer have an incentive to collect shitloads of low-tier equipment just in case you need it to make the Obsidian Platemail of Asskicking +999 five floors from now.
+
+Another thought is to make items convertible back into the materials that make them, and express all costs in terms of base materials. That is, given the following recipes in the original:
+
+[code]Triple Sword: 3x Steel Longsword, 1x Silver
+Steel Longsword: 1x Steel Shortsword, 1x Steel
+Steel Shortsword: 2x Steel[/code]
+
+You'd convert that to:
+
+[code]Triple Sword: 9x Steel, 1x Silver
+Steel Longsword: 3x Steel
+Steel Shortsword: 2x Steel[/code]
+
+And then let the player convert the steel shortswords/longswords back into steel ingots. In and of itself this probably makes the cure worse than the disease, but if that conversion is automated -- say, you tell it to make a triple sword, and it shows you a list of possible inputs with a "just automatically select the cheapest/crappiest stuff to melt down" button -- it becomes more reasonable. Toss in a Dungeonmans-style locking system so it doesn't ever melt down something you have specific plans for and I think it would be an improvement.
+
+In either case, I think it would actually be possible to do something that comes up in this thread fairly often and automatically cull a lot of "trash" drops. Determining if an item is strictly worse than another is something that's often possible in this case, since most items in Dredmor are upgrades rather than sidegrades, and it would be possible for it to look at the items you have equipped and, if it would drop something strictly worse, instead drop gold or crafting materials -- perhaps default to gold, but with an increased chance of materials based on how many crafting ranks you have. And if those items are no longer directly needed for crafting, there's no longer a "but what about my shitty bronze swords, I need those to forge the ultimate weapon!" concern. In that case maybe we punt the "you can melt down items" idea entirely and just drop crafting materials, but that brings us back to the question of what to do with trash equipment that this algorithm can't cull.
+
+An idea that just came to me as I was writing the above: making crafting a bit more of a two-edged sword (which may help balance out getting all the blueprints for free). Rather than comparing to your current equipment, it just means that [i]any[/i] equipment of a tier ≤ your crafting rank drops as raw materials instead. You're guaranteed lots of crafting materials, but your only source of equipment is shops, zoos, quests, and the gear you make yourself; normal combat and chests will drop raw materials rather than equipment the vast majority of the time if you're leveling up your crafting skills.
+
+Thoughts? Suggestions? Detailed explanations of why I have no idea what I'm talking about?
