@@ -33,14 +33,12 @@ function Item:msg_describe(desc)
     stars = ('❂'):rep(self.Item.level-5)..('★'):rep(5-self.Item.level)
   end
 
-  desc.Item = { stars; 'Ƶ'..self.Item.price; }
+  desc.Item = { '%-5s    Ƶ%s' % { stars, self.Item.price } }
   if self.Item.special then
     table.insert(desc.Item, '[non-spawning]')
   end
   table.insert(desc.Item, '')
   table.insert(desc.Item, self.Item.description)
-
---    stars; 'Ⓩ'..self.Item.price
 
   return desc
 end
