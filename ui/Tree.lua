@@ -22,15 +22,10 @@ local function makeNode(data)
     -- We make the possibly unwarranted assumption here that data is a subclass of Window
     return data
   elseif #data > 0 then
-    local list = ui.VList {}
     for i,v in ipairs(data) do
-      list:attach(makeNode(v))
-      data[i] = nil
+      data[i] = makeNode(v)
     end
-    return ui.Expander {
-      text = data.text;
-      content = list;
-    }
+    return ui.Expander(data)
   else
     return ui.TextLine(data)
   end
