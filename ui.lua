@@ -29,6 +29,9 @@ function ui.init()
       tty.clear()
     end;
   }
+  function ui.screen:cmd_exit_game()
+    love.event.quit()
+  end
 
   -- Log fills the left side of the screen.
   ui.log_win = require 'ui.log_win' {

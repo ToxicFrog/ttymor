@@ -98,10 +98,6 @@ function Control:cmd_any(_, cmd)
   return true
 end
 
-function Control:cmd_exit_game()
-  love.event.quit()
-end
-
 function Control:cmd_update_hud()
   local x,y,map = self:position()
   local cell = map:cell(x, y)
