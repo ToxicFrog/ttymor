@@ -131,12 +131,7 @@ function ui.mainmenu()
     { text = 'Configuration';
       cmd_activate = function() settings.edit(); return true; end;
       help = 'Change game settings and key bindings.' };
-    { text = 'Config Debug';
-      cmd_activate = function() settings.show(); return true; end;
-      help = 'View the raw contents of the settings subsystem, including hidden settings.' };
-    { text = 'Room Debug';
-      cmd_activate = function() dredmor.debug_rooms(); return true; end;
-      help = 'View the raw contents of the room database.' };
+    require 'ui.debug';
     { text = 'Save Game';
       cmd_activate = function() game.save(); ui.sendEvent(nil, 'cancel'); return true; end;
       help = 'Save your game in progress.' };
