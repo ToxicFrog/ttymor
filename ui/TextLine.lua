@@ -35,4 +35,11 @@ function TextLine:render()
   tty.put(0, 0, self.text)
 end
 
+function TextLine:cmd_update_hud()
+  if self.help then
+    ui.setHUD(self.text, self.help)
+  end
+  return true
+end
+
 return TextLine

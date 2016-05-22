@@ -141,13 +141,4 @@ function Tree:cmd_update()
   return false
 end
 
-function Tree:cmd_update_hud()
-  local focused = self:focused()
-  if focused and focused.help then
-    ui.setHUD(focused.text, focused.help)
-    return true
-  end
-  return false
-end
-
 return Tree
