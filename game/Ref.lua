@@ -6,7 +6,7 @@ local function deref(ref)
 end
 
 function Ref:__tostring()
-  return 'Ref[%s]' % tostring(deref(self))
+  return tostring(deref(self))
 end
 
 function Ref:__index(k)

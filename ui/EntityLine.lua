@@ -16,7 +16,7 @@ function EntityLine:__tostring()
 end
 
 function EntityLine:requestSize()
-  self.w,self.h = #self.entity.name+2,1
+  self.w,self.h = #tostring(self.entity)+2,1
 end
 
 function EntityLine:finalizeSize() end
@@ -34,7 +34,7 @@ function EntityLine:render()
   self.entity:render(0, 0)
   tty.pop()
   tty.style(self.focused and 'v' or 'V')
-  tty.put(2, 0, self.entity.name)
+  tty.put(2, 0, tostring(self.entity))
 end
 
 function EntityLine:cmd_any(key, cmd)

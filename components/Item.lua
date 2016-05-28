@@ -23,7 +23,7 @@ function Item:msg_verb_examine_by()
   for cat in pairs(self.Item.categories) do
     table.insert(desc_lines, cat)
   end
-  ui.message(self.name, desc_lines)
+  ui.message(tostring(self), desc_lines)
 end
 
 function Item:msg_describe(desc)
@@ -61,6 +61,12 @@ function Item:msg_verbs(verbs)
     verbs.pickup = true
   end
   return verbs
+end
+
+function Item:msg_tostring(string)
+  if self.Item.count > 1 then
+    table.insert(string, 'x%d' % self.Item.count)
+  end
 end
 
 return Item

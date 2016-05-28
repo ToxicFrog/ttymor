@@ -12,7 +12,10 @@ local Entity = {}
 -- that type. TODO: provide a way for Entity itself to register a message handler.
 
 function Entity:__tostring()
-  return "<%s$%d:%s>" % { self.type, self.id or 0, self.name or "???" }
+  assertf(self.name, 'Entity %d of type %s has no name', self.id, self.type)
+  local string = { self.name }
+  self:message('tostring', string)
+  return table.concat(string, ' ')
 end
 
 function Entity:__repr(...)
@@ -91,18 +94,6 @@ end
 function Entity:delete()
   self:release()
   self:unregister()
-end
-
--- For API compatibility with TreeNode
-function Entity:renderLabel(x, y)
-  self:render(x, y)
-  tty.put(x+1, y, ' '..(self.name or tostring(self)))
-end
-
--- For API compatibility with TreeNode
-function Entity:size()
-  self.w = #(self.name or tostring(self)) + 2
-  self.h = 1
 end
 
 return Entity
