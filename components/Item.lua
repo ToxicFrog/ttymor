@@ -1,7 +1,8 @@
 local Item = {
   stackable = true;
   count = 1;
-  description = "***BUG***"
+  description = "***BUG***";
+  level = 0;
 }
 
 -- TODO: figure out how to let different components add things to the examination

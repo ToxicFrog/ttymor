@@ -39,6 +39,16 @@ function Entity:message(type, ...)
   end
 end
 
+function Entity:createChild(init)
+  init.id = init.id or game.nextID()
+  local ent = entity.create(init)
+  local ref = Ref(ent)
+  ent._parent = Ref(self)
+  self.children[ent.id] = ent
+  ent:register()
+  return ref
+end
+
 function Entity:register()
   game.register(self)
   for _,child in pairs(self.children) do

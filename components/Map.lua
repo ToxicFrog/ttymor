@@ -94,13 +94,7 @@ end
 
 -- Create a new entity in the given cell. The map has ownership.
 function Map:createAt(x, y, init)
-  init.id = init.id or game.nextID()
-
-  local ent = entity.create(init)
-  local ref = Ref(ent)
-  ent._parent = Ref(self)
-  self.children[ent.id] = ent
-  game.register(ent)
+  local ref = self:createChild(init)
   self:placeAt(x, y, ref)
   return ref
 end

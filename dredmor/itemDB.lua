@@ -72,11 +72,12 @@ local function loadItems(path)
   local count = 0
   for itemdef in xml.walk(dom.root, 'item') do
     if items[itemdef.attr.name] then
-      log.debug("skipping duplicate item definition %s", itemdef.attr.name)
+      log.warning("skipping duplicate item definition %s", itemdef.attr.name)
     else
       count = count+1
       local item = itemFromXML(itemdef)
       items[item.name] = item
+      table.insert(items, item)
     end
   end
   log.debug("Loaded %d items from %s", count, path)
@@ -100,4 +101,9 @@ function dredmor.items(filter)
   end
   log.debug("Returning filtered list of %d items", #R)
   return R
+end
+
+function dredmor.randomItem()
+  local i = math.random(1,#items)
+  return items[i].name,items[i]
 end

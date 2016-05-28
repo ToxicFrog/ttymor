@@ -57,12 +57,20 @@ local function debugRooms()
   return true
 end
 
+local function giveItems()
+  player = game.get 'player'
+  for i=1,100 do
+    local name = dredmor.randomItem()
+    player:getItem(player:createChild { type = name })
+  end
+  return true
+end
 
 return {
   text = 'Debug';
   help = 'Debugging commands';
   { text = 'Give Items';
-    -- not implemented yet
+    cmd_activate = giveItems;
     help = 'Give the player 100 randomly selected items' };
   { text = 'Config Database';
     cmd_activate = function() settings.show(); return true; end;
