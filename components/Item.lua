@@ -3,6 +3,7 @@ local Item = {
   count = 1;
   description = "***BUG***";
   level = 0;
+  category = 'Misc';
 }
 
 -- TODO: figure out how to let different components add things to the examination
@@ -17,11 +18,6 @@ function Item:msg_verb_examine_by()
     for _,line in ipairs(desc[name] or {}) do
       table.insert(desc_lines, line)
     end
-  end
-  table.insert(desc_lines, '')
-  table.insert(desc_lines, '  Components:')
-  for cat in pairs(self.Item.categories) do
-    table.insert(desc_lines, cat)
   end
   ui.message(tostring(self), desc_lines)
 end

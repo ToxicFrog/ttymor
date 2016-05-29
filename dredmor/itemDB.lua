@@ -5,7 +5,8 @@ the latter). It may also have:
   level=X         tier of item
   artifact=1      item is an artifact, should have <artifact> tag
   craftoutput=1   item can be made with crafting
-  overrideClassName not sure what this does, orbs have OCN="Orb"
+  overrideClassName display this instead of the item's actual category; used for
+                  e.g. orbs so that they show up as "Orb" rather than "Shield"
   special=1       item should not randomly generated
   type            weapon type, enum {
     sword, axe, mace, staff, bow, thrown, bolt, dagger, polearm }
@@ -39,29 +40,128 @@ So far I've seen:
 <targetHitEffectBuff percentage="XXX" name="effect name">
 <thrownBuff percentage="XXX" name="effect name">
   only on some gloves? Applies to thrown weapons while wearing, presumably
+<potion spell="spell name">
+<wand spell="spell name" mincharge="X" maxcharge="Y">
 
 The file also contains <power> tags, which map weapon proc names and descriptions
 to spell effects in spellDB.
 <power name="proc name" description="proc desc" spell="spell name" />
+
 ]]
 
 local items = {}
+local components = {}
 
--- insert 'level' from item attr and <price amount=...>
+local faces = {
+  -- Weapons
+  Sword   = '⸔';
+  Axe     = 'Γ';
+  Mace    = '¶';
+  Staff   = 'ƪ';
+  Bow     = 'Ϯ';
+  Thrown  = '✢';
+  Bolt    = '➶';
+  Dagger  = '†';
+  Polearm = '⸕';
+  Orb     = '⍟';
+  Tome    = '⌺';
+  -- Armour
+  Helm    = '⌓';
+  Armour  = '⍞';
+  Belt    = '⑄';
+  Pants   = 'Π';
+  Boots   = '⅃';
+  Gloves  = 'ﬀ';
+  Shield  = '⩌';
+  Ring    = '⍥';
+  Amulet  = '⍜';
+  -- Consumables
+  Food    = '%';
+  Drink   = '∪';
+  Trap    = '▩';
+  Wand    = '/';
+  Potion  = '!';
+  Mushroom= '⊼';
+  -- Crafting
+  Tool    = '✇';
+  Gem     = '❂';
+  Reagent = '❚';
+}
+
+function components:description(item)
+  item.Item.description = self.attr.text
+end
+
+function components:price(item)
+  item.Item.price = tonumber(self.attr.amount)
+end
+
+function components:armour(item)
+  local armour_types = {
+    head = 'Helm'; chest = 'Armour'; waist = 'Belt'; legs = 'Pants';
+    feet = 'Boots'; shield = 'Shield'; hands = 'Gloves'; ring = 'Ring'; neck = 'Amulet';
+  }
+  item.Item.category = item.Item.category or armour_types[self.attr.type]
+  item.Item.level = item.Item.level or tonumber(self.attr.level)
+end
+
+function components:food(item)
+  item.Item.category = self.attr.mp and 'Drink' or 'Food'
+end
+
+local function genericComponent(self, item)
+  item.Item.category = self.name:gsub('^[a-z]', string.upper)
+end
+
+for _,tag in ipairs { 'potion', 'wand', 'toolkit', 'trap', 'mushroom', 'gem' } do
+  components[tag] = genericComponent
+end
+
+local function addComponent(item, component)
+  if components[component.name] then
+    components[component.name](component, item)
+  end
+end
+
+-- Figure out an item's category from the <item> DOM.
+-- For most items we infer the category from the item components, but for some
+-- things we have to look at the DOM:
+-- - items with overrideClassName set are mechanically identical to an existing
+--   category, like Shield, but have their own category name, like Orb or Tome
+-- - weapons will have type=... indicating the weapon type
+-- - alchemical reagents will have alchemical=1
+-- - as a special case (eurgh), items with "scrap" in the name, from expansion2,
+--   are also considered reagents
+-- Items for which even the component handler can't figure it out use the default
+-- for the Item component, which is 'Misc'.
+local function itemCategory(dom)
+  local weapon_types = { [0] = "Sword", "Axe", "Mace", "Staff", "Bow", "Thrown", "Bolt", "Dagger", "Polearm" }
+  if dom.attr.overrideClassName then
+    return dom.attr.overrideClassName
+  elseif dom.attr.type then
+    return weapon_types[tonumber(dom.attr.type)]
+  elseif dom.attr.alchemical or dom.attr.name:match('Scrap') then
+    return 'Reagent'
+  end
+end
+
 local function itemFromXML(dom)
   local def = {
     name = dom.attr.name;
-    Render = { face = '⎊' };
+    Render = { face = '⁇'; colour = { 0,0,0, 255,0,0 } };
     Interactable = {};
-    Item = { categories = {}; level = tonumber(dom.attr.level); special = dom.attr.special; };
+    Item = {
+      level = tonumber(dom.attr.level);
+      special = dom.attr.special;
+      category = itemCategory(dom);
+    };
   }
   for _,component in ipairs(dom.el) do
-    def.Item.categories[component.name] = true
-    if component.name == "description" then
-      def.Item.description = component.attr.text
-    elseif component.name == "price" then
-      def.Item.price = tonumber(component.attr.amount)
-    end
+    addComponent(def, component)
+  end
+  if faces[def.Item.category] then
+    def.Render.face = faces[def.Item.category]
+    def.Render.colour = nil
   end
   entity.register(def.name)(def)
   return def

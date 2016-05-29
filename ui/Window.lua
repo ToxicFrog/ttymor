@@ -219,7 +219,6 @@ end
 -- TODO: fix this!
 -- WARNING WARNING WARNING
 function Window:attach(subwin)
-  log.debug('%s: attaching child %s', self, subwin)
   assert(not subwin.parent, 'attempt to attach non-orphan window')
   table.insert(self._children, subwin)
   subwin.parent = self
