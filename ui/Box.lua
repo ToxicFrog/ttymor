@@ -9,7 +9,6 @@ local Box = Window:subclass {
   -- we just won't render the scrollbar.
   -- It's also automatically hidden if max_scroll <= 0.
   display_scrollbar = true;
-  size = { 0, 0 };
   position = { 0.5, 0.5 };
   margins = { up=1, dn=1, lf=1, rt=1 };
 }
