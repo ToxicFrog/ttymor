@@ -17,7 +17,7 @@ end
 
 function TestEntityLine:test__tostring()
   local el = ui.EntityLine { focused = true; entity = self.obj }
-  lu.assertEquals(tostring(el), 'EntityLine[<TestEntity$1:Test>]')
+  lu.assertEquals(tostring(el), 'EntityLine[Test]')
 end
 
 function TestEntityLine:testVerbPassthrough()
@@ -29,7 +29,7 @@ function TestEntityLine:testVerbPassthrough()
   lu.assertEquals(self.subj.messages,
     { verb_examine = 1, verb_pickup = 1, verb_drop = 1 })
   lu.assertEquals(self.obj.messages,
-    { verb_examine_by = 1, verb_pickup_by = 1, verb_drop_by = 1 })
+    { tostring = 4, verb_examine_by = 1, verb_pickup_by = 1, verb_drop_by = 1 })
   lu.assertEquals(self.subj.commands, {})
   lu.assertEquals(self.obj.commands, { activate = 1 })
 end
