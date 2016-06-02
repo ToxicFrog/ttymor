@@ -53,12 +53,12 @@ function Window:layout(bb)
   local ch_bb = self:getChildBB()
 
   for child in self:children() do
-    local _ = self:getChildBB()
     child:layout(ch_bb)
   end
 
   self:finalizeSize(bb)
 
+  local ch_bb = self:getChildBB()
   for child in self:children() do
     child:finalizePosition(ch_bb)
   end
