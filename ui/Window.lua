@@ -228,7 +228,6 @@ function Window:detach(subwin)
   if not subwin then
     return self.parent:detach(self)
   end
-  log.debug('%s: detach child %s', self, subwin)
 
   for i,v in ipairs(self._children) do
     if v == subwin then
@@ -241,7 +240,6 @@ function Window:detach(subwin)
 end
 
 function Window:destroy()
-  log.debug('destroy window: %s', self)
   self:detach()
   self.renderAll = function() error 'renderAll called on destroyed window' end
 end
