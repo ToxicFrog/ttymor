@@ -92,7 +92,9 @@ end
 -- Delete the given entity. Works by unregistering it from the global entity
 -- table, then releasing it from its parent and *not* returning it.
 function Entity:delete()
-  self:release()
+  if self._parent then
+    self:release()
+  end
   self:unregister()
 end
 
