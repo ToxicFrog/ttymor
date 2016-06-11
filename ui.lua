@@ -131,7 +131,7 @@ function ui.mainmenu()
     { text = 'Configuration';
       cmd_activate = function() settings.edit(); return true; end;
       help = 'Change game settings and key bindings.' };
-    require 'ui.debug';
+    table.copy(require 'ui.debug');
     { text = 'Save Game';
       cmd_activate = function() game.save(); ui.sendEvent(nil, 'cancel'); return true; end;
       help = 'Save your game in progress.' };
