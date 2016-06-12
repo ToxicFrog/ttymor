@@ -83,7 +83,7 @@ local faces = {
   Potion  = '!';
   Mushroom= '⊼';
   -- Crafting
-  Tool    = '✇';
+  Toolkit = '✇';
   Gem     = '❂';
   Reagent = '❚';
 }
@@ -101,7 +101,8 @@ function components:armour(item)
     head = 'Helm'; chest = 'Armour'; waist = 'Belt'; legs = 'Pants';
     feet = 'Boots'; shield = 'Shield'; hands = 'Gloves'; ring = 'Ring'; neck = 'Amulet';
   }
-  item.Item.category = item.Item.category or armour_types[self.attr.type]
+  item.Item.category = 'Armour'
+  item.Item.subcategory = armour_types[self.attr.type]
   item.Item.level = item.Item.level or tonumber(self.attr.level)
 end
 
@@ -109,12 +110,14 @@ function components:food(item)
   item.Item.category = self.attr.mp and 'Drink' or 'Food'
 end
 
-local function genericComponent(self, item)
-  item.Item.category = self.name:gsub('^[a-z]', string.upper)
+local function genericComponent(name)
+  return function(self, item)
+    item.Item.category = name
+  end
 end
 
-for _,tag in ipairs { 'potion', 'wand', 'toolkit', 'trap', 'mushroom', 'gem' } do
-  components[tag] = genericComponent
+for _,tag in ipairs { 'Potion', 'Wand', 'Toolkit', 'Trap', 'Mushroom', 'Gem' } do
+  components[tag:lower()] = genericComponent(tag)
 end
 
 local function addComponent(item, component)
@@ -123,7 +126,7 @@ local function addComponent(item, component)
   end
 end
 
--- Figure out an item's category from the <item> DOM.
+-- Figure out an item's category and subcategory from the <item> DOM.
 -- For most items we infer the category from the item components, but for some
 -- things we have to look at the DOM:
 -- - items with overrideClassName set are mechanically identical to an existing
@@ -136,16 +139,15 @@ end
 -- for the Item component, which is 'Misc'.
 local function itemCategory(dom)
   local weapon_types = { [0] = "Sword", "Axe", "Mace", "Staff", "Bow", "Thrown", "Bolt", "Dagger", "Polearm" }
-  if dom.attr.overrideClassName then
-    return dom.attr.overrideClassName
-  elseif dom.attr.type then
-    return weapon_types[tonumber(dom.attr.type)]
+  if dom.attr.type then
+    return 'Weapon',dom.attr.overrideClassName or weapon_types[tonumber(dom.attr.type)]
   elseif dom.attr.alchemical or dom.attr.name:match('Scrap') then
     return 'Reagent'
   end
 end
 
 local function itemFromXML(dom)
+  local cat,subcat = itemCategory(dom)
   local def = {
     name = dom.attr.name;
     Render = { face = '⁇'; colour = { 0,0,0, 255,0,0 } };
@@ -153,14 +155,14 @@ local function itemFromXML(dom)
     Item = {
       level = tonumber(dom.attr.level);
       special = dom.attr.special;
-      category = itemCategory(dom);
+      category = cat; subcategory = subcat;
     };
   }
   for _,component in ipairs(dom.el) do
     addComponent(def, component)
   end
-  if faces[def.Item.category] then
-    def.Render.face = faces[def.Item.category]
+  if faces[def.Item.category] or faces[def.Item.subcategory] then
+    def.Render.face = faces[def.Item.subcategory] or faces[def.Item.category]
     def.Render.colour = nil
   end
   entity.register(def.name)(def)
