@@ -14,6 +14,7 @@ local VList = require 'ui.VList'
 
 local Expander = VList:subclass {
   expanded = false;
+  size = { inf, 0 };
 }
 
 function Expander:__init(data)

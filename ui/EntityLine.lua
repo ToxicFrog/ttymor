@@ -4,6 +4,7 @@ local EntityLine = Window:subclass {
   can_focus = true;
   -- cmd_activate will emit this verb if set
   default_verb = nil;
+  size = { inf, 0 };
 }
 
 function EntityLine:__init(...)
@@ -15,18 +16,8 @@ function EntityLine:__tostring()
   return 'EntityLine[%s]' % tostring(self.entity)
 end
 
-function EntityLine:requestSize()
-  self.w,self.h = #tostring(self.entity)+2,1
-end
-
-function EntityLine:finalizeSize() end
-
--- HACK HACK HACK
--- This gets called only after the parent's size is finalized, which means we
--- now know what size to expand to.
-function EntityLine:finalizePosition(...)
-  ui.Window.finalizePosition(self, ...)
-  self.w = self.parent:getChildBB().w
+function EntityLine:minSize()
+  return #tostring(self.entity)+2,1
 end
 
 function EntityLine:render()

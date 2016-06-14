@@ -2,6 +2,7 @@
 local Window = require 'ui.Window'
 local TextLine = Window:subclass {
   can_focus = true;
+  size = { inf, 0 };
 }
 
 function TextLine:__init(...)
@@ -13,18 +14,8 @@ function TextLine:__tostring()
   return 'TextLine[%s]' % self.text
 end
 
-function TextLine:requestSize()
-  self.w,self.h = #self.text,1
-end
-
-function TextLine:finalizeSize() end
-
--- HACK HACK HACK
--- This gets called only after the parent's size is finalized, which means we
--- now know what size to expand to.
-function TextLine:finalizePosition(...)
-  ui.Window.finalizePosition(self, ...)
-  self.w = self.parent:getChildBB().w
+function TextLine:minSize()
+  return #self.text,1
 end
 
 function TextLine:render()

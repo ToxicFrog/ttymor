@@ -30,44 +30,41 @@ function Window:children()
 end
 
 -- Perform window layout/sizing.
--- This is kind of nasty.
--- We need to know the size of our children to determine our own size, since
--- our size may be <the minimum needed to enclose our children>. But we need
--- to be able to pass our bounding box on to our children, which may not be the
--- same as the BB our parent passed us, if we have fixed/relative size axes
--- rather than min/max ones.
--- So we figure out the child bounding box first, pass that to all our children
--- and tell them to :layout(). Having done that, we can figure out own own size,
--- and once we know *that* we also know where our children need to go based on
--- their size and positioning rules.
+-- This is a two-pass approach.
+-- The first pass (contract) is bottom up (children before parents). Each widget
+-- sets its size to the smallest size possible. For fixed-size widgets, this is
+-- that size; for containers, the smallest size that encompasses all of its
+-- children + margins.
+-- The second pass (expand) is top down. Widgets with fixed sizing or min-sizing
+-- do nothing. Widgets with max-sizing or relative sizing adopt the size of their
+-- parents.
 function Window:layout(bb)
-  if not self.visible then
-    -- Invisible windows take up no space and don't participate in layout.
-    self.w,self.h = 0,0
-    return
-  end
-
   bb = bb or { x=0; y=0; w=self.parent.w; h=self.parent.h; }
+  self:layoutContract()
+  self:layoutExpand(bb)
+end
 
-  -- Get our provisional size.
-  self:requestSize(bb)
-  -- Get the bounding box for our children.
-  local ch_bb = self:getChildBB()
-
+function Window:layoutContract()
   for child in self:children() do
-    child:layout(ch_bb)
+    child:layoutContract()
   end
+  self.w,self.h = self:minSize()
+end
 
-  self:finalizeSize(bb)
-
-  local ch_bb = self:getChildBB()
+function Window:layoutExpand(bb)
+  assertf(self.w and self.h, "window %s has no dimensions at start of expansion phase!", self)
+  self.w,self.h = self:maxSize(bb)
+  assertf(self.w and self.h, "window %s has no dimensions after maxSize()!", self)
+  self.x,self.y = self:autoPosition(bb)
+  bb = self:getChildBB()
   for child in self:children() do
-    child:finalizePosition(ch_bb)
+    child:layoutExpand(bb)
   end
+  self:postLayout()
 end
 
 function Window:getChildBB()
-  local bb ={
+  local bb = {
     name = "childBB[%s]" % {self};
     x = self.margins.lf;
     y = self.margins.up;
@@ -81,12 +78,30 @@ end
 -- Support functions for layout()
 --
 
--- Calculate the window's maximum request size. This is the most size the window
--- could possibly request of its parent; for this reason, 0-size windows will
--- request max, since they don't yet know how big their children are.
-function Window:requestSize(bb)
+-- Minimum size of a window. For fixed size windows, this is the fixed size. For
+-- all other window configurations, this is the minimum size such that all of the
+-- window's children fit within theg window's CBB.
+function Window:minSize()
+  local function axis(want, min)
+    if 0 < want and want < inf then
+      return want
+    else
+      return min
+    end
+  end
+  local w,h = self:getChildSize()
+  return axis(self.size[1], w + self.margins.lf + self.margins.rt),
+         axis(self.size[2], h + self.margins.up + self.margins.dn)
+end
+
+-- Maximum size of a window. For fixed size windows, this is the fixed size. For
+-- windows with the 'min' sizing rule, this is the same as minSize(). For windows
+-- with the 'max' sizing rule or relative sizing, this is calculated based on the
+-- bounding box passed in.
+function Window:maxSize(bb)
+  assertf(bb.w and bb.h, '%s: maxSize: bb missing dimensions: %s %s', self, type(bb), repr(bb))
   local function axis(want, max)
-    if want == inf or want == 0 then
+    if want == inf then
       return max
     elseif want > 0 then
       assertf(want <= max, "window %s with fixed axis %d exceeds size of bounding box %d (%dx%d)", self, want, max, bb.w, bb.h)
@@ -96,10 +111,13 @@ function Window:requestSize(bb)
       return max + want
     end
   end
-  self.w = axis(self.size[1], bb.w)
-  self.h = axis(self.size[2], bb.h)
+  return axis(self.size[1], bb.w) or self.w,
+         axis(self.size[2], bb.h) or self.h
 end
 
+function Window:postLayout() end
+
+-- Size of the smallest bounding box that can contain all of the window's children.
 function Window:getChildSize()
   w,h = 0,0
   for child in self:children() do
@@ -109,28 +127,13 @@ function Window:getChildSize()
   return w,h
 end
 
--- Set the final size of a window, based on its sizing rules. This is called
--- only after the size of all the children is known.
-function Window:finalizeSize(bb)
-  local function axis(want, min, max)
-    -- Only elements with a size of 0 need to be resized here; everything else
-    -- retains the size it originally requested.
-    if want == 0 then
-      return min
-    else
-      return max
-    end
-  end
-  local ch_w,ch_h = self:getChildSize()
-  self.w = axis(self.size[1], ch_w + self.margins.lf + self.margins.rt, self.w)
-  self.h = axis(self.size[2], ch_h + self.margins.up + self.margins.up, self.h)
-end
-
 -- Set the final position of a window, based on its positioning rules. This is
 -- called only after the sizes of both this window and its parent are finalized.
-function Window:finalizePosition(bb)
-  self.x = ((bb.w - self.w) * self.position[1]):floor():max(0)
-  self.y = ((bb.h - self.h) * self.position[2]):floor():max(0)
+function Window:autoPosition(bb)
+  assertf(self.w and self.h, "window %s has no dimensions", self)
+  assertf(bb.w and bb.h, "parent of windows %s has no dimensions", self)
+  return ((bb.w - self.w) * self.position[1]):floor():max(0),
+         ((bb.h - self.h) * self.position[2]):floor():max(0)
 end
 
 
@@ -178,14 +181,6 @@ function Window:handleEvent(key, cmd)
     end
   end
   return false
-end
-
-function Window:show()
-  self.visible = true
-end
-
-function Window:hide()
-  self.visible = false
 end
 
 function Window:render() end

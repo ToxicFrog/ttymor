@@ -29,9 +29,7 @@ function VList:getChildSize()
   return w,h
 end
 
-function VList:layout(...)
-  Window.layout(self, ...)
-  if not self.visible then return end
+function VList:postLayout()
   -- Override the default child positioning loop to lay them out top to bottom
   -- rather than back to front.
   local y = 0

@@ -23,19 +23,17 @@ function Box:__tostring()
   return 'Box[%s]' % (self.title or self.name)
 end
 
-function Box:layout(...)
-  ui.Window.layout(self, ...)
+function Box:layoutExpand(...)
+  ui.Window.layoutExpand(self, ...)
   self.max_scroll = self.content.h - (self.h - 2)
   self.content_y = self.content.y
   self:scroll_by(0)
 end
 
-function Box:getChildSize()
-  local ch_w,ch_h = ui.Window.getChildSize(self)
-  local ch_bb = self:getChildBB()
-  -- We lie about our child size because if it's larger than we are, we only
-  -- display a slice of it and enable scrolling.
-  return ch_w:max(self.title and #self.title or 0),ch_h:min(ch_bb.h)
+function Box:maxSize(bb)
+  assert(self.w <= bb.w, 'Box too wide for container')
+  self.h = self.h:min(bb.h)
+  return Window.maxSize(self, bb)
 end
 
 function Box:render()

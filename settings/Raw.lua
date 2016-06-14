@@ -8,6 +8,7 @@
 local Raw = ui.TextLine:subclass {
   text = '';
   w = 0;
+  size = { inf, 1 };
 }
 
 function Raw:__init(data)
@@ -29,8 +30,7 @@ function Raw:updateText()
   }
 end
 
-function Raw:finalizePosition(...)
-  ui.TextLine.finalizePosition(self, ...)
+function Raw:postLayout()
   self:updateText()
 end
 

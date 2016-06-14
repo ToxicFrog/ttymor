@@ -44,8 +44,7 @@ function Tree:__init(init)
   self:buildFocusList()
 end
 
-function Tree:layout(...)
-  ui.Box.layout(self, ...)
+function Tree:postLayout()
   self:buildFocusList()
 end
 
