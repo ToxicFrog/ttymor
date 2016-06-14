@@ -22,7 +22,9 @@ end
 function Window:children()
   return coroutine.wrap(function()
     for _,child in ipairs(self._children) do
-      coroutine.yield(child)
+      if child.visible then
+        coroutine.yield(child)
+      end
     end
   end)
 end
@@ -199,7 +201,6 @@ function Window:renderChildren()
 end
 
 function Window:renderAll()
-  if not self.visible then return end
   local t
   if flags.parsed.ui_perf then
     t = os.clock()
