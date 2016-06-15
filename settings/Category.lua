@@ -80,15 +80,9 @@ end
 function Category:add(setting)
   assertf(not self._settings[setting.name],
     "multiple registrations of configuration key %s.%s", self.name, setting.name)
-  self._settings[setting.name] = setting
 
   local key = setting.name:gsub('[^a-zA-Z0-9_]+', '_'):lower()
-  if key ~= setting.name then
-    assertf(not self._settings[key],
-      'fast-access key for setting %s.%s conflicts with existing setting %s.%s',
-      self.name, setting.name, self.name, (self._settings[key] or {}).name)
-    self._settings[key] = setting
-  end
+  self._settings[key] = setting
 
   self.content:attach(setting)
 end
