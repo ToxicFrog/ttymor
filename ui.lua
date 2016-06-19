@@ -8,6 +8,7 @@ ui.TextLine = require 'ui.TextLine'
 ui.EntityLine = require 'ui.EntityLine'
 ui.Expander = require 'ui.Expander'
 ui.Stack = require 'ui.Stack'
+ui.Inventory = require 'ui.Inventory'
 
 function ui.layout()
   local w,h = tty.termsize()
@@ -153,6 +154,7 @@ function ui.tree(tree)
   tree = ui.Tree(tree)
   ui.main_win:attach(tree)
   ui.main_win:layout()
+  return tree
 end
 
 function ui.message(title, message)

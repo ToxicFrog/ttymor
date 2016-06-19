@@ -78,7 +78,7 @@ local faces = {
   -- Consumables
   Food    = '%';
   Drink   = '∪';
-  Trap    = '▩';
+  Trap    = 'Δ';
   Wand    = '/';
   Potion  = '!';
   Mushroom= '⊼';

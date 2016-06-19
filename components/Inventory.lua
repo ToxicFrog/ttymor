@@ -18,21 +18,13 @@ function Inventory:msg_verb_dropN(ent)
 end
 
 function Inventory:cmd_inventory(ent)
-  ui.tree {
+  local inv = ui.Inventory {
     title = 'Inventory';
-    cmd_update = function(tree)
-      tree.content:clear()
-      for k,v in pairs(self.Inventory.items) do
-        tree.content:attach(ui.EntityLine { entity = v })
-      end
-      if not tree.content:children()() then
-        tree:destroy()
-      else
-        ui.layout()
-      end
-      return false
-    end;
+    entity = self;
+    categorize = function(item) return item.Item.category or 'Misc' end;
   }
+  ui.main_win:attach(inv)
+  ui.main_win:layout()
   return true
 end
 
@@ -54,6 +46,8 @@ function Inventory:getItem(item)
     end
     stacks[item.type] = item
   end
+
+  self.Inventory.dirty = true
 end
 
 function Inventory:msg_release(item)
@@ -72,6 +66,7 @@ function Inventory:dropItem(item)
   -- called to clear the inventory structures.
   map:placeAt(x, y, item)
   map:placeAt(x, y, self) -- bring self to top
+  self.Inventory.dirty = true
 end
 
 return Inventory

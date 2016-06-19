@@ -19,6 +19,8 @@ function Window:__tostring()
   return 'Window[%s]' % self.name
 end
 
+-- Returns an iterator over all visible children of the window. This means that
+-- e.g. rendering and layout automatically skip invisible windows.
 function Window:children()
   return coroutine.wrap(function()
     for _,child in ipairs(self._children) do

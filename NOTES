@@ -9,14 +9,15 @@ Need more testing! At least it should be possible to test things like entity cre
 
 - TODO: make the log its own in-game object
 
+- Key settings don't respect the right margin of their container
+
+- HUD should be limited to half screen height or so when showing items in square; make last line "...N more" or so.
+
 - The API for calling and returning from component methods still needs some thought. Right now the method is just called with self and has to access its data as self.<component name>.foo. Do we want to pass in the component as the first argument after self?
 
 ## Roadmap
 
 - Inventory
-  - Basic inventory screen
-  - Command to populate inventory with random items
-    - Random item generator
   - Sorted inventory
   - Tabbed, categorized inventory
     - requires TabView

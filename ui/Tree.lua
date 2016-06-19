@@ -15,7 +15,6 @@ local Tree = ui.Box:subclass {
 }
 
 local function makeNode(data)
-  log.debug('makeNode: type=%s #=%d render=%s %s', type(data), #data, data.render, data)
   if type(data) == 'string' then
     return ui.TextLine { text = data }
   elseif data.render then
@@ -31,17 +30,20 @@ local function makeNode(data)
   end
 end
 
+function Tree:initFrom(init)
+  self.content:clear()
+  for i,v in ipairs(init) do
+    self.content:attach(makeNode(v))
+  end
+  self:buildFocusList()
+end
+
 function Tree:__init(init)
   init.content = ui.VList {
     name = init.title .. '$internal_list';
   }
   ui.Box.__init(self, init)
-
-  for i,v in ipairs(self) do
-    self.content:attach(makeNode(v))
-    self[i] = nil
-  end
-  self:buildFocusList()
+  self:initFrom(self)
 end
 
 function Tree:postLayout()
