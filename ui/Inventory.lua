@@ -2,7 +2,37 @@
 -- functions, and it displays an inventory screen that refreshes when the
 -- inventory changes.
 
+require 'settings'
+
+settings.Category { name = 'Inventory' }
+settings.Enum {
+  name = 'Sort by';
+  category = 'Inventory';
+  value = 'highest rank';
+  values = { 'highest rank'; 'lowest rank'; 'name' };
+  helps = {
+    ['highest rank'] = 'Sort inventory items by highest rank first; sort items of same rank by name.',
+    ['lowest rank'] = 'Sort inventory items by lowest rank first; sort items of same rank by name.',
+    ['name'] = 'Sort inventory items by name only, ignoring rank.',
+  };
+}
 local Inventory = ui.Tree:subclass {}
+
+local sorters = {
+  ['highest rank'] = function(x, y)
+    if x.Item.level == y.Item.level then return x.name < y.name
+    else return x.Item.level > y.Item.level
+    end end;
+  ['lowest rank'] = function(x, y)
+    if x.Item.level == y.Item.level then return x.name < y.name
+    else return x.Item.level < y.Item.level
+    end end;
+  ['name'] = function(x, y) return x.name < y.name end;
+}
+
+local function sortCat(cat)
+  table.sort(cat, assert(sorters[settings.inventory.sort_by]))
+end
 
 local function makeOrReturnCat(cats, cat)
   if not cats[cat] then
@@ -30,7 +60,7 @@ local function updateTreeFromInventory(self, inv)
   table.sort(items_by_category, f'x,y => x.text < y.text')
   for k,cat in ipairs(items_by_category) do
     if type(k) == 'number' then
-      table.sort(cat, f'x,y => x.name < y.name')
+      sortCat(cat)
       for i,item in ipairs(cat) do
         cat[i] = ui.EntityLine { entity = item }
       end

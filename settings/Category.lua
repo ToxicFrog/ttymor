@@ -68,7 +68,7 @@ function Category:load()
   local saved = game.loadOptional('%s.cfg' % self.name, game.name() and self.per_game)
   for k,v in pairs(saved or {}) do
     if self._settings[k] then
-      log.debug('Setting %s=%s', k, repr(v))
+      log.trace('Setting %s=%s', k, repr(v))
       self._settings[k].value = v
     else
       log.info('Discarding saved value for obsolete setting %s::%s',

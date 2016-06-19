@@ -12,6 +12,7 @@ settings = {
   Raw = require 'settings.Raw';
   Int = require 'settings.Int';
   Float = require 'settings.Float';
+  Enum = require 'settings.Enum';
   Key = require 'settings.Key';
   Category = require 'settings.Category';
   categories = {};
