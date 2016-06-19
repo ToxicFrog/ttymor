@@ -60,7 +60,9 @@ function Window:layoutExpand(bb)
   self.x,self.y = self:autoPosition(bb)
   bb = self:getChildBB()
   for child in self:children() do
+    log.trace('%s: expandbefore: bb=%dx%d, size=%dx%d', child, bb.w, bb.h, child.w, child.h)
     child:layoutExpand(bb)
+    log.trace('%s: expandafter:  bb=%dx%d, size=%dx%d', child, bb.w, bb.h, child.w, child.h)
   end
   self:postLayout()
 end

@@ -24,7 +24,7 @@ end
 
 function Raw:updateText()
   local value = tostring(self:display())
-  local padding = self.w - #self.name - #value + 1
+  local padding = math.max(1, self.w - #self.name - #value)
   self.text = '%s%s%s' % {
     self.name, (' '):rep(padding), value
   }

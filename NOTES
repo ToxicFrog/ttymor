@@ -9,11 +9,13 @@ Need more testing! At least it should be possible to test things like entity cre
 
 - TODO: make the log its own in-game object
 
-- Key settings don't respect the right margin of their container
-
 - HUD should be limited to half screen height or so when showing items in square; make last line "...N more" or so.
 
 - The API for calling and returning from component methods still needs some thought. Right now the method is just called with self and has to access its data as self.<component name>.foo. Do we want to pass in the component as the first argument after self?
+
+- Investigate returning values from message receptors, either explicitly (receptors return a value, handler collects them and returns the collection) or implicitly (handler passes in a value to be mutated which is returned to the caller).
+
+- logging.lua should allow selective (per-file or even per-call-site) activation of TRACE level logging.
 
 ## Roadmap
 
