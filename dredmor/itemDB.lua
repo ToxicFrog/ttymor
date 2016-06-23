@@ -107,17 +107,22 @@ function components:armour(item)
 end
 
 function components:food(item)
-  item.Item.category = self.attr.mp and 'Drink' or 'Food'
+  item.Item.category = 'Consumables'
+  item.Item.subcategory = self.attr.mp and 'Drink' or 'Food'
 end
 
-local function genericComponent(name)
+local function genericComponent(cat, subcat)
   return function(self, item)
-    item.Item.category = name
+    item.Item.category = cat
+    item.Item.subcategory = subcat
   end
 end
 
-for _,tag in ipairs { 'Potion', 'Wand', 'Toolkit', 'Trap', 'Mushroom', 'Gem' } do
-  components[tag:lower()] = genericComponent(tag)
+for _,tag in ipairs { 'Potion', 'Wand', 'Trap', 'Mushroom' } do
+  components[tag:lower()] = genericComponent('Consumables', tag)
+end
+for _,tag in ipairs { 'Toolkit', 'Gem' } do
+  components[tag:lower()] = genericComponent('Crafting', tag)
 end
 
 local function addComponent(item, component)
@@ -139,10 +144,13 @@ end
 -- for the Item component, which is 'Misc'.
 local function itemCategory(dom)
   local weapon_types = { [0] = "Sword", "Axe", "Mace", "Staff", "Bow", "Thrown", "Bolt", "Dagger", "Polearm" }
-  if dom.attr.type then
-    return 'Weapon',dom.attr.overrideClassName or weapon_types[tonumber(dom.attr.type)]
+  local dom_type = weapon_types[tonumber(dom.attr.type or -1)]
+  if dom_type == 'Thrown' or dom_type == 'Bolt' then
+    return 'Ammo',dom.attr.overrideClassName or dom_type
+  elseif dom_type then
+    return 'Weapons',dom.attr.overrideClassName or dom_type
   elseif dom.attr.alchemical or dom.attr.name:match('Scrap') then
-    return 'Reagent'
+    return 'Crafting','Reagent'
   end
 end
 

@@ -5,33 +5,46 @@
 require 'settings'
 
 settings.Category { name = 'Inventory' }
-settings.Enum {
-  name = 'Sort by';
-  category = 'Inventory';
-  value = 'highest rank';
-  values = { 'highest rank'; 'lowest rank'; 'name' };
-  helps = {
-    ['highest rank'] = 'Sort inventory items by highest rank first; sort items of same rank by name.',
-    ['lowest rank'] = 'Sort inventory items by lowest rank first; sort items of same rank by name.',
-    ['name'] = 'Sort inventory items by name only, ignoring rank.',
-  };
-}
+
+for _,category in ipairs { 'Weapons', 'Armour', 'Consumables', 'Crafting', 'Ammo' } do
+  settings.Enum {
+    name = 'Sort %s By' % category;
+    category = 'Inventory';
+    value = 'highest rank';
+    values = { 'highest rank', 'lowest rank', 'name' };
+    helps = {
+      ['highest rank'] = 'Sort inventory items by highest rank first; sort items of same rank by name.',
+      ['lowest rank'] = 'Sort inventory items by lowest rank first; sort items of same rank by name.',
+      ['name'] = 'Sort inventory items by name only, ignoring rank.',
+    };
+  }
+  settings.Enum {
+    name = 'Group %s By' % category;
+    category = 'Inventory';
+    value = 'category and subcategory';
+    values = { 'category and subcategory', 'category only', 'subcategory only' };
+    helps = {
+      ['category and subcategory'] = 'Group items into subcategories, and all subcategories under one top-level category.';
+      ['category only'] = 'Group all items into a single top-level category';
+      ['subcategory only'] = 'Group items into subcategories at the top level.';
+    }
+  }
+end
+
 local Inventory = ui.Tree:subclass {}
 
-local sorters = {
-  ['highest rank'] = function(x, y)
-    if x.Item.level == y.Item.level then return x.name < y.name
-    else return x.Item.level > y.Item.level
-    end end;
-  ['lowest rank'] = function(x, y)
-    if x.Item.level == y.Item.level then return x.name < y.name
-    else return x.Item.level < y.Item.level
-    end end;
-  ['name'] = function(x, y) return x.name < y.name end;
-}
-
-local function sortCat(cat)
-  table.sort(cat, assert(sorters[settings.inventory.sort_by]))
+local function sortCat(cat, compare)
+  if cat._contains_items then
+    table.sort(cat, compare)
+    for i,v in ipairs(cat) do
+      cat[i] = ui.EntityLine { entity = v }
+    end
+  else
+    table.sort(cat, f'x,y => x.text < y.text')
+    for i,subcat in ipairs(cat) do
+      sortCat(subcat, compare)
+    end
+  end
 end
 
 local function makeOrReturnCat(cats, cat)
@@ -42,10 +55,21 @@ local function makeOrReturnCat(cats, cat)
   return cats[cat]
 end
 
+local function insertItem(cats, item, cat, ...)
+  log.debug('insertItem: %s %s %s %d',
+    cats.text, item, cat, select('#', ...))
+  if not cat then
+    cats._contains_items = true
+    return table.insert(cats, item)
+  end
+
+  return insertItem(makeOrReturnCat(cats, cat), item, ...)
+end
+
 local function updateTreeFromInventory(self, inv)
   local items_by_category = {}
   for id,item in pairs(inv.items) do
-    table.insert(makeOrReturnCat(items_by_category, self.categorize(item)), item)
+    insertItem(items_by_category, item, self.categorize(item))
   end
 
   -- Iterate over all children and figure out which ones are expanded
@@ -57,22 +81,44 @@ local function updateTreeFromInventory(self, inv)
   end
   self.content:clear()
 
-  table.sort(items_by_category, f'x,y => x.text < y.text')
-  for k,cat in ipairs(items_by_category) do
-    if type(k) == 'number' then
-      sortCat(cat)
-      for i,item in ipairs(cat) do
-        cat[i] = ui.EntityLine { entity = item }
-      end
-    else
-      cat[k] = nil
-    end
-  end
+  sortCat(items_by_category, self.compare)
 
   self:initFrom(items_by_category)
 end
 
+local function default_categorize(item)
+  local category,subcategory = item.Item.category, item.Item.subcategory
+  local group_by = settings.inventory['group_%s_by' % category:lower()]
+  if group_by == 'category only' then
+    return category
+  elseif group_by == 'subcategory only' then
+    return subcategory
+  elseif group_by == 'category and subcategory' then
+    return category,subcategory
+  else
+    log.fatal("Invalid value %s for configuration key settings.inventory.group_%s_by",
+      group_by, category:lower())
+  end
+end
+
+local function default_compare(x, y)
+  assert(x.Item.category == y.Item.category)
+  local sort_by = settings.inventory['sort_%s_by' % x.Item.category:lower()]
+  if sort_by == 'name' or x.Item.level == y.Item.level then
+    return x.name < y.name
+  elseif sort_by == 'highest rank' then
+    return x.Item.level > y.Item.level
+  elseif sort_by == 'lowest rank' then
+    return x.Item.level < y.Item.level
+  else
+    log.fatal("Invalid value %s for configuration key settings.inventory.sort_%s_by",
+      sort_by, x.Item.category:lower())
+  end
+end
+
 function Inventory:__init(...)
+  self.categorize = default_categorize
+  self.compare = default_compare
   ui.Tree.__init(self, ...)
   updateTreeFromInventory(self, self.entity.Inventory)
   self.entity.Inventory.dirty = false
@@ -88,6 +134,6 @@ function Inventory:cmd_update()
     ui.layout()
   end
   return false
-end;
+end
 
 return Inventory

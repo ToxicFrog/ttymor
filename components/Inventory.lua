@@ -21,7 +21,6 @@ function Inventory:cmd_inventory(ent)
   local inv = ui.Inventory {
     title = 'Inventory';
     entity = self;
-    categorize = function(item) return item.Item.category or 'Misc' end;
   }
   ui.main_win:attach(inv)
   ui.main_win:layout()
