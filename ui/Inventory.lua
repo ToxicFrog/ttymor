@@ -56,8 +56,6 @@ local function makeOrReturnCat(cats, cat)
 end
 
 local function insertItem(cats, item, cat, ...)
-  log.debug('insertItem: %s %s %s %d',
-    cats.text, item, cat, select('#', ...))
   if not cat then
     cats._contains_items = true
     return table.insert(cats, item)
