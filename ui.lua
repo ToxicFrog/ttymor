@@ -9,6 +9,7 @@ ui.EntityLine = require 'ui.EntityLine'
 ui.Expander = require 'ui.Expander'
 ui.Stack = require 'ui.Stack'
 ui.Inventory = require 'ui.Inventory'
+ui.WrappingTextLine = require 'ui.WrappingTextLine'
 
 function ui.layout()
   local w,h = tty.termsize()
@@ -73,9 +74,15 @@ function ui.draw()
   end
 end
 
+-- Set the HUD title and contents. 'content' should be a table of ui elements,
+-- which will become the contents of the HUD's internal VList; if passed a string,
+-- it will automatically be turned into a WrappingTextLine.
 function ui.setHUD(title, content)
   if type(content) == 'string' then
-    content = table.mapv(content:wrap(ui.hud_win.content.w), f't => ui.TextLine { text = t }')
+    local ww = ui.hud_win:getChildBB().w
+    content = {
+      ui.WrappingTextLine { text = content, wrap_width = ww };
+    }
   end
   assert(type(content) == 'table', 'invalid argument passed to setHUD: '..repr(content))
   ui.hud_win:setContent(title, content)
@@ -162,7 +169,10 @@ function ui.message(title, message)
     return ui.message(title, {message})
   end
   for i,line in ipairs(message) do
-    message[i] = ui.TextLine { text = line }
+    message[i] = ui.WrappingTextLine {
+      text = line;
+      wrap_width = (ui.main_win.w/2):floor()
+    }
   end
 
   local box = ui.Box {

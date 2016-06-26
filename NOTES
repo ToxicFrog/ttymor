@@ -7,7 +7,7 @@ Need more testing! At least it should be possible to test things like entity cre
 - opening/closing an expander doesn't prperly update scrolling, resulting in a
   'jump' on the next scroll.
 
-- TODO: make the log its own in-game object
+- TODO: make the log its own in-game object or, better yet, a component on Player
 
 - HUD should be limited to half screen height or so when showing items in square; make last line "...N more" or so.
 
@@ -16,6 +16,10 @@ Need more testing! At least it should be possible to test things like entity cre
 - Investigate returning values from message receptors, either explicitly (receptors return a value, handler collects them and returns the collection) or implicitly (handler passes in a value to be mutated which is returned to the caller).
 
 - logging.lua should allow selective (per-file or even per-call-site) activation of TRACE level logging.
+
+- Dropping an item from the inventory screen causes all subcategories to collapse
+
+- The WrappingTextLine can probably be at least a *bit* smarter about width, right? Infer it from siblings, perhaps?
 
 ## Roadmap
 
@@ -28,6 +32,47 @@ Need more testing! At least it should be possible to test things like entity cre
 - Stats
 - Equipment
 - Combat
+
+## Item categorization
+
+Dredmor has a lot of potential item categories. Generally, you have:
+
+- Weapons, which can be further subcatgorized by which skill they use (axes, swords, maces, polearms...)
+  - Orbs and tomes, which are shields with overrideClassName set and generally have more weapon-like stats (but still can't be attacked with)
+  - Crossbows, which behave like weapons but go in a different slot
+- Armour, which can be further subcategorized by which slot you equip it in
+  - Shields, which are equipped like weapons but act like armour and can't be attacked with
+  - See also "orbs and tomes" above
+- Consumables, of which there's a bunch of types that aren't really mechanically different: food, drink, potions, and mushrooms
+  - Except that some skills etc. apply only to certain types
+- Plus consumables that you don't use on yourself: traps and wands
+- Crafting items, which includes both gems and reagents (not sure why there's a distinction)
+  - Plus the toolkits themselves, which are passively "on" as long as they're in your inventory and don't get consumed
+- And finally ammo, which is a quickbar item in OG Dredmor but should probably be an equipment slot in ttymor
+  - consisting of two different kinds, crossbow bolts (used with Fire) and throwing weapons (used with Throw)
+
+This means the categorization we want is *probably* something like:
+
+- Weapons, broken down by weapon skill
+  - Alternately, Melee Weapons -> weapon skill and Other Weapons -> Orbs, Tomes, Crossbows?
+- Armour, broken down by slot
+  - File OCN things like augmented arms in the same subcategory as their slot, in this case rings
+  - Except that if we put orbs or tomes here, those should get their own categories, argh
+- Consumables, broken down by type (potion, food, drink, wand, trap)
+- Crafting items, broken down into toolkits/gems/reagents
+- Ammo, broken down into bolts and throwing weapons
+
+And then we have a configuration enum for each one of these, called "group _ by", with three options:
+
+- category
+- subcategory
+- category and subcategory
+
+The first gives you "Weapons -> Razor Sword", the second gives you "Swords -> Razor Sword", and the third gives you "Weapons -> Swords -> Razor Sword".
+
+To get this to work, we need a categorization function over items which comes up with categories as noted above, and then checks and respects the category-specific setting to return either the category, subcategory, or both.
+
+This also means (sigh) that each category probably needs a separate sort order option, as well as an option (when "category" is selected for group_by) for "sort by subcategory"...or do we even care about that? Should people who want sort-by-subcategory just turn on grouping by subcategory instead?
 
 ## Message and event handling
 

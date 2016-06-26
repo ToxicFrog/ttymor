@@ -16,18 +16,15 @@ end
 
 function LogWin:render()
   if game.log.dirty then
+    local ww = self:getChildBB().w
     self.content:clear()
     for turn in game.log:turns() do
       for _,line in ipairs(turn) do
-        for _,subline in ipairs(line:wrap(self.content.w)) do
-          self.content:attach(ui.TextLine { text = subline })
-        end
+        self.content:attach(ui.WrappingTextLine { text = line; wrap_width = ww })
       end
     end
     for _,line in ipairs(game.log:currentTurn()) do
-      for _,subline in ipairs(line:wrap(self.content.w)) do
-        self.content:attach(ui.TextLine { text = subline })
-      end
+      self.content:attach(ui.WrappingTextLine { text = line; wrap_width = ww })
     end
     game.log.dirty = false
     self:layout()
