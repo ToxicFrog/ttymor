@@ -33,58 +33,75 @@ end
 
 local Inventory = ui.Tree:subclass {}
 
-local function sortCat(cat, compare)
-  if cat._contains_items then
-    table.sort(cat, compare)
-    for i,v in ipairs(cat) do
-      cat[i] = ui.EntityLine { entity = v }
-    end
-  else
-    table.sort(cat, f'x,y => x.text < y.text')
-    for i,subcat in ipairs(cat) do
-      sortCat(subcat, compare)
-    end
+-- a Tree has a .content field which is a VList which contains the top level
+-- some of the children will be Expanders, which will have a .content field,
+-- which is a VList etc
+-- We do something ugly here: reach directly into the _children array of our
+-- child elements to sort them.
+local function sortTree(root, cmp)
+  table.sort(root.content._children, cmp)
+  for _,expander in pairs(root._children_by_name) do
+    sortTree(expander, cmp)
+    -- Display expanders or not based on whether they have any contents.
+    expander.visible = toboolean(expander.content:children()())
   end
 end
 
-local function makeOrReturnCat(cats, cat)
-  if not cats[cat] then
-    cats[cat] = { text = cat }
-    table.insert(cats, cats[cat])
-  end
-  return cats[cat]
-end
-
-local function insertItem(cats, item, cat, ...)
+function Inventory:addItem(item, expander, cat, ...)
   if not cat then
-    cats._contains_items = true
-    return table.insert(cats, item)
+    expander.content:attach(ui.EntityLine { entity = item })
+  else
+    if not expander._children_by_name[cat] then
+      -- Make sure intermediate expanders exist.
+      local child = ui.Expander {
+        text = cat;
+        content = ui.VList {};
+        _children_by_name = {};
+      }
+      expander._children_by_name[cat] = child
+      expander.content:attach(child)
+    end
+    return self:addItem(item, expander._children_by_name[cat], ...)
   end
-
-  return insertItem(makeOrReturnCat(cats, cat), item, ...)
 end
 
-local function updateTreeFromInventory(self, inv)
-  local items_by_category = {}
-  for id,item in pairs(inv.items) do
-    insertItem(items_by_category, item, self.categorize(item))
+local function clearExpanders(root)
+  root.content:clear()
+  for _,child in pairs(root._children_by_name) do
+    clearExpanders(child)
+    root.content:attach(child)
   end
+end
 
-  -- Iterate over all children and figure out which ones are expanded
-  local expanded = {}
-  for child in self.content:children() do
-    if child.expanded and items_by_category[child.text] then
-      items_by_category[child.text].expanded = true
+function Inventory:updateTreeFromInventory()
+  clearExpanders(self)
+
+  for id,item in pairs(self.entity.Inventory.items) do
+    if self.filter(item) then
+      self:addItem(item, self, self.categorize(item))
     end
   end
-  self.content:clear()
 
-  sortCat(items_by_category, self.compare)
+  local function cmp(x, y)
+    -- Categories sort before everything else.
+    if x._header and not y._header then return true end
+    if y._header and not x._header then return false end
+    -- Categories are sorted relative to each other by title.
+    if x._header and y._header then return x.text < y.text end
+    -- Everything else uses the item-level comparator.
+    return self.compare(x.entity, y.entity)
+  end
 
-  self:initFrom(items_by_category)
+  sortTree(self, cmp)
 end
 
-local function default_categorize(item)
+-- Default categorization function. Takes an item, returns zero or more categories
+-- for it from least to most specific (e.g. "Consumable","Potion"). Items for
+-- which it returns nothing will appear at the top level; other items will appear
+-- in the menu heirarchy according to the values returned.
+-- The default implementation respects the group_foo_by settings and returns either
+-- the item category, subcategory, or both.
+function Inventory.categorize(item)
   local category,subcategory = item.Item.category, item.Item.subcategory
   local group_by = settings.inventory['group_%s_by' % category:lower()]
   if group_by == 'category only' then
@@ -99,8 +116,11 @@ local function default_categorize(item)
   end
 end
 
-local function default_compare(x, y)
-  assert(x.Item.category == y.Item.category)
+-- Default item ordering function. Takes two items, returns true if the first
+-- should sort before the second.
+-- The default implementation respects the sort_foo_by settings and orders based
+-- on name and optionally rank.
+function Inventory.compare(x, y)
   local sort_by = settings.inventory['sort_%s_by' % x.Item.category:lower()]
   if sort_by == 'name' or x.Item.level == y.Item.level then
     return x.name < y.name
@@ -114,17 +134,22 @@ local function default_compare(x, y)
   end
 end
 
+-- Default item filter function. Instantiations can use this to control which
+-- items are displayed at all, e.g. the ammo selection screen showing only ammo.
+function Inventory.filter(item)
+  return true
+end
+
 function Inventory:__init(...)
-  self.categorize = default_categorize
-  self.compare = default_compare
   ui.Tree.__init(self, ...)
-  updateTreeFromInventory(self, self.entity.Inventory)
+  self._children_by_name = {}
+  self:updateTreeFromInventory()
   self.entity.Inventory.dirty = false
 end
 
 function Inventory:cmd_update()
   if not self.entity.Inventory.dirty then return false end
-  updateTreeFromInventory(self, self.entity.Inventory)
+  self:updateTreeFromInventory()
   self.entity.Inventory.dirty = false
   if not self.content:children()() then
     self:destroy()

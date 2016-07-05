@@ -42,6 +42,7 @@ function VList:postLayout()
 end
 
 function VList:clear()
+  for _,child in ipairs(self._children) do child.parent = nil end
   self._children = {}
 end
 

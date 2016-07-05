@@ -17,9 +17,9 @@ Need more testing! At least it should be possible to test things like entity cre
 
 - logging.lua should allow selective (per-file or even per-call-site) activation of TRACE level logging.
 
-- Dropping an item from the inventory screen causes all subcategories to collapse
-
 - The WrappingTextLine can probably be at least a *bit* smarter about width, right? Infer it from siblings, perhaps?
+
+- string.wrap behaves badly when passed strings containing nothing but whitespace and/or hyphens, which is a problem when you want to insert blank lines separating things in a wrapped context like ui.message; also, if you give it "foo-bar" to wrap, it will wrap into "foo\nbar", not "foo-\nbar" as it should.
 
 ## Roadmap
 
