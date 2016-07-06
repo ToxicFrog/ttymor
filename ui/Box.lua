@@ -30,6 +30,12 @@ function Box:layoutExpand(...)
   self:scroll_by(0)
 end
 
+function Box:minSize()
+  local w,h = Window.minSize(self)
+  w = w:max(#(self.title or '') + 4)
+  return w,h
+end
+
 function Box:maxSize(bb)
   assert(self.w <= bb.w, 'Box too wide for container')
   self.h = self.h:min(bb.h)
