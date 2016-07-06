@@ -23,18 +23,15 @@ function Item:msg_verb_examine_by()
 end
 
 function Item:msg_describe(desc)
-  local stars
-  if self.Item.level <= 5 then
-    stars = ('★'):rep(self.Item.level)
-  else
-    stars = ('❂'):rep(self.Item.level-5)..('★'):rep(5-self.Item.level)
-  end
-
-  desc.Item = { '%-5s    Ƶ%s' % { stars, self.Item.price } }
+  desc.Item = {}
+  stars = ('★'):rep(self.Item.level)..('☆'):rep(10-self.Item.level)
+  table.insert(desc.Item, ui.LeftRightTextLine {
+    left = stars; right = 'Ƶ%s' % self.Item.price;
+  })
   if self.Item.special then
     table.insert(desc.Item, '[non-spawning]')
   end
-  table.insert(desc.Item, '')
+  table.insert(desc.Item, ui.TextLine { text = '' })
   table.insert(desc.Item, self.Item.description)
 
   return desc

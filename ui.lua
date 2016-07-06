@@ -1,15 +1,12 @@
 ui = {}
 
-ui.Window = require 'ui.Window'
-ui.Box = require 'ui.Box'
-ui.Tree = require 'ui.Tree'
-ui.VList = require 'ui.VList'
-ui.TextLine = require 'ui.TextLine'
-ui.EntityLine = require 'ui.EntityLine'
-ui.Expander = require 'ui.Expander'
-ui.Stack = require 'ui.Stack'
-ui.Inventory = require 'ui.Inventory'
-ui.WrappingTextLine = require 'ui.WrappingTextLine'
+for _,type in ipairs {
+  'Window', 'Box', 'Tree', 'VList', 'Expander', 'Stack',
+  'TextLine', 'WrappingTextLine', 'LeftRightTextLine', 'EntityLine',
+  'Inventory',
+} do
+  ui[type] = require('ui.'..type)
+end
 
 function ui.layout()
   local w,h = tty.termsize()
@@ -169,10 +166,12 @@ function ui.message(title, message)
     return ui.message(title, {message})
   end
   for i,line in ipairs(message) do
-    message[i] = ui.WrappingTextLine {
-      text = line;
-      wrap_width = (ui.main_win.w/2):floor()
-    }
+    if type(line) == 'string' then
+      message[i] = ui.WrappingTextLine {
+        text = line;
+        wrap_width = (ui.main_win.w/2):floor()
+      }
+    end
   end
 
   local box = ui.Box {
