@@ -45,17 +45,10 @@ function EntityLine:cmd_activate(key, cmd)
 end
 
 function EntityLine:cmd_update_hud()
-  -- set HUD to entity description
-  -- not implemented yet; we need things like text wrapping in the HUD and a
-  -- general way to ask entities "give me a HUD-appropriate description", perhaps
-  -- msg_describe_concise or something.
-  -- local desc = {}
-  -- self.entity:message('describe', desc)
-  -- ui.setHUD(self.entity.name, {
-  --   ui.TextLine { text = self.entity.Item.description }
-  -- })
-  -- return true
-  return false
+  local desc = {}
+  self.entity:message('describe', desc)
+  ui.setHUD(self.entity.name, desc.Item)
+  return true
 end
 
 return EntityLine

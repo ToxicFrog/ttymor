@@ -16,11 +16,18 @@ function HudWin:__init(...)
 end
 
 function HudWin:setContent(title, content)
+  local w = self:getChildBB().w
   self.visible = true
-  self.title = title
+  self.title = title:sub(1,w-2)
   self.content:clear()
-  for _,item in ipairs(content) do
-    self.content:attach(item)
+  for _,line in ipairs(content) do
+    if type(line) == 'string' then
+      self.content:attach(ui.WrappingTextLine {
+        text = line; wrap_width = w;
+      })
+    else
+      self.content:attach(line)
+    end
   end
   self:layout()
 end

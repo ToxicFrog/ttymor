@@ -29,8 +29,9 @@ end
 function TextLine:cmd_update_hud()
   if self.help then
     ui.setHUD(self.text, self.help)
+    return true
   end
-  return true
+  return false
 end
 
 return TextLine
