@@ -99,7 +99,9 @@ function entity.register(name)
             table.insert(defaults.message_handlers[name], v)
           elseif type(v) == 'function' then
             -- functions go directly into the top level; name collisions are an error
-            assert(defaults[k] == nil)
+            assertf(defaults[k] == nil,
+              'Entity definition %s has multiple components defining function :%s()',
+              name, k)
             defaults[k] = v
           elseif component[k] == nil then
             -- everything else goes in component-specific data, but only if it

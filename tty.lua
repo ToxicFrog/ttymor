@@ -175,7 +175,9 @@ function tty.colour(r,g,b, br,bg,bb)
     FG = fg
   end
   if br then
-    tty.bgcolour(br,bg,bb)
+    tty.bgcolour(br, bg, bb)
+  else
+    tty.bgcolour(0, 0, 0)
   end
 end
 

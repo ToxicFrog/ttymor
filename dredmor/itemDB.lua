@@ -103,7 +103,7 @@ function components:armour(item)
   }
   item.Item.category = 'Armour'
   item.Item.subcategory = armour_types[self.attr.type]
-  item.Item.level = item.Item.level or tonumber(self.attr.level)
+  item.Item.rank = item.Item.rank or tonumber(self.attr.level)
 end
 
 function components:food(item)
@@ -158,11 +158,11 @@ local function itemFromXML(dom)
   local cat,subcat = itemCategory(dom)
   local def = {
     name = dom.attr.name;
-    Render = { face = '⁇'; colour = { 0,0,0, 255,0,0 } };
     Interactable = {};
     Item = {
-      level = tonumber(dom.attr.level);
+      rank = tonumber(dom.attr.level);
       special = dom.attr.special;
+      artifact = dom.attr.artifact;
       category = cat; subcategory = subcat;
     };
   }
@@ -170,8 +170,8 @@ local function itemFromXML(dom)
     addComponent(def, component)
   end
   if faces[def.Item.category] or faces[def.Item.subcategory] then
-    def.Render.face = faces[def.Item.subcategory] or faces[def.Item.category]
-    def.Render.colour = nil
+    def.Item.rank = def.Item.rank or 0
+    def.Item.face = faces[def.Item.subcategory] or faces[def.Item.category]
   end
   entity.register(def.name)(def)
   return def

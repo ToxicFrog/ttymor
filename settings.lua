@@ -9,11 +9,12 @@ flags.register "config-dir" {
 }
 
 settings = {
-  Raw = require 'settings.Raw';
-  Int = require 'settings.Int';
-  Float = require 'settings.Float';
+  Bool = require 'settings.Bool';
   Enum = require 'settings.Enum';
+  Float = require 'settings.Float';
+  Int = require 'settings.Int';
   Key = require 'settings.Key';
+  Raw = require 'settings.Raw';
   Category = require 'settings.Category';
   categories = {};
 }

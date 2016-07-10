@@ -122,12 +122,12 @@ end
 -- on name and optionally rank.
 function Inventory.compare(x, y)
   local sort_by = settings.inventory['sort_%s_by' % x.Item.category:lower()]
-  if sort_by == 'name' or x.Item.level == y.Item.level then
+  if sort_by == 'name' or x.Item.rank == y.Item.rank then
     return x.name < y.name
   elseif sort_by == 'highest rank' then
-    return x.Item.level > y.Item.level
+    return x.Item.rank > y.Item.rank
   elseif sort_by == 'lowest rank' then
-    return x.Item.level < y.Item.level
+    return x.Item.rank < y.Item.rank
   else
     log.fatal("Invalid value %s for configuration key settings.inventory.sort_%s_by",
       sort_by, x.Item.category:lower())
