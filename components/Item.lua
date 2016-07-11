@@ -72,9 +72,8 @@ function Item:render(x, y)
   tty.put(x, y, self.Item.face)
 end
 
--- TODO: figure out how to let different components add things to the examination
--- results, e.g. equipment should show stats and comparison to current gear, food
--- should show amount healed, etc.
+-- TODO: examine results should be ordered organically (i.e. by components specifying
+-- a per-result priority), rather than hardcoded here.
 local x_order = { 'Item' }
 function Item:msg_verb_examine_by()
   local desc = {}
