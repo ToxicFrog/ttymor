@@ -194,10 +194,8 @@ local function loadItems(path)
 end
 
 function dredmor.loadItems()
-  loadItems(flags.parsed.dredmor_dir..'/game/itemDB.xml')
-  loadItems(flags.parsed.dredmor_dir..'/expansion/game/itemDB.xml')
-  loadItems(flags.parsed.dredmor_dir..'/expansion2/game/itemDB.xml')
-  loadItems(flags.parsed.dredmor_dir..'/expansion3/game/itemDB.xml')
+  items = {}
+  return dredmor.loadFiles(loadItems, '/itemDB.xml')
 end
 
 function dredmor.items(filter)

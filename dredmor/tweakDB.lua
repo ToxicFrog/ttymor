@@ -13,8 +13,8 @@ local cats = {
   hard = 'Tweaks (Hard)';
 }
 
-function dredmor.loadTweaks()
-  local dom = xml.load(flags.parsed.dredmor_dir..'/game/tweakDB.xml')
+local function loadTweaks(path)
+  local dom = xml.load(path)
   local cat = 'Tweaks (Global)'
   for node in xml.walk(dom.root, 'tweak') do
     local cat = cats[node.parent.name]
@@ -34,6 +34,10 @@ function dredmor.loadTweaks()
       error(repr(node))
     end
   end
+end
+
+function dredmor.loadTweaks()
+  return dredmor.loadFiles(loadTweaks, '/tweakDB.xml')
 end
 
 --

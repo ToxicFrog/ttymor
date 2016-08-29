@@ -5,7 +5,7 @@ cd $(dirname $0)
 export LOG_LEVEL=debug
 2>/tmp/$$ luajit main.lua \
   --config-dir=./config \
-  --dredmor-dir="dredxml" \
+  --dredmor-dirs=dredxml/game,dredxml/expansion/game,dredxml/expansion2/game,dredxml/expansion3/game \
   --log-level=debug \
   --log-to=log \
   --log-flush \

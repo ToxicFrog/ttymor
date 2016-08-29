@@ -73,11 +73,7 @@ local function loadRooms(path)
 end
 
 function dredmor.loadRooms()
-  loadRooms(flags.parsed.dredmor_dir..'/game/rooms.xml')
-  loadRooms(flags.parsed.dredmor_dir..'/expansion/game/rooms.xml')
-  loadRooms(flags.parsed.dredmor_dir..'/expansion2/game/rooms.xml')
-  -- No entry for expansion3 because Wizardlands doesn't come with a rooms.xml
-  -- Instead it has a special file for "wizardlands rooms" which is not yet loaded.
+  return dredmor.loadFiles(loadRooms, '/rooms.xml')
 end
 
 function dredmor.rooms(filter)

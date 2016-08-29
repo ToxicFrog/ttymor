@@ -23,10 +23,8 @@ local function loadMonsters(path)
 end
 
 function dredmor.loadMonsters()
-  loadMonsters(flags.parsed.dredmor_dir..'/game/monDB.xml')
-  loadMonsters(flags.parsed.dredmor_dir..'/expansion/game/monDB.xml')
-  loadMonsters(flags.parsed.dredmor_dir..'/expansion2/game/monDB.xml')
-  loadMonsters(flags.parsed.dredmor_dir..'/expansion3/game/monDB.xml')
+  monsters = {}
+  return dredmor.loadFiles(loadMonsters, '/monDB.xml')
 end
 
 function dredmor.monsters(filter)
