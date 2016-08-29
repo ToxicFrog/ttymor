@@ -3,7 +3,8 @@ require 'test.util'
 
 require 'test.ui.EntityLine'
 
-log.setlevel 'fatal'
+log.setlevel 'error'
+log.setfile(io.stderr)
 
 runner = lu.LuaUnit.new()
 os.exit( runner:runSuite() )
