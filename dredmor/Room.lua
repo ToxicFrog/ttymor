@@ -1,5 +1,60 @@
-local Room = {}
-Room.__index = Room
+local Room = Object:subclass {
+  w = 0; h = 0;
+  footprint = 0;
+}
+
+local tags = {}
+
+-- A <row> tag contains a single row of terrain; all of the <row> tags together
+-- make up the complete terrain of the level, along with any waypoints.
+function tags:row(row)
+  local x = 0
+  local y = self.h+1
+  for char in row.attr.text:gmatch('.') do
+    x = x+1
+    if char:match('%d') then
+      self.at[char] = {x,y}
+      char = '.'
+    end
+    if char ~= ' ' then
+      self.footprint = self.footprint + 1
+    end
+    self[x] = self[x] or {}
+    self[x][y] = char
+  end
+  self.w = self.w:max(#row.attr.text:trim())
+  self.h = self.h + 1
+end
+
+-- The <flags> tag contains all the metadata about the room.
+function tags:flags(xml)
+  for k,v in pairs(xml.attr) do
+    if k == 'minlevel' or k == 'maxlevel' then
+      self[k] = tonumber(v)
+    else
+      self[k] = v == '1' or v == 'true'
+    end
+  end
+end
+
+-- Unlike most ctors, this takes an XML <room> node as its argument rather than
+-- an initializer table.
+function Room:__init(root)
+  self.name = root.attr.name
+  self.at = {}  -- Item positions read from terrain grid; to be filled in by grid reader
+  for tag in xml.walk(root) do
+    if tags[tag.name] then
+      tags[tag.name](self, tag)
+    else
+      log.warning('Unrecognized tag in rooms.xml: <%s>', tag.name)
+    end
+  end
+end
+
+do
+return Room
+end
+
 
 -- Returns an iterator over all doors in this room. If 'dir' is specified, yields
 -- only doors facing in that direction.

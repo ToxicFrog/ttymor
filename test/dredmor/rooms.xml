@@ -1,0 +1,19 @@
+<!-- Testdata for the room loader. -->
+
+<roomdb>
+
+<room width="5" height="5" name="Test Room">
+  <row text="##D##"/>
+  <row text="#1 2#"/>
+  <row text="d   d"/>
+  <row text="#3 4#"/>
+  <row text="##D##"/>
+  <flags special="1" minlevel="2" maxlevel="3"/>
+  <customblocker name="Test Object XY" x="3" y="3"/>
+  <customblocker name="Test Object At" at="1"/>
+  <element at="2" type="foodvending"/>
+  <monster at="3" name="Diggle"/>
+  <loot type="potion" subtype="Aqua Regia" at="4"/>
+</room>
+
+</roomdb>
