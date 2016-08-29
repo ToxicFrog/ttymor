@@ -1,3 +1,4 @@
 *.sublime-*
 dredxml/
 capture/
+log
