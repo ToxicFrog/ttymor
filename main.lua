@@ -14,7 +14,7 @@ else
   error 'running under love2d is not yet supported'
 end
 
-flags.register "help" {
+flags.register ("help", 'h', '?') {
   help = "This text.";
 }
 
@@ -42,27 +42,27 @@ local function turn()
 end
 
 function love.load(argv)
-  flags.parse(unpack(argv))
+  flags.parse(argv)
 
-  if flags.parsed.help then
+  if flags 'help' then
     print(flags.help())
     os.exit(0)
   end
 
-  math.randomseed(flags.parsed.seed)
-  os.execute("mkdir -p '%s'" % flags.parsed.config_dir)
+  math.randomseed(flags 'seed')
+  os.execute("mkdir -p '%s'" % flags 'config-dir')
   dredmor.loadAll()
   settings.load()
 
   ui.init()
 
-  if flags.parsed.load then
-    game.load(flags.parsed.load)
+  if flags 'load' then
+    game.load(flags 'load')
   else
     game.new('test')
   end
 
-  if flags.parsed.log_in_game then
+  if flags 'log-in-game' then
     function log.hook(prefix, suffix)
       game.log("%s", suffix)
     end
