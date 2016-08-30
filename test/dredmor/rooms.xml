@@ -9,8 +9,8 @@
   <row text="#3 4#"/>
   <row text="##D##"/>
   <flags special="1" minlevel="2" maxlevel="3"/>
-  <customblocker name="Test Object XY" x="3" y="3"/>
-  <customblocker name="Test Object At" at="1"/>
+  <customblocker name="Test Object XY" x="3" y="3" description="using coordinates"/>
+  <customengraving name="Test Object At" at="1" description="using waypoint"/>
   <element at="2" type="foodvending"/>
   <monster at="3" name="Diggle"/>
   <loot type="potion" subtype="Aqua Regia" at="4"/>
