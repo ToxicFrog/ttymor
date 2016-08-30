@@ -61,9 +61,6 @@ function MapGen:placeObject(obj, ox, oy)
     Render = {
       face = (obj.type or '?'):sub(1,1);
     };
-    Position = {
-      x = x; y = y;
-    }
   }
   if not self[x][y][1] then
     log.debug("Object %s at (%d,%d) in void!", ent, x, y)
