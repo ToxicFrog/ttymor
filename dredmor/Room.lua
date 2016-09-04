@@ -30,6 +30,37 @@ function Room:__init(root)
   end
 end
 
+-- If this room is at (0,0), and other is a room at (x,y), do they collide with
+-- each other?
+-- Note that just checking if the bounding boxes overlap isn't enough, since a
+-- room may have fancy edges.
+-- Furthermore, the map generator actually expects rooms to overlap by 1 tile;
+-- that is, the connected doors are merged into one door. So, if two rooms have
+-- terrain in the same square, but that terrain is a wall or door, that also
+-- doesn't count as a collision.
+-- Any other terrain type, or disagreeing on what the terrain type is, does.
+function Room:collidesWith(other, x, y)
+  -- Quick check to see if the bounding boxes intersect.
+  if x+other.w <= 0 or self.w <= x or y+other.h <= 0 or self.h <= y
+  then return false end
+
+  for my_x = x:max(0),self.w:min(x+other.w)-1 do
+    for my_y = y:max(0),self.h:min(y+other.h)-1 do
+      local my_tile,their_tile = self[my_x][my_y], other[my_x - x][my_y - y]
+      -- If either tile is void, it doesn't matter what the other is; they don't
+      -- collide.
+      if my_tile == ' ' or their_tile == ' ' then goto continue end
+      -- If neither are void, any disagreement means a collision.
+      if my_tile ~= their_tile then return true end
+      -- Even if they agree, only walls and doors are allowed to overlap.
+      if my_tile ~= '#' and my_tile ~= 'D' and my_tile ~= ' ' then return true end
+      ::continue::
+    end
+  end
+
+  return false
+end
+
 -- Return an iterator over all doors, as (x,y,dir) tuples. dir is the direction
 -- you move when stepping out of the room, so dir == 'n' means the room is on the
 -- northern wall of the room.

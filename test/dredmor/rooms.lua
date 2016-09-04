@@ -46,6 +46,37 @@ function TestDredmorRoomsXML:testRoomEntities()
   })
 end
 
+function TestDredmorRoomsXML:testRoomCollision()
+  local test,large,angled =
+    dredmor.room('Test Room'), dredmor.room('Large Test Room'), dredmor.room('Angled Test Room')
+
+  -- test room does not overlap with itself
+  lu.assertFalse(test:collidesWith(test, 5, 0))
+  lu.assertFalse(test:collidesWith(test, 0, 5))
+
+  -- test room overlaps with itself, but in a compatible manner
+  lu.assertFalse(test:collidesWith(test, 4, 0))
+  lu.assertFalse(test:collidesWith(test, 0, 4))
+
+  -- ...and in an incompatible manner
+  lu.assertTrue(test:collidesWith(test, 4, 1))
+  lu.assertTrue(test:collidesWith(test, 1, 4))
+
+  -- angled room shares a wall with test room's south door
+  lu.assertTrue(test:collidesWith(angled, 0, 4))
+  lu.assertTrue(angled:collidesWith(test, 0, -4))
+
+  -- angled room's BB collides with test, but the actual geometry doesn't
+  lu.assertFalse(test:collidesWith(angled, -4, 3))
+  lu.assertFalse(angled:collidesWith(test, 4, -3))
+
+  -- Large room's corner overlaps the edge of test room's south door. This edge
+  -- shows up as # in the grid, but should be treated as D for the purposes of
+  -- collision detection.
+  lu.assertTrue(test:collidesWith(large, 3, 4))
+  lu.assertTrue(large:collidesWith(test, -3, -4))
+end
+
 local function alldoors(room)
   local doors = {}
   for x,y,dir in room:doors() do
