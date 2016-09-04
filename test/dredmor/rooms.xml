@@ -32,6 +32,17 @@
   <row text="##D####"/>
 </room>
 
+<!-- This one is designed to confuse the code that calculates w/h.
+     It should be 7x6, but it's easy to come up with 4x3 instead. -->
+<room name="Deceptive Dimensions">
+  <row text="###    "/>
+  <row text="###    "/>
+  <row text="####   "/>
+  <row text="   ####"/>
+  <row text="    ###"/>
+  <row text="    ###"/>
+</room>
+
 <room name="Weird Doors">
   <row text="##   ##"/>
   <row text="###D###"/>

@@ -27,6 +27,9 @@ function TestDredmorRoomsXML:testRoomProperties()
     name = 'Angled Test Room';
     w = 7; h = 5; footprint = 29;
   })
+  lu.assertHasFields(dredmor.room 'Deceptive Dimensions', {
+    w = 7; h = 6; footprint = 20;
+  })
 end
 
 function TestDredmorRoomsXML:testRoomEntities()

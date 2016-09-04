@@ -55,7 +55,7 @@ function tags:row(row)
     self[x][y] = char
     x = x+1
   end
-  self.w = self.w:max(#row.attr.text:trim())
+  self.w = self.w:max(#row.attr.text)
   self.h = self.h + 1
 end
 
@@ -64,7 +64,9 @@ function tags:flags(xml)
   for k,v in pairs(xml.attr) do
     if k == 'minlevel' or k == 'maxlevel' then
       self[k] = tonumber(v)
-    else
+    elseif type(k) == 'string' then
+      -- k may be a number, since xml.attr is both a map of key => value and
+      -- an array of (key,value) pairs.
       self[k] = v == '1' or v == 'true'
     end
   end
