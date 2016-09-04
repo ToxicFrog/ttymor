@@ -15,15 +15,32 @@ TestDredmorRoomsXML = {}
 
 function TestDredmorRoomsXML:testLoadRooms()
   dredmor.loadRooms()
+  lu.assertNotNil(dredmor.room 'Test Room')
+  lu.assertNotNil(dredmor.room 'Large Test Room')
+  lu.assertNotNil(dredmor.room 'Angled Test Room')
+end
+
+function TestDredmorRoomsXML:testRoomProperties()
+  dredmor.loadRooms()
+  lu.assertHasFields(dredmor.room 'Test Room', {
+    name = 'Test Room';
+    w = 5; h = 5; footprint = 25;
+    special = true;
+    minlevel = 2; maxlevel = 3;
+  })
+  lu.assertHasFields(dredmor.room 'Large Test Room', {
+    name = 'Large Test Room';
+    w = 7; h = 5; footprint = 35;
+  })
+  lu.assertHasFields(dredmor.room 'Angled Test Room', {
+    name = 'Angled Test Room';
+    w = 7; h = 5; footprint = 29;
+  })
+end
+
+function TestDredmorRoomsXML:testRoomEntities()
+  dredmor.loadRooms()
   local room = dredmor.room('Test Room')
-  lu.assertNotNil(room)
-  lu.assertEquals(room.name, 'Test Room')
-  lu.assertEquals(room.w, 5)
-  lu.assertEquals(room.h, 5)
-  lu.assertEquals(room.footprint, 20)
-  lu.assertTrue(room.special)
-  lu.assertEquals(room.minlevel, 2)
-  lu.assertEquals(room.maxlevel, 3)
   lu.assertEquals(room.entities[1], {
     type = "Wall"; name = "Test Object XY"; x = 3; y = 3;
     desc = "using coordinates";

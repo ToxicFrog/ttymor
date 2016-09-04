@@ -4,6 +4,12 @@ require 'ui'
 require 'game.entity'
 require 'builtins'
 
+function lu.assertHasFields(actual, expected)
+  for k,v in pairs(expected) do
+    lu.assertEquals(actual[k], v)
+  end
+end
+
 local TestComponent = {}
 package.loaded['components.TestComponent'] = TestComponent
 
@@ -31,7 +37,6 @@ function TestComponent:verb(verb, object)
   self:message('verb_'..verb, object)
   object:message('verb_'..verb..'_by', self)
 end
-
 
 entity.register 'TestEntity' {
   name = 'Test';
