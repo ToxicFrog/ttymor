@@ -1,27 +1,18 @@
+-- Tests for the Dredmor rooms.xml loader -- dredmor.rooms and dredmor.Room
+
 require 'dredmor'
 flags.parse { '--dredmor-dirs=test/dredmor' }
+dredmor.loadRooms()
 
--- Tests for the Dredmor rooms.xml loader
 TestDredmorRoomsXML = {}
--- dredmor = {}
-
--- flags.register "dredmor-dirs" {
---   default = "./dredmor";
---   type = flags.list;
---   help = "Paths to Dredmor XML directories, e.g. --dredmor-dirs=~/Games/Dredmor/game,~/Games/Dredmor/expansion/game";
--- }
-
---require 'dredmor.rooms'
 
 function TestDredmorRoomsXML:testLoadRooms()
-  dredmor.loadRooms()
   lu.assertNotNil(dredmor.room 'Test Room')
   lu.assertNotNil(dredmor.room 'Large Test Room')
   lu.assertNotNil(dredmor.room 'Angled Test Room')
 end
 
 function TestDredmorRoomsXML:testRoomProperties()
-  dredmor.loadRooms()
   lu.assertHasFields(dredmor.room 'Test Room', {
     name = 'Test Room';
     w = 5; h = 5; footprint = 25;
@@ -39,16 +30,41 @@ function TestDredmorRoomsXML:testRoomProperties()
 end
 
 function TestDredmorRoomsXML:testRoomEntities()
-  dredmor.loadRooms()
   local room = dredmor.room('Test Room')
-  lu.assertEquals(room.entities[1], {
+  lu.assertEquals(room._entities[1], {
     type = "Wall"; name = "Test Object XY"; x = 3; y = 3;
     desc = "using coordinates";
     Render = { face = '♦' };
   })
-  lu.assertEquals(room.entities[2], {
+  lu.assertEquals(room._entities[2], {
     type = "Floor"; name = "Test Object At"; x = 1; y = 1;
     desc = "using waypoint";
     Render = { face = '◊' };
   })
+end
+
+local function alldoors(room)
+  local doors = {}
+  for x,y,dir in room:doors() do
+    table.insert(doors, {x,y,dir})
+  end
+  return doors
+end
+
+function TestDredmorRoomsXML:testDoors()
+  lu.assertEquals(
+    alldoors(dredmor.room 'Test Room'),
+    { {2,0,'n'}, {0,2,'w'}, {4,2,'e'}, {2,4,'s'} })
+  lu.assertEquals(
+    alldoors(dredmor.room 'Large Test Room'),
+    { {0,2,'w'}, {6,2,'e'} })
+  lu.assertEquals(
+    alldoors(dredmor.room 'Angled Test Room'),
+    { {0,2,'w'}, {2,4,'s'} })
+  lu.assertEquals(
+    alldoors(dredmor.room 'Deceptive Dimensions'),
+    {})
+  lu.assertEquals(
+    alldoors(dredmor.room 'Weird Doors'),
+    { {3,1,'n'}, {1,3,'w'}, {5,3,'e'}, {3,5,'s'} })
 end

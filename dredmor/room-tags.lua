@@ -13,6 +13,16 @@ function tags:room(xml)
   self.name = xml.attr.name
 end
 
+local function addDoor(self, x, y, ns)
+  local dir
+  if ns then -- door faces either north or south
+    dir = (y == 0 or self[x][y-1] == ' ') and 'n' or 's'
+  else
+    dir = (x == 0 or self[x-1][y] == ' ') and 'w' or 'e'
+  end
+  table.insert(self._doors, { x=x, y=y, dir=dir })
+end
+
 -- A <row> tag contains a single row of terrain; all of the <row> tags together
 -- make up the complete terrain of the level, along with any waypoints.
 function tags:row(row)
@@ -20,13 +30,27 @@ function tags:row(row)
   local x = 0
   local y = self.h
   for char in row.attr.text:gmatch('.') do
+
+    -- Waypoints are single digits. They behave like floors but will have an
+    -- item placed on them later.
     if char:match('%d') then
-      self.at[char] = {x,y}
+      self._at[char] = {x,y}
       char = '.'
     end
+
+    -- Doors behave like either walls or floors depending on whether they're
+    -- connected to another room. They get their own special table.
+    if char:match('[dD]') then
+      addDoor(self, x, y, char == 'D')
+      char = 'D'
+    end
+
+    -- ' ' is empty space. Anything that isn't ' ' contributes to the room's footprint,
+    -- even walls.
     if char ~= ' ' then
       self.footprint = self.footprint + 1
     end
+
     self[x] = self[x] or {}
     self[x][y] = char
     x = x+1
@@ -56,7 +80,7 @@ local function locationFromAttr(self, attr)
     return assert(tonumber(x)),assert(tonumber(y))
   elseif at and not y and not x then
     return unpack((assertf(
-      self.at[at],
+      self._at[at],
       "rooms.xml: entity has at=%s but map grid doesn't.",
       at)))
   else
@@ -67,7 +91,7 @@ end
 function tags:customblocker(xml)
   local png = xml.attr.png or xml.attr.pngSprite;
   local x,y = locationFromAttr(self, xml.attr)
-  table.insert(self.entities, {
+  table.insert(self._entities, {
     type = "Wall";
     name = xml.attr.name;
     desc = xml.attr.description;
@@ -79,7 +103,7 @@ end
 function tags:customengraving(xml)
   local png = xml.attr.png or xml.attr.pngSprite;
   local x,y = locationFromAttr(self, xml.attr)
-  table.insert(self.entities, {
+  table.insert(self._entities, {
     type = "Floor";
     name = xml.attr.name;
     desc = xml.attr.description;

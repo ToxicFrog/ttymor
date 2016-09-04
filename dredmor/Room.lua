@@ -7,8 +7,9 @@ local Room = Object:subclass {
 -- Unlike most ctors, this takes an XML <room> node as its argument rather than
 -- an initializer table.
 function Room:__init(root)
-  self.at = {}  -- Item positions read from terrain grid; to be filled in by grid reader
-  self.entities = {}
+  self._at = {}  -- Item positions read from terrain grid; to be filled in by grid reader
+  self._entities = {}
+  self._doors = {}
   for tag in xml.walk(root) do
     if tags[tag.name] then
       tags[tag.name](self, tag)
@@ -16,6 +17,31 @@ function Room:__init(root)
       log.warning('Unrecognized tag in rooms.xml: <%s>', tag.name)
     end
   end
+
+  -- For each door, replace the terrain tiles covering the door (#d# or #D#)
+  -- with 'D' tiles. These behave the same as ' ' except for the purposes of
+  -- collision detection.
+  for x,y,dir in self:doors() do
+    if dir == 'n' or dir == 's' then
+      self[x-1][y],self[x][y],self[x+1][y] = 'D','D','D'
+    else
+      self[x][y-1],self[x][y],self[x][y+1] = 'D','D','D'
+    end
+  end
+end
+
+-- Return an iterator over all doors, as (x,y,dir) tuples. dir is the direction
+-- you move when stepping out of the room, so dir == 'n' means the room is on the
+-- northern wall of the room.
+-- If called with an argument, only doors facing in that direction will be returned.
+function Room:doors(dir)
+  return coroutine.wrap(function()
+    for _,d in ipairs(self._doors) do
+      if not dir or d.dir == dir then
+        coroutine.yield(d.x, d.y, d.dir)
+      end
+    end
+  end)
 end
 
 do

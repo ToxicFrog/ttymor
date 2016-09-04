@@ -32,4 +32,14 @@
   <row text="##D####"/>
 </room>
 
+<room name="Weird Doors">
+  <row text="##   ##"/>
+  <row text="###D###"/>
+  <row text=" #...# "/>
+  <row text=" d...d "/>
+  <row text=" #...# "/>
+  <row text="###D###"/>
+  <row text="##   ##"/>
+</room>
+
 </roomdb>
