@@ -79,18 +79,6 @@ do
 return Room
 end
 
--- Returns an iterator over all doors in this room. If 'dir' is specified, yields
--- only doors facing in that direction.
-function Room:doors(dir)
-  return coroutine.wrap(function()
-    for _,d in ipairs(self._doors) do
-      if not dir or d.dir == dir then
-        coroutine.yield(d)
-      end
-    end
-  end)
-end
-
 -- Returns an iterator over all cells in the room, yielding (x,y,cell) for each
 -- one.
 -- The ox,oy values are added to each cell as it's emitted; this can be used to
