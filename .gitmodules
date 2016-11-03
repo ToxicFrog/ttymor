@@ -1,7 +1,0 @@
-[submodule "util"]
-  path = util
-  url = git@github.com:toxicfrog/luautil.git
-
-[submodule "SLAXML"]
-  path = SLAXML
-  url = https://github.com/Phrogz/SLAXML.git

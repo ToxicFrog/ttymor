@@ -6,6 +6,9 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/core.typed "0.3.26"]
                  [com.googlecode.lanterna/lanterna "3.0.0-beta3"]]
+  ; :injections [(require 'clojure.core.typed)
+  ;              (clojure.core.typed/install)]
+  :core.typed {:check [ttymor.core]}
   :main ^:skip-aot ttymor.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
