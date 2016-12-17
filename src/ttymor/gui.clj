@@ -75,7 +75,10 @@
 
 (defn make-gui [game]
   (doto (Panel.)
-    (.setLayoutManager (GridLayout. 3))
+    (.setLayoutManager (doto (GridLayout. 3)
+                         (.setHorizontalSpacing 0)
+                         (.setLeftMarginSize 0)
+                         (.setRightMarginSize 0)))
     (.addComponent (placeholder 8 8) (GridLayout/createLayoutData
                                              GridLayout$Alignment/FILL GridLayout$Alignment/FILL
                                              false false 1 3))
