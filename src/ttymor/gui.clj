@@ -6,7 +6,7 @@
                                          LinearLayout Direction GridLayout$Alignment
                                          BorderLayout BorderLayout$Location
                                          EmptyWindowDecorationRenderer AbstractWindow Window$Hint
-                                         ComponentRenderer AbstractComponent Separator)
+                                         ComponentRenderer AbstractComponent Separator TextBox)
            (com.googlecode.lanterna.screen Screen TerminalScreen)
            (com.googlecode.lanterna.terminal DefaultTerminalFactory Terminal)
            (com.googlecode.lanterna.graphics SimpleTheme)))
@@ -89,18 +89,24 @@
                                              GridLayout$Alignment/FILL GridLayout$Alignment/FILL
                                              true true))
     (.addComponent (Separator. Direction/HORIZONTAL) (GridLayout/createLayoutData
-                                                      GridLayout$Alignment/FILL GridLayout$Alignment/FILL))
-    (.addComponent (placeholder 8 8) (GridLayout/createLayoutData
-                                             GridLayout$Alignment/FILL GridLayout$Alignment/FILL))
+                                                      GridLayout$Alignment/FILL GridLayout$Alignment/CENTER))
+    (.addComponent
+      (doto (TextBox. (TerminalSize. 8 8)
+                      "Welcome to TTYmor!")
+        (.setReadOnly true)
+        (.addLine "waffles")
+        (.addLine "kittens")
+        (.addLine "eeeeeee"))
+      (GridLayout/createLayoutData GridLayout$Alignment/FILL GridLayout$Alignment/FILL))
     ))
 
 (defn run [game]
-  (let [screen (TerminalScreen. (.createTerminal (DefaultTerminalFactory.)))
+  (let [screen (TerminalScreen. (doto (.createTerminal (DefaultTerminalFactory.))
+                                  (.setTitle "TTYmor")))
         window (BasicWindow. "ShockRL")
         theme (SimpleTheme. (colour "#00ff00") (colour "#000000") (into-array SGR []))
         gui (make-gui game)
         ]
-
     (doto window
       (.setHints [Window$Hint/FULL_SCREEN, Window$Hint/FIT_TERMINAL_WINDOW, Window$Hint/NO_DECORATIONS])
       (.setComponent gui))
