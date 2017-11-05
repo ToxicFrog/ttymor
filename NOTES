@@ -190,3 +190,34 @@ In either case, I think it would actually be possible to do something that comes
 An idea that just came to me as I was writing the above: making crafting a bit more of a two-edged sword (which may help balance out getting all the blueprints for free). Rather than comparing to your current equipment, it just means that [i]any[/i] equipment of a tier ≤ your crafting rank drops as raw materials instead. You're guaranteed lots of crafting materials, but your only source of equipment is shops, zoos, quests, and the gear you make yourself; normal combat and chests will drop raw materials rather than equipment the vast majority of the time if you're leveling up your crafting skills.
 
 Thoughts? Suggestions? Detailed explanations of why I have no idea what I'm talking about?
+
+
+# shockrl stuff
+
+; layout looks something like:
+; 1x3 grid layout
+;  3x1 grid layout
+;   health
+;   empty space with HorizontallyFilledLayoutData
+;   energy
+;  map view configured to grab all vertical and horizontal space
+;  3x1 grid layout
+;   left MFD
+;   log/inventory view with HorizontallyFilledLayoutData
+;   right MFD
+
+; patches: health, stamina, vision, reflex, berserk, detox
+; left augs: biomonitor, HUD, sensaround, light, shield
+; right augs: infravision, navigation, data reader, speed boost, jumpjets
+; all augs: sensaround, light, shield, infra, passive speed, active speed, jets, ???
+; thoughts:
+; sensaround grants Warning
+; light illuminates dark areas, but enemies aggro from further away
+; infravision does the same, but doesn't alert enemies
+; navigation maps areas near you, like NH clairvoyance?
+; booster makes you move faster:
+;   passive mode costs nothing, but as long as you're moving in one direction each
+;   subsequent move is faster up to (say) double speed
+;   active mode costs energy but ramps up to (say) triple speed immediately
+; jump jet is basically a short-range teleport, longer range -> more energy
+
