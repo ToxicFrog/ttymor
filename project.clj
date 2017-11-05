@@ -3,7 +3,7 @@
   :url "https://github.com/toxicfrog/ttymor"
   :license {:name "Apache 2.0"
             :url "https://www.apache.org/licenses/LICENSE-2.0"}
-  :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
+  :dependencies [[org.clojure/clojure "1.9.0-beta4"]
                  [com.squidpony/squidlib-util "3.0.0-b9"]
                  [com.googlecode.lanterna/lanterna "3.0.0"]]
   :core.typed {:check [ttymor.core]}

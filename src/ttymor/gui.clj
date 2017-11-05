@@ -1,4 +1,5 @@
 (ns ttymor.gui
+  (:require [ttymor.MapView :as MapView])
   (:import (com.googlecode.lanterna TerminalSize TerminalPosition TextColor TextCharacter TextColor$Factory TextColor$ANSI SGR)
            (com.googlecode.lanterna.gui2 Panel GridLayout Label TextBox EmptySpace Button BasicWindow
                                          MultiWindowTextGUI DefaultWindowManager Borders
@@ -17,45 +18,6 @@
       colour
       TextColor$ANSI/DEFAULT)))
 
-(defn image-from [terrain entities]
-  (let [w (count terrain)
-        h (count (first terrain))
-        image (BasicTextImage. w h)]
-    (dorun
-      (for [x (range w) y (range h)]
-        (.setCharacterAt image x y (TextCharacter. (get-in terrain [x y])))))
-    (dorun (map (fn [[id entity]]
-                  (.setCharacterAt image
-                                   (get-in entity [:position 0])
-                                   (get-in entity [:position 1])
-                                   (TextCharacter. (:face entity))))
-                entities))
-    (println "TextImage created:" image)
-    image))
-
-(defn map-renderer [game]
-  (reify ComponentRenderer
-    (getPreferredSize [this map-view] (TerminalSize. 1 1))
-    (drawComponent [this graphics map-view]
-      (let [terrain (@game :terrain)
-            entities (@game :entities)
-            [x y] (get-in entities [0 :position])
-            gsize (.getSize graphics)
-            [w h] [(.getColumns gsize) (.getRows gsize)]
-            ]
-        (doto graphics
-          (.fill \space)
-          (.drawImage (TerminalPosition.
-                        (- (/ w 2) x)
-                        (- (/ h 2) y))
-                      (image-from terrain entities)))
-      ))))
-
-(defn MapView [game]
-  (proxy [AbstractComponent] []
-    (createDefaultRenderer [] (map-renderer game))
-    ))
-
 (defn placeholder [w h]
   (EmptySpace. (colour "#004000") (TerminalSize. (int w) (int h))))
 
@@ -71,7 +33,7 @@
     ; (.addComponent (Separator. Direction/VERTICAL) (GridLayout/createLayoutData
     ;                                                 GridLayout$Alignment/FILL GridLayout$Alignment/FILL
     ;                                                 false false 1 3))
-    (.addComponent (MapView game) (GridLayout/createLayoutData
+    (.addComponent (MapView/MapView game) (GridLayout/createLayoutData
                                              GridLayout$Alignment/FILL GridLayout$Alignment/FILL
                                              true true))
     ; (.addComponent (Separator. Direction/HORIZONTAL) (GridLayout/createLayoutData
@@ -86,13 +48,6 @@
     ;   (GridLayout/createLayoutData GridLayout$Alignment/FILL GridLayout$Alignment/FILL))
     ))
 
-; plan: we have the MapView as a borderless component that displays the map centered
-; on the current player location (which will have to be stored in an atom, so we
-; probably pass it the entire game state and let it deref and extract stuff like
-; the map grid and player coordinates).
-; problem: if we have an asymmetric HUD this results in the player being off center
-; in the map view. Booo. We may need to make the map view a window in its own right
-; after all.
 (defn run [game]
   (let [screen (TerminalScreen. (doto (.createTerminal (DefaultTerminalFactory.))
                                   (.setTitle "TTYmor")))
