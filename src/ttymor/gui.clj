@@ -1,5 +1,5 @@
 (ns ttymor.gui
-  (:import (com.googlecode.lanterna TerminalSize TextColor TextColor$Factory TextColor$ANSI SGR)
+  (:import (com.googlecode.lanterna TerminalSize TerminalPosition TextColor TextCharacter TextColor$Factory TextColor$ANSI SGR)
            (com.googlecode.lanterna.gui2 Panel GridLayout Label TextBox EmptySpace Button BasicWindow
                                          MultiWindowTextGUI DefaultWindowManager Borders
                                          FatWindowDecorationRenderer Panels Component AbstractComponent
@@ -9,7 +9,7 @@
                                          ComponentRenderer AbstractComponent Separator TextBox)
            (com.googlecode.lanterna.screen Screen TerminalScreen)
            (com.googlecode.lanterna.terminal DefaultTerminalFactory Terminal)
-           (com.googlecode.lanterna.graphics SimpleTheme)))
+           (com.googlecode.lanterna.graphics SimpleTheme BasicTextImage)))
 
 (defn colour [s]
   (let [colour (TextColor$Factory/fromString s)]
@@ -17,30 +17,21 @@
       colour
       TextColor$ANSI/DEFAULT)))
 
-(defn get-frustrum-1d [map-size view-size focus]
-  "Given the size of one dimension of the map, the size of the same dimension of
-  the view, and the coordinate that we desire to have centered on screen, return
-  the parameters for the corresponding viewing frustrum as
-  [map-offset view-offset render-length]."
-  (if (>= view-size map-size)
-    [0 (-> (- view-size map-size) (/ 2) int) map-size]
-    [(-> (- focus (/ view-size 2)) (max 0) (min (- map-size view-size))) 0 view-size]))
-
-
-(defn get-frustrum [map-size view-size focus]
-  "Given the dimensions of the map and the view into it, return the viewing
-  frustrum used to actually render the map. This consists of three vectors:
-  :origin, the point at which to draw the upper left of the map;
-  :start, the [x y] coordinates in the map at which to start drawing;
-  :size, the [w h] of the rectangle of map to draw.
-
-  If the map is smaller that the view, :start will always be [0 0] and :size
-  will be the size of the map, and :origin will be whatever it takes to center
-  the map in the view.
-
-  If the map is larger than the view, it tries to place `center` at the center
-  of the view without allowing extra space to either side."
-  (apply map vector (map get-frustrum-1d map-size view-size focus)))
+(defn image-from [terrain entities]
+  (let [w (count terrain)
+        h (count (first terrain))
+        image (BasicTextImage. w h)]
+    (dorun
+      (for [x (range w) y (range h)]
+        (.setCharacterAt image x y (TextCharacter. (get-in terrain [x y])))))
+    (dorun (map (fn [[id entity]]
+                  (.setCharacterAt image
+                                   (get-in entity [:position 0])
+                                   (get-in entity [:position 1])
+                                   (TextCharacter. (:face entity))))
+                entities))
+    (println "TextImage created:" image)
+    image))
 
 (defn map-renderer [game]
   (reify ComponentRenderer
@@ -48,24 +39,19 @@
     (drawComponent [this graphics map-view]
       (let [terrain (@game :terrain)
             entities (@game :entities)
-            h (count terrain)
-            w (count (terrain 0))
+            [x y] (get-in entities [0 :position])
             gsize (.getSize graphics)
-            [map-origin view-origin render-size]
-            (get-frustrum [w h] [(.getColumns gsize) (.getRows gsize)] [3 3])]
+            [w h] [(.getColumns gsize) (.getRows gsize)]
+            ]
         (doto graphics
-          (.setBackgroundColor (colour "#000000"))
-          (.setForegroundColor (colour "#B0FFB0"))
-          (.fill \space))
-        (dorun
-          (for [row (range (render-size 1)) col (range (render-size 0))]
-            (.setCharacter graphics
-                           (+ col (view-origin 0))
-                           (+ row (view-origin 1))
-                           ((terrain (+ col (map-origin 1))) (+ row (map-origin 0))))))
+          (.fill \space)
+          (.drawImage (TerminalPosition.
+                        (- (/ w 2) x)
+                        (- (/ h 2) y))
+                      (image-from terrain entities)))
       ))))
 
-(defn map-view [game]
+(defn MapView [game]
   (proxy [AbstractComponent] []
     (createDefaultRenderer [] (map-renderer game))
     ))
@@ -75,42 +61,52 @@
 
 (defn make-gui [game]
   (doto (Panel.)
-    (.setLayoutManager (doto (GridLayout. 3)
+    (.setLayoutManager (doto (GridLayout. 1)
                          (.setHorizontalSpacing 0)
                          (.setLeftMarginSize 0)
                          (.setRightMarginSize 0)))
-    (.addComponent (placeholder 8 8) (GridLayout/createLayoutData
-                                             GridLayout$Alignment/FILL GridLayout$Alignment/FILL
-                                             false false 1 3))
-    (.addComponent (Separator. Direction/VERTICAL) (GridLayout/createLayoutData
-                                                    GridLayout$Alignment/FILL GridLayout$Alignment/FILL
-                                                    false false 1 3))
-    (.addComponent (map-view game) (GridLayout/createLayoutData
+    ; (.addComponent (placeholder 8 8) (GridLayout/createLayoutData
+    ;                                          GridLayout$Alignment/FILL GridLayout$Alignment/FILL
+    ;                                          false false 1 3))
+    ; (.addComponent (Separator. Direction/VERTICAL) (GridLayout/createLayoutData
+    ;                                                 GridLayout$Alignment/FILL GridLayout$Alignment/FILL
+    ;                                                 false false 1 3))
+    (.addComponent (MapView game) (GridLayout/createLayoutData
                                              GridLayout$Alignment/FILL GridLayout$Alignment/FILL
                                              true true))
-    (.addComponent (Separator. Direction/HORIZONTAL) (GridLayout/createLayoutData
-                                                      GridLayout$Alignment/FILL GridLayout$Alignment/CENTER))
-    (.addComponent
-      (doto (TextBox. (TerminalSize. 8 8)
-                      "Welcome to TTYmor!")
-        (.setReadOnly true)
-        (.addLine "waffles")
-        (.addLine "kittens")
-        (.addLine "eeeeeee"))
-      (GridLayout/createLayoutData GridLayout$Alignment/FILL GridLayout$Alignment/FILL))
+    ; (.addComponent (Separator. Direction/HORIZONTAL) (GridLayout/createLayoutData
+    ;                                                   GridLayout$Alignment/FILL GridLayout$Alignment/CENTER))
+    ; (.addComponent
+    ;   (doto (TextBox. (TerminalSize. 8 8)
+    ;                   "Welcome to TTYmor!")
+    ;     (.setReadOnly true)
+    ;     (.addLine "waffles")
+    ;     (.addLine "kittens")
+    ;     (.addLine "eeeeeee"))
+    ;   (GridLayout/createLayoutData GridLayout$Alignment/FILL GridLayout$Alignment/FILL))
     ))
 
+; plan: we have the MapView as a borderless component that displays the map centered
+; on the current player location (which will have to be stored in an atom, so we
+; probably pass it the entire game state and let it deref and extract stuff like
+; the map grid and player coordinates).
+; problem: if we have an asymmetric HUD this results in the player being off center
+; in the map view. Booo. We may need to make the map view a window in its own right
+; after all.
 (defn run [game]
   (let [screen (TerminalScreen. (doto (.createTerminal (DefaultTerminalFactory.))
                                   (.setTitle "TTYmor")))
-        window (BasicWindow. "ShockRL")
-        theme (SimpleTheme. (colour "#00ff00") (colour "#000000") (into-array SGR []))
+        window (BasicWindow. "Map View")
+        theme (SimpleTheme. (colour "#80ff80") (colour "#000000") (into-array SGR []))
         gui (make-gui game)
         ]
+    (println "Initializing window...")
     (doto window
       (.setHints [Window$Hint/FULL_SCREEN, Window$Hint/FIT_TERMINAL_WINDOW, Window$Hint/NO_DECORATIONS])
       (.setComponent gui))
+    (println "Initializing screen...")
     (.startScreen screen)
+    (println "Initializing GUI...")
     (doto (MultiWindowTextGUI. screen (DefaultWindowManager.) (EmptySpace.))
       (.setTheme theme)
       (.addWindow window)

@@ -1,7 +1,6 @@
 (ns ttymor.core
   (:gen-class)
-  ; (:require ;[ttymor.gui :as gui]
-  ;           [squidlib-util.squidgrid :as squidgrid])
+  (:require [ttymor.gui :as gui])
   (:import [squidpony.squidgrid FOV Radius])
   )
 
@@ -60,4 +59,6 @@
   (print-terrain terrain 1 2 5)
   (print-terrain terrain 1 3 5)
   (print-terrain terrain 2 3 5)
+  (let [game (atom {:terrain terrain :entities entities})]
+    (gui/run game))
   )

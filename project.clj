@@ -5,7 +5,7 @@
             :url "https://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
                  [com.squidpony/squidlib-util "3.0.0-b9"]
-                 [com.googlecode.lanterna/lanterna "3.0.0-beta3"]]
+                 [com.googlecode.lanterna/lanterna "3.0.0"]]
   :core.typed {:check [ttymor.core]}
   :main ^:skip-aot ttymor.core
   :target-path "target/%s"
