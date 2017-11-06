@@ -12,43 +12,33 @@
            (com.googlecode.lanterna.terminal DefaultTerminalFactory Terminal)
            (com.googlecode.lanterna.graphics SimpleTheme BasicTextImage)))
 
-(defn colour [s]
+(defn- colour [s]
   (let [colour (TextColor$Factory/fromString s)]
     (if colour
       colour
       TextColor$ANSI/DEFAULT)))
 
-(defn placeholder [c w h]
+(defn- placeholder [c w h]
   (EmptySpace. (colour c) (TerminalSize. (int w) (int h))))
+
+(defn- grid-layout
+  ([grab-extra] (grid-layout grab-extra 1 1))
+  ([grab-extra w h] (GridLayout/createLayoutData
+                       GridLayout$Alignment/FILL GridLayout$Alignment/FILL
+                       grab-extra grab-extra w h))
+  )
 
 (defn make-gui [game]
   (doto (Panel.)
-    (.setLayoutManager (doto (GridLayout. 2)
+    (.setLayoutManager (doto (GridLayout. 3)
                          (.setHorizontalSpacing 0)
                          (.setLeftMarginSize 0)
                          (.setRightMarginSize 0)))
-    (.addComponent (placeholder "#008000" 16 8) (GridLayout/createLayoutData
-                                             GridLayout$Alignment/FILL GridLayout$Alignment/FILL
-                                             false false 1 2))
-    ; (.addComponent (Separator. Direction/VERTICAL) (GridLayout/createLayoutData
-    ;                                                 GridLayout$Alignment/FILL GridLayout$Alignment/FILL
-    ;                                                 false false 1 3))
-    (.addComponent (MapView/MapView game) (GridLayout/createLayoutData
-                                             GridLayout$Alignment/FILL GridLayout$Alignment/FILL
-                                             true true))
-    (.addComponent (placeholder "#800000" 8 2) (GridLayout/createLayoutData
-                                             GridLayout$Alignment/FILL GridLayout$Alignment/FILL
-                                             false false 1 1))
-    ; (.addComponent (Separator. Direction/HORIZONTAL) (GridLayout/createLayoutData
-    ;                                                   GridLayout$Alignment/FILL GridLayout$Alignment/CENTER))
-    ; (.addComponent
-    ;   (doto (TextBox. (TerminalSize. 8 8)
-    ;                   "Welcome to TTYmor!")
-    ;     (.setReadOnly true)
-    ;     (.addLine "waffles")
-    ;     (.addLine "kittens")
-    ;     (.addLine "eeeeeee"))
-    ;   (GridLayout/createLayoutData GridLayout$Alignment/FILL GridLayout$Alignment/FILL))
+    (.addComponent (placeholder "#008000" 16 8) (grid-layout false 1 3))
+    (.addComponent (Separator. Direction/VERTICAL) (grid-layout false 1 3))
+    (.addComponent (MapView/MapView game) (grid-layout true))
+    (.addComponent (Separator. Direction/HORIZONTAL) (grid-layout false))
+    (.addComponent (placeholder "#800000" 8 2) (grid-layout false))
     ))
 
 (defn run [game]

@@ -20,8 +20,8 @@
 
 (defn- MapRenderer [game]
   (reify InteractableRenderer
-    (getPreferredSize [this component] (TerminalSize. 1 1))
-    (getCursorLocation [this component] (TerminalPosition. 1 1))
+    (getPreferredSize [this component] (TerminalSize. 1 20))
+    (getCursorLocation [this component] (TerminalPosition. 0 0))
     (drawComponent [this graphics map-view]
       (let [terrain (@game :terrain)
             entities (@game :entities)
