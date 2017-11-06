@@ -37,7 +37,9 @@
                       (image-from terrain entities)))))
     ))
 
-(defn move-player [game x y] game)
+(defn move-player [game x y]
+  (update-in game [:entities 0 :position]
+             (fn [[ox oy]] [(+ ox x) (+ oy y)])))
 
 (defn MapView [game]
   (proxy [AbstractInteractableComponent] []
