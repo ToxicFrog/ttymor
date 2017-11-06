@@ -18,24 +18,27 @@
       colour
       TextColor$ANSI/DEFAULT)))
 
-(defn placeholder [w h]
-  (EmptySpace. (colour "#004000") (TerminalSize. (int w) (int h))))
+(defn placeholder [c w h]
+  (EmptySpace. (colour c) (TerminalSize. (int w) (int h))))
 
 (defn make-gui [game]
   (doto (Panel.)
-    (.setLayoutManager (doto (GridLayout. 1)
+    (.setLayoutManager (doto (GridLayout. 2)
                          (.setHorizontalSpacing 0)
                          (.setLeftMarginSize 0)
                          (.setRightMarginSize 0)))
-    ; (.addComponent (placeholder 8 8) (GridLayout/createLayoutData
-    ;                                          GridLayout$Alignment/FILL GridLayout$Alignment/FILL
-    ;                                          false false 1 3))
+    (.addComponent (placeholder "#008000" 16 8) (GridLayout/createLayoutData
+                                             GridLayout$Alignment/FILL GridLayout$Alignment/FILL
+                                             false false 1 2))
     ; (.addComponent (Separator. Direction/VERTICAL) (GridLayout/createLayoutData
     ;                                                 GridLayout$Alignment/FILL GridLayout$Alignment/FILL
     ;                                                 false false 1 3))
     (.addComponent (MapView/MapView game) (GridLayout/createLayoutData
                                              GridLayout$Alignment/FILL GridLayout$Alignment/FILL
                                              true true))
+    (.addComponent (placeholder "#800000" 8 2) (GridLayout/createLayoutData
+                                             GridLayout$Alignment/FILL GridLayout$Alignment/FILL
+                                             false false 1 1))
     ; (.addComponent (Separator. Direction/HORIZONTAL) (GridLayout/createLayoutData
     ;                                                   GridLayout$Alignment/FILL GridLayout$Alignment/CENTER))
     ; (.addComponent

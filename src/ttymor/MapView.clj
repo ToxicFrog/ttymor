@@ -37,11 +37,20 @@
                       (image-from terrain entities)))))
     ))
 
+(defn move-player [game x y] game)
+
 (defn MapView [game]
   (proxy [AbstractInteractableComponent] []
     (createDefaultRenderer [] (MapRenderer game))
     (handleKeyStroke
       [keystroke]
+      (case (.getCharacter keystroke)
+        \q (println "quit")
+        \w (swap! game move-player 0 -1)
+        \a (swap! game move-player -1 0)
+        \s (swap! game move-player 0 1)
+        \d (swap! game move-player 1 0)
+        nil)
       (println "HandleKeystroke: " keystroke)
       Interactable$Result/HANDLED)
     ))
